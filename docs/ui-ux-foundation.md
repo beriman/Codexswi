@@ -154,11 +154,34 @@ Sambatan Saya: daftar progress bar dan status
 - **Tablet (768-1279px)**: Navbar tetap, grid 2 kolom, sidebar berubah jadi top tabs.  
 - **Mobile (≤767px)**: Satu kolom, hero lebih ringkas, filter menjadi bottom sheet.
 
-## 6. Alur Pengguna Kunci (User Flow Ringkas)
+## 6. Alur Pengguna Kunci (User Flow)
 
-1. **Eksplorasi Sambatan**: Landing → pilih kartu Sambatan → detail produk → klik "Gabung Sambatan" → login magic link → konfirmasi slot.  
-2. **Kurator Nusantarum**: Dashboard → tab Konten → buat cerita → tautkan ke brand → publish → tampil di Nusantarum.  
-3. **Ops Pesanan**: Dashboard → tab Pesanan → filter status Draft → buka drawer → update status & nomor resi → simpan.
+### 6.1 Belanja Produk Regular
+
+| Tahap | Tujuan Pengguna | Tampilan & Komponen Kunci | Status/Notifikasi |
+|-------|-----------------|---------------------------|-------------------|
+| 1. Eksplorasi & Pencarian | Menemukan produk yang relevan | Landing/Marketplace: search bar kaca dengan auto-suggest, chip filter aroma, sort toggle. Grid kartu produk reguler menampilkan foto, nama, harga, badge stok. | Micro-copy "Menampilkan 24 produk" + skeleton loading saat filter diubah. |
+| 2. Melihat Detail Produk | Memahami deskripsi dan manfaat | Halaman detail reguler: galeri foto, deskripsi top-mid-base notes, info brand, highlight review (average rating + testimoni singkat). CTA utama "Tambah ke Keranjang" dengan varian quantity stepper. | Toast info saat perubahan varian (mis. ukuran) dan state tombol disabled bila stok habis. |
+| 3. Menambahkan ke Keranjang | Mengelola item yang akan dibeli | Drawer keranjang kaca muncul dari kanan berisi list item, kontrol kuantitas, subtotal dinamis. Tersedia tombol "Lanjutkan Belanja" dan CTA primer "Checkout". | Badge jumlah item pada ikon keranjang di navbar diperbarui real time, toast sukses setelah item ditambahkan. |
+| 4. Checkout Informasi | Mengisi data pengiriman & opsi pengiriman | Halaman checkout multi-step (breadcrumbs: Keranjang → Alamat → Pengiriman → Pembayaran). Form alamat menggunakan input kaca dengan auto-complete, opsi simpan alamat default. Pilihan pengiriman (Reguler, Same Day) dalam kartu radio glass. | Validasi inline dengan ikon cek/eror, summary order sticky di sisi kanan menampilkan estimasi tiba. |
+| 5. Pembayaran | Memilih metode dan melakukan pembayaran | Step pembayaran menampilkan opsi e-wallet, transfer bank, kartu kredit. UI tombol radio dengan ikon brand dan estimasi biaya admin. Setelah memilih, panel instruksi muncul (mis. nomor virtual account). | Countdown batas waktu pembayaran + CTA "Salin". Setelah sukses redirect ke halaman konfirmasi dengan status "Menunggu Konfirmasi". |
+| 6. Pelacakan & Penerimaan | Memantau status sampai barang diterima | Halaman riwayat pesanan/profil menampilkan kartu status dengan timeline (Pesanan dibuat → Diproses → Dikirim → Selesai). Notifikasi push/email dikirim saat status berubah. Tombol "Konfirmasi Terima Barang" muncul saat status dikirim. | Setelah pengguna menekan konfirmasi, status berubah menjadi "Selesai" dan tombol rating produk muncul untuk mendorong ulasan. |
+
+### 6.2 Belanja Produk Sambatan
+
+| Tahap | Tujuan Pengguna | Tampilan & Komponen Kunci | Status/Notifikasi |
+|-------|-----------------|---------------------------|-------------------|
+| 1. Eksplorasi Sambatan | Menemukan kampanye sambatan aktif | Landing memiliki tab "Sambatan". Kartu sambatan menampilkan progress radial, badge deadline (contoh: "3 hari lagi"), harga estimasi setelah sambatan berhasil, jumlah slot tersisa. Search & filter sama dengan reguler namun dengan filter tambahan (mis. kategori sambatan, progress). | Progress bar beranimasi saat hover, label "Butuh 5 lagi" untuk sense urgensi. |
+| 2. Detail Kampanye | Memahami mekanisme sambatan dan benefit | Halaman detail sambatan memiliki panel progres besar, daftar kontribusi terbaru (avatar), breakdown harga: harga normal vs harga sambatan, minimum slot, batas waktu. CTA utama "Gabung Sambatan"; secondary CTA "Tanya Tim" (chat). | Banner info jika kampanye hampir penuh atau mendekati deadline, tooltip yang menjelaskan istilah sambatan. |
+| 3. Gabung Sambatan | Memilih jumlah slot dan komitmen pembayaran | Setelah klik CTA, muncul modal stepper: (1) Pilih jumlah slot (dengan stok maksimal), (2) Konfirmasi total komitmen, (3) Pilih metode pembayaran. Sistem memegang dana (escrow) sampai sambatan sukses. | Badge status "Menunggu Slot Terpenuhi" muncul pada modal konfirmasi, notifikasi email/in-app mengenai komitmen. |
+| 4. Progres Sambatan | Memantau apakah sambatan terpenuhi | Di halaman profil > tab Sambatan Saya, tiap kampanye memiliki kartu dengan progress radial besar, countdown, dan CTA "Ajak Teman" (share). Jika slot terpenuhi sebelum deadline, status berubah menjadi "Sambatan Terkonfirmasi". Bila gagal, dana direfund otomatis. | Notifikasi otomatis: "Sisa 2 slot lagi" saat progress 80%, "Sambatan Terpenuhi" atau "Sambatan Gagal" dengan instruksi lanjutan. |
+| 5. Checkout Akhir | Menuntaskan detail pengiriman setelah sambatan sukses | Ketika status "Sambatan Terkonfirmasi", pengguna diarahkan ke flow checkout mirip produk reguler tetapi dengan harga final sambatan. Form alamat + opsi pengiriman di-prepopulate bila pernah diisi. | Banner hijau "Selamat! Sambatan berhasil" di atas page, countdown waktu untuk melengkapi pembayaran akhir bila menggunakan pembayaran bertahap. |
+| 6. Pemrosesan & Penerimaan | Menunggu produksi/pengiriman kolektif | Timeline status memiliki tahapan tambahan: "Produksi/Batching" sebelum "Dikirim". Notifikasi dikirim setiap tahapan selesai. Setelah barang tiba, pengguna konfirmasi penerimaan dan diminta memberi review khusus sambatan (testimonial untuk komunitas). | Jika sambatan gagal, timeline menampilkan status "Refund Diproses" dengan estimasi selesai dan CTA cek detail pembayaran. |
+
+### 6.3 Flow Non-Marketplace
+
+1. **Kurator Nusantarum**: Dashboard → tab Konten → buat cerita → tautkan ke brand → publish → tampil di Nusantarum.
+2. **Ops Pesanan**: Dashboard → tab Pesanan → filter status Draft → buka drawer → update status & nomor resi → simpan.
 
 ## 7. Checklist Implementasi UI
 
