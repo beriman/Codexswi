@@ -8,6 +8,7 @@ from starlette.staticfiles import StaticFiles
 
 from app.core.config import get_settings
 from app.web.templates import template_engine
+from app.api.routes import reports as reports_routes
 from app.api.routes import root as root_routes
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "static"
@@ -32,8 +33,9 @@ def create_app() -> FastAPI:
     # Mount static assets (CSS, JS, images) served by the Jinja2 templates.
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    # Register routers for server-rendered pages.
+    # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)
+    app.include_router(reports_routes.router)
 
     # Expose the template engine on the app state for reuse by routers.
     app.state.templates = template_engine
