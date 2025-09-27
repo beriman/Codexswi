@@ -1,107 +1,106 @@
-# Daftar To-Do Implementasi UI/UX Sensasiwangi.id
+# Daftar To-Do Implementasi UI/UX Sensasiwangi.id (Versi Tanpa Figma)
 
-Dokumen ini memecah fondasi desain ke rangkaian tugas implementasi yang siap dieksekusi dalam alat desain (Figma) sebelum handoff ke tim frontend. Checklist disusun mengikuti prioritas MVP dan sudah dilengkapi status awal, output yang diharapkan, serta dependensi lintas tim.
+Dokumen ini memetakan pekerjaan UI/UX langsung ke artefak kode pada stack FastAPI + HTMX + Jinja2. Referensi visual utama menggunakan contoh mockup (glassmorphism futuristik) yang sudah diberikan, sehingga setiap tugas berfokus pada implementasi HTML/CSS/JS dan dokumentasi teknis tanpa perantara file desain.
 
-## Ringkasan Sprint & Dependency
+Legenda status: ☐ belum mulai · ◐ in-progress · ✅ selesai.
 
-| Sprint | Fokus Utama | Dependency Utama | Catatan |
+## 0. Panduan Visual & Prinsip Umum
+
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| Sprint 1 | Setup sistem desain & navigasi global | Finalisasi fondasi visual | Pastikan asset font & warna tersimpan di shared library.
-| Sprint 2 | Halaman marketplace & detail produk | Copywriting hero & CTA | Validasi dengan tim marketing sebelum prototyping.
-| Sprint 3 | Dashboard internal & Nusantarum Hub | Data struktur CMS | Koordinasi dengan tim ops untuk requirement filter.
-| Sprint 4 | Profil pengguna, animasi & handoff | Integrasi autentikasi | Kolaborasi dengan frontend untuk microinteraction.
+| ☐ | Kanvas inspirasi UI | Tangkap elemen kunci dari mockup (palet, tipografi serif+sans, bubble glass, refleksi) dan tuangkan ke dokumen panduan kode. Sertakan referensi ukuran dan behavior animasi dasar. | `docs/ui-style-reference.md` berisi moodboard singkat + token awal. |
+| ☐ | Susun token desain berbasis CSS | Definisikan CSS custom properties untuk warna, radius, blur, shadow, gradient dan timing animasi sesuai mockup. Token dideklarasikan di `:root` dan dipublikasikan melalui `static/css/tokens.css`. | File `src/app/web/static/css/tokens.css` berisi token komprehensif. |
+| ☐ | Setup tipografi & ikon | Implementasi font Playfair Display + Inter (atau alternatif open source mirip) via `@font-face`/Google Fonts, serta siapkan set ikon Feather/Phosphor yang akan dipakai. | Update `base.html` + `static/css/base.css` untuk import font & ikon. |
 
-Status legend: ☐ belum mulai · ◐ in-progress · ✅ selesai.
+## 1. Sistem Desain Berbasis Kode
 
-## 1. Setup Desain & Sistem Komponen
-
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Siapkan file desain kolaboratif | Buat file Figma baru dengan struktur page "Foundations", "Components", "Screens" dan atur permission editor untuk tim. | File Figma `Sensasiwangi_UI-MVP`. |
-| ☐ | Definisikan style guide global | Implementasikan palet warna, token tipografi (Playfair Display & Inter), scale heading, dan state warna teks (default/hover/disabled). | Page "Foundations" berisi style guide lengkap. |
-| ☐ | Bangun library komponen dasar | Desain button, card, input, badge, progress bar dengan variant state (default, hover, active, disabled). Gunakan Auto Layout dan component properties. | Page "Components" dengan publish library internal. |
-| ☐ | Buat auto-layout responsif | Konfigurasi grid & Auto Layout untuk breakpoint desktop, tablet, mobile sesuai panduan foundation. Sertakan template frame untuk tiap breakpoint. | Template frame pada page "Foundations". |
+| ☐ | Utilitas glassmorphism | Buat kelas utilitas (mis. `.glass-card`, `.glass-panel`, `.blur-pill`) yang mengatur backdrop-filter, border, dan shadow sesuai inspirasi UI. | `static/css/glass.css` + dokumentasi pemakaian di `docs/ui-style-reference.md`. |
+| ☐ | Komponen tombol & chip | Rancang varian tombol utama/sekunder/ghost serta chip filter dengan state hover/active menggunakan CSS variables & HTMX states. | Partial `templates/components/button.html` + CSS di `static/css/components/button.css`. |
+| ☐ | Komponen kartu & badge status | Implementasikan kartu produk dengan preview gambar, badge sambatan, dan progress bar radial sesuai sample 3D. Sediakan versi horizontal dan grid. | `templates/components/product-card.html` + CSS & script animasi progress. |
+| ☐ | Layout responsif dasar | Definisikan grid dan spacing untuk breakpoint desktop/tablet/mobile menggunakan CSS Grid/Flex. Sertakan helper kelas `container-xl`, `stack-lg` dsb. | `static/css/layout.css` + README singkat pada file yang sama. |
 
 ## 2. Navigasi & Struktur Global
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Navbar sticky desktop & mobile | Desain versi desktop (menu penuh) dan mobile (hamburger drawer) dengan interaction notes. | Komponen navbar + prototipe open drawer. |
-| ☐ | Struktur footer lengkap | Susun footer dengan CTA newsletter, tautan legal, sosial, highlight komunitas. Sertakan layout untuk mobile stack. | Frame footer + komponen auto layout. |
-| ☐ | Breadcrumb template | Buat komponen breadcrumb dengan variant untuk 2-4 level halaman. | Komponen breadcrumb siap instansi. |
+| ☐ | Navbar sticky adaptif | Implementasikan navbar glass dengan menu utama, indikator halaman aktif, CTA login/signup, serta varian mobile (drawer). Gunakan HTMX untuk aksi open/close. | `templates/partials/navbar.html`, CSS di `static/css/components/navbar.css`, dan skrip `static/js/navbar.js`. |
+| ☐ | Footer komunitas | Bangun footer dengan CTA newsletter, link legal, sosial, dan highlight komunitas. Pastikan layout stack rapi di mobile. | `templates/partials/footer.html` + CSS pendukung. |
+| ☐ | Breadcrumb reusable | Buat component breadcrumb HTML dengan data-props Jinja (list tuple). Sediakan styling glass pill dan fallback mobile (horizontal scroll). | `templates/components/breadcrumb.html` + CSS. |
 
 ## 3. Halaman Prioritas MVP
 
 ### 3.1 Landing Page / Marketplace Overview
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Hero section | Desain headline, subcopy, CTA ganda, kartu statistik dengan background glassmorphism. Sertakan guideline animasi hero. | Frame hero + notes animasi. |
-| ☐ | Tab kategori & filter | Implementasikan tab kategori, filter kaca, search bar, sort chip lengkap variant active/hover. | Komponen tab/filter + prototipe flow pencarian. |
-| ☐ | Grid produk responsif | Buat grid dengan state hover, indikator sambatan (progress bar + deadline). Sertakan breakpoint desktop/tablet/mobile. | Frame grid multi breakpoint. |
-| ☐ | Carousel highlight Nusantarum | Desain carousel kaca dengan navigation pill & CTA baca cerita. | Prototipe carousel (Figma smart animate). |
-| ☐ | Footer CTA komunitas | Rancang footer CTA komunitas + newsletter dengan copy placeholder. | Frame footer section. |
+| ☐ | Hero interaktif | Bangun hero dengan headline besar, subcopy, CTA ganda, slider produk unggulan dan latar bubble 3D (SVG atau Lottie). Sertakan animasi hover subtle. | `templates/pages/landing.html` (section hero) + asset di `static/media/hero`. |
+| ☐ | Tab kategori & filter | Implementasikan tab + filter kaca menggunakan HTMX untuk swap konten tanpa reload. Sediakan chip active/hover, search bar, dan sort toggle. | Partial `templates/components/category-tabs.html` + JS `static/js/tabs.js`. |
+| ☐ | Grid produk responsif | Layout grid dengan indikator sambatan (progress bar + deadline) dan varian card untuk desktop/tablet/mobile. Pastikan `aria` label lengkap. | Block pada landing.html + CSS di `components/product-grid.css`. |
+| ☐ | Carousel highlight Nusantarum | Implementasikan carousel horizontal dengan pill navigation dan auto-play opsional menggunakan Swiper.js atau implementasi custom. | Partial `templates/components/story-carousel.html` + JS `static/js/carousel.js`. |
+| ☐ | Footer CTA komunitas | Section CTA akhir dengan glass panel dan call-to-action bergaya mockup. | Section di landing.html + CSS section. |
 
 ### 3.2 Detail Produk
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Galeri foto | Buat komponen galeri dengan thumbnail, view utama, dan interaction untuk swap gambar. | Prototipe galeri interaktif. |
-| ☐ | Panel informasi produk | Desain area harga, stok, deskripsi aroma (notes), CTA Sambatan/Pesanan dengan badge status. | Frame panel info produk. |
-| ☐ | Modul info brand & cerita | Susun modul brand termasuk logo kaca, sertifikasi, link ke Nusantarum. | Komponen modul brand. |
-| ☐ | Panel sambatan | Implementasi progress circle, slot tersisa, countdown, daftar kontributor terbaru. Sertakan property variant (aktif/penuh). | Frame panel sambatan dengan component properties. |
+| ☐ | Galeri foto produk | Implementasikan viewer utama + thumbnail scroll dengan efek parallax ringan. Dukungan keyboard navigation dan fallback non-JS. | Partial `templates/components/product-gallery.html` + JS `static/js/gallery.js`. |
+| ☐ | Panel informasi produk | Panel kanan berisi harga, stok, deskripsi aroma, CTA Sambatan/Pesanan dengan badge status. Pastikan sticky di desktop. | `templates/pages/product_detail.html` section info + CSS. |
+| ☐ | Modul info brand | Kartu brand kaca dengan logo, sertifikasi, link Nusantarum, CTA follow. | Partial `templates/components/brand-module.html`. |
+| ☐ | Panel sambatan | Komponen progress radial, slot tersisa, countdown realtime (menggunakan Stimulus/HTMX). Varian state aktif/penuh/tutup. | JS `static/js/sambatan-panel.js` + partial HTML & CSS. |
 
-### 3.3 Dashboard Internal (Tim Ops)
+### 3.3 Dashboard Internal (Ops)
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Layout sidebar + konten utama | Desain struktur dashboard dengan sidebar kaca, topbar, dan konten utama responsive. | Frame dashboard utama. |
-| ☐ | Header metrik | Buat kartu KPI dengan highlight gradien & icon. | Komponen KPI card + variant status (naik/turun). |
-| ☐ | Tabel pesanan | Desain tabel pesanan dengan filter status, tombol ekspor, empty state. | Komponen tabel + overlay filter. |
-| ☐ | Drawer detail pesanan | Implementasikan panel kanan yang muncul saat baris dipilih berisi detail dan log aktivitas. | Prototipe interaction open drawer. |
+| ☐ | Layout dashboard | Sidebar kaca, topbar, dan konten utama responsif. Gunakan CSS Grid dua kolom + collapse mobile. | `templates/pages/dashboard/index.html` + CSS `static/css/dashboard.css`. |
+| ☐ | Header metrik | Kartu KPI dengan gradient glow, icon, delta up/down. Animated counters optional. | Partial `templates/components/kpi-card.html` + JS kecil untuk animasi angka. |
+| ☐ | Tabel pesanan | Tabel dengan filter status (tabs), tombol ekspor, empty state ilustrasi. Responsif via CSS `display: block` di mobile. | Partial `templates/components/order-table.html` + CSS/JS filter. |
+| ☐ | Drawer detail pesanan | Drawer kanan yang muncul saat klik baris, menampilkan detail & log. Implementasi HTMX swap + overlay backdrop. | Template `templates/components/order-drawer.html` + JS `static/js/drawer.js`. |
 
 ### 3.4 Nusantarum Hub
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Hero kaca kuratorial | Desain hero section dengan headline, subcopy, CTA, background partikel aroma. | Frame hero Nusantarum. |
-| ☐ | Panel filter multiplatform | Buat panel filter kategori aroma, wilayah, kurator untuk desktop & bottom sheet mobile. | Komponen filter + variant platform. |
-| ☐ | Kartu cerita | Rancang kartu cerita Nusantarum termasuk foto, tag brand/perfumer, CTA baca. | Komponen kartu cerita. |
-| ☐ | CTA ajukan cerita | Desain CTA dengan state hover & disabled, sertakan note integrasi form. | Komponen CTA + guideline handoff. |
+| ☐ | Hero kuratorial | Hero kaca dengan headline, subcopy, CTA, background partikel (canvas/SVG). | Section `templates/pages/nusantarum.html` + asset. |
+| ☐ | Panel filter multiplatform | Panel filter desktop + bottom sheet mobile (dialog). Gunakan CSS `position: sticky` dan HTMX update results. | `templates/components/nusantarum-filter.html` + JS `static/js/filter-sheet.js`. |
+| ☐ | Kartu cerita | Kartu cerita dengan foto, tag brand/perfumer, CTA. Pastikan variant grid/list. | Partial `templates/components/story-card.html`. |
+| ☐ | CTA ajukan cerita | Form CTA dengan state hover, disabled, dan note integrasi backend. | Section + CSS. |
 
 ### 3.5 Profil Pengguna
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Header profil | Bangun header profil (avatar kaca, nama, preferensi aroma chip) dengan editing state. | Frame header profil. |
-| ☐ | Tab Aktivitas/Favorit/Sambatan | Implementasikan tab dan konten default per tab menggunakan component set. | Prototipe switch tab. |
-| ☐ | Timeline aktivitas | Desain kartu timeline untuk aktivitas terbaru dengan icon status. | Komponen timeline card. |
-| ☐ | Grid favorit & daftar sambatan | Buat layout favorit (grid) dan sambatan (list) dengan indicator status. | Frame tab Favorit & Sambatan. |
+| ☐ | Header profil | Header kaca dengan avatar, nama, preferensi aroma chip, dan tombol edit. | Section `templates/pages/profile.html` + CSS. |
+| ☐ | Tab aktivitas/favorit/sambatan | Tab berbasis HTMX untuk switch konten tanpa reload, dengan animasi underline. | `templates/components/profile-tabs.html` + JS `static/js/profile-tabs.js`. |
+| ☐ | Timeline aktivitas | Komponen timeline card dengan icon status, timestamp, deskripsi. | Partial `templates/components/activity-card.html`. |
+| ☐ | Grid favorit & daftar sambatan | Layout grid/list dengan status indicator & CTA lanjutkan. | Blocks di profile.html + CSS. |
 
 ## 4. Interaksi & Animasi
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Animasi hover global | Dokumentasikan token animasi hover (translateY -2px, glow border, timing `ease-out 180ms`). | Guideline animasi pada page Foundations. |
-| ☐ | Transisi antar halaman | Rancang transisi (fade-in + blur subtle) dan demokan dengan Smart Animate antar frame utama. | Prototipe transisi antar frame. |
-| ☐ | Microinteraction komponen | Definisikan state dan feedback untuk tombol, progress bar, badge sambatan (mis. pulse countdown). | Notes interaksi + komponen variant. |
+| ☐ | Token animasi global | Definisikan utilitas animasi (hover lift, fade-blur, glow pulse) dalam `static/css/animation.css` dan contoh di dokumentasi. | File animasi + update doc gaya. |
+| ☐ | Transisi antar halaman | Implementasi transisi halus menggunakan HTMX `hx-boost` + CSS `view-transition` (jika didukung) atau fallback fade. | Skrip `static/js/page-transitions.js` + konfigurasi di base template. |
+| ☐ | Microinteraction komponen | Tambahkan feedback state untuk tombol, progress bar, badge sambatan (pulse countdown). Deskripsikan perilaku di dokumentasi. | Update CSS/JS terkait + section dokumentasi. |
 
-## 5. Aset & Dokumentasi Developer Handoff
+## 5. Aset & Dokumentasi Handoff Developer
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Export ikon Feather kustom | Kurasi ikon Feather dengan stroke 1.5px + neon glow jika perlu, export set SVG. | Folder aset ikon. |
-| ☐ | Placeholder foto produk/brand | Siapkan template kontainer kaca dengan drop shadow, buat 3 variasi. | Frame placeholder siap export. |
-| ☐ | Spesifikasi spacing & shadow | Dokumentasikan spacing, padding, shadow per komponen menggunakan Figma Measure. | Page dokumentasi komponen. |
-| ☐ | Checklist QA visual | Susun checklist (kontras, keterbacaan, konsistensi grid) untuk review pra-handoff. | Checklist di Notion/Figma FigJam. |
+| ☐ | Paket ikon & ilustrasi | Kumpulkan ikon SVG dan ilustrasi latar bubble sesuai gaya. Optimasi via SVGO. | Direktori `static/icons/` & `static/illustrations/` + README listing. |
+| ☐ | Placeholder produk & brand | Sediakan placeholder gambar dengan efek kaca (PNG/WebP) untuk fallback. | Folder `static/media/placeholders/`. |
+| ☐ | Dokumentasi spacing & shadow | Tuliskan guideline di `docs/ui-style-reference.md` terkait jarak, layering, depth. | Update dokumen referensi. |
+| ☐ | Checklist QA visual | Buat checklist HTML/Markdown untuk review kontras, responsive, accesibility (keyboard, aria). | `docs/ui-qa-checklist.md`. |
 
 ## 6. Integrasi & Validasi
 
-| Status | Task | Deskripsi | Deliverable |
+| Status | Task | Deskripsi Implementasi | Deliverable |
 | --- | --- | --- | --- |
-| ☐ | Mapping komponen ke stack frontend | Workshop dengan tim frontend untuk menyelaraskan tokens dengan teknologi (Tailwind/React). | Dokumen mapping (Notion/Confluence). |
-| ☐ | Prototipe interaktif utama | Buat prototipe interaktif (landing, detail produk, dashboard) untuk validasi flow. | Figma prototype siap user testing. |
-| ☐ | Usability testing ringan | Jalankan testing 5-7 pengguna internal, catat temuan prioritas & rekomendasi. | Laporan testing singkat. |
-| ☐ | Revisi & finalisasi desain | Terapkan feedback prioritas, tandai frame final, dan serahkan ke sprint development. | Page "Final Screens" terkunci. |
+| ☐ | Mapping komponen ke backend | Dokumentasikan bagaimana tiap komponen template menerima data (context dict). Sertakan contoh payload. | `docs/ui-component-contracts.md`. |
+| ☐ | Prototipe interaktif via Storybook/Pattern Library | Setup Storybook (atau alternatif minimal `docs/site` dengan `npm run dev`) untuk preview komponen glass secara isolasi. | Konfigurasi Storybook di `story/` + panduan run. |
+| ☐ | Usability testing ringan | Jalankan tes internal (5-7 orang) menggunakan build SSR aktual, catat temuan. | Laporan `docs/research/usability-round1.md`. |
+| ☐ | Revisi & finalisasi | Terapkan feedback, tandai komponen siap produksi, update changelog. | Update doc + commit changelog di `docs/ui-style-reference.md`. |
 
-> Catatan: update status minimal setiap akhir sprint dan lampirkan link relevant (library, prototipe, dokumen QA) untuk menjaga alignment lintas tim.
+> Catatan: seluruh deliverable harus versioned di repo ini. Gunakan screenshot dari implementasi aktual (bukan Figma) untuk dokumentasi visual.
