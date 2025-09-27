@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or app_name }} – Sensasiwangi.id</title>
+    <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}" />
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-9gCsk+S4iigFsMghvYDn8ApX2HFqRSbuuSSMzdg3NofM8JrIoYNewc19hXtF87dj" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      {% include 'partials/navbar.html' %}
+      <main class="content glass-panel">
+        {% block content %}{% endblock %}
+      </main>
+      {% include 'partials/footer.html' %}
+    </div>
+  </body>
+</html>
