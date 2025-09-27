@@ -1,69 +1,33 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="marketplace-hero glass-surface">
-  <div class="hero-intro">
-    <span class="badge">Eksplorasi Marketplace</span>
-    <h1>Kurasi parfum artisan dan karya komunitas dalam satu etalase.</h1>
-    <p>
-      Bandingkan koleksi brand terpilih dengan kreasi komunitas Nusantarum, cek ketersediaan
-      sambatan, dan lanjutkan kolaborasi langsung dari dashboard Anda.
-    </p>
-    <div class="hero-actions">
-      <a class="btn gradient-button" href="#marketplace-catalog">Lihat katalog</a>
-    </div>
-  </div>
-  <div class="hero-filters glass-card">
-    <div class="filter-heading">
-      <h2>Pencarian cepat</h2>
-      <p>Gunakan filter untuk mempersempit aroma, status sambatan, dan kisaran harga.</p>
-    </div>
-    <form class="filter-form" aria-label="Filter marketplace parfum">
-      <label class="field">
-        <span>Kata kunci</span>
-        <input type="search" name="q" placeholder="Cari brand, notes, atau kreator" />
-      </label>
-      <label class="field">
-        <span>Kategori</span>
-        <select name="category">
-          <option value="">Semua kategori</option>
-          {% for tab in marketplace_catalog %}
-          <option value="{{ tab.slug }}">{{ tab.label }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label class="field">
-        <span>Status Sambatan</span>
-        <select name="sambatan">
-          <option>Semua</option>
-          <option>Aktif</option>
-          <option>Menjelang penuh</option>
-          <option>Selesai</option>
-        </select>
-      </label>
-      <label class="field range">
-        <span>Kisaran harga</span>
-        <div class="range-inputs">
-          <input type="number" name="min" placeholder="Rp150K" min="0" />
-          <span class="divider">—</span>
-          <input type="number" name="max" placeholder="Rp500K" min="0" />
-        </div>
-      </label>
-      <button class="btn gradient-button" type="submit">Terapkan filter</button>
-    </form>
-  </div>
-</section>
-
 <section class="marketplace-section" id="marketplace-catalog">
   <div class="section-header">
     <div>
       <span class="badge brand">Katalog Marketplace</span>
-      <h2>Produk brand partner dan kreator komunitas</h2>
+      <h1>Telusuri produk brand partner dan kreator komunitas</h1>
       <p>
         Gunakan tab kategori untuk beralih antara parfum siap pakai, bahan baku, peralatan, dan opsi
         pendukung lainnya.
       </p>
     </div>
+    <form
+      class="filter-form single-field section-search"
+      role="search"
+      aria-label="Cari produk marketplace"
+    >
+      <label class="field">
+        <span>Pencarian</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="Contoh: Pelangi Senja atau Ayu Prameswari"
+          autocomplete="off"
+          data-marketplace-search
+        />
+      </label>
+      <p class="filter-hint">Ketik nama produk, brand, atau perfumer untuk menelusuri katalog.</p>
+    </form>
   </div>
 
   <div class="catalog-tabs" role="tablist">
@@ -92,9 +56,16 @@
     {% if not loop.first %}hidden{% endif %}
   >
     <p class="panel-description">{{ tab.description }}</p>
+    <p class="empty-state" data-empty-message hidden>Belum ada produk yang cocok dengan pencarian Anda.</p>
     <div class="product-grid marketplace-grid">
       {% for product in tab.products %}
-      <article class="product-card glass-card">
+      <article
+        class="product-card glass-card"
+        data-product-card
+        data-name="{{ product.name }}"
+        data-brand="{{ product.origin }}"
+        data-perfumer="{{ product.perfumer or '' }}"
+      >
         <div class="product-media {{ product.media_class }}"></div>
         <div class="product-content">
           <div class="product-meta">
@@ -102,6 +73,9 @@
             <span class="product-owner">{{ product.origin }}</span>
           </div>
           <h3>{{ product.name }}</h3>
+          {% if product.perfumer %}
+          <p class="product-perfumer">Diracik oleh {{ product.perfumer }}</p>
+          {% endif %}
           {% if product.description %}
           <p class="product-description">{{ product.description }}</p>
           {% elif product.notes %}
@@ -141,6 +115,7 @@
   (function () {
     const tabButtons = document.querySelectorAll('[data-tab]');
     const tabPanels = document.querySelectorAll('[data-tab-panel]');
+    const searchInput = document.querySelector('[data-marketplace-search]');
 
     tabButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -157,8 +132,55 @@
           panel.classList.toggle('is-hidden', !match);
           panel.toggleAttribute('hidden', !match);
         });
+
+        if (searchInput && searchInput.value.trim()) {
+          applySearchFilter();
+        }
       });
     });
+
+    function normalise(value) {
+      return value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '');
+    }
+
+    function applySearchFilter() {
+      const keyword = normalise(searchInput.value.trim());
+
+      tabPanels.forEach((panel) => {
+        const cards = panel.querySelectorAll('[data-product-card]');
+        const emptyMessage = panel.querySelector('[data-empty-message]');
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+          const name = normalise(card.dataset.name || '');
+          const brand = normalise(card.dataset.brand || '');
+          const perfumer = normalise(card.dataset.perfumer || '');
+          const haystack = `${name} ${brand} ${perfumer}`.trim();
+          const matches = !keyword || haystack.includes(keyword);
+
+          card.classList.toggle('is-filtered-out', !matches);
+          card.toggleAttribute('hidden', !matches);
+
+          if (matches) {
+            visibleCount += 1;
+          }
+        });
+
+        const shouldShowEmpty = visibleCount === 0 && keyword;
+        if (emptyMessage) {
+          emptyMessage.toggleAttribute('hidden', !shouldShowEmpty);
+        }
+      });
+    }
+
+    if (searchInput) {
+      ['input', 'change'].forEach((eventName) => {
+        searchInput.addEventListener(eventName, applySearchFilter);
+      });
+    }
   })();
 </script>
 {% endblock %}
