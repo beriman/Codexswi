@@ -635,6 +635,39 @@ async def read_onboarding(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("onboarding.html", context)
 
 
+@router.get("/auth", response_class=HTMLResponse)
+async def read_auth(request: Request) -> HTMLResponse:
+    """Render the combined register/login playground."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+
+    perks = [
+        {
+            "title": "Satu akun untuk semua modul",
+            "description": "Akses marketplace, sambatan, dan analitik dengan sekali login.",
+        },
+        {
+            "title": "Pengingat personal",
+            "description": "Tim produk dapat menguji flow notifikasi dan email komunitas.",
+        },
+        {
+            "title": "Keamanan dasar",
+            "description": "Password divalidasi di sisi server dan disimpan dengan hashing.",
+        },
+    ]
+
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Masuk & Daftar",
+        "perks": perks,
+        "session_user": request.session.get("user"),
+    }
+    return templates.TemplateResponse("auth.html", context)
+
+
 @router.get("/ui-ux/implementation", response_class=HTMLResponse)
 async def read_uiux_tracker(request: Request) -> HTMLResponse:
     """Render a glassmorphism-flavored tracker of the UI/UX implementation to-do list."""
