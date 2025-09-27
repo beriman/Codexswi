@@ -21,6 +21,14 @@
         Onboarding
       </a>
     </li>
+    <li>
+      <a
+        href="{{ url_for('read_uiux_tracker') }}"
+        class="{% if request.url.path.startswith('/ui-ux') %}active{% endif %}"
+      >
+        UI/UX Tracker
+      </a>
+    </li>
     <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
     <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
     <li><a href="{{ url_for('read_home') }}#dashboard">Dashboard</a></li>

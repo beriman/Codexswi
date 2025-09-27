@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+      <link rel="stylesheet" href="{{ url_for('static', path='css/ui-ux-tracker.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div id="top" class="top-anchor" aria-hidden="true"></div>
+<section class="tracker-hero glass-surface">
+  <div class="hero-copy">
+    <span class="badge">Implementasi UI/UX</span>
+    <h1>Blueprint implementasi Sensasiwangi.id tanpa bergantung pada Figma.</h1>
+    <p>
+      Halaman ini memvisualisasikan backlog <strong>docs/ui-ux-implementation-todo.md</strong> dalam bentuk tracker interaktif.
+      Setiap bagian memetakan pekerjaan desain langsung ke artefak HTML, CSS, dan HTMX yang akan dibangun pada MVP.
+    </p>
+    <p class="hero-subcopy">
+      Gunakan anchor pada sidebar mini untuk melompat ke domain kerja tertentu dan pantau progresnya secara berkala bersama tim
+      front-end serta produk.
+    </p>
+  </div>
+  <div class="status-legend glass-card">
+    <h2>Legenda Status</h2>
+    <ul>
+      {% for key, info in status_meta.items() %}
+      <li>
+        <span class="status-icon status-{{ key }}">{{ info.icon }}</span>
+        <span class="status-label">{{ info.label }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<nav class="section-nav glass-card" aria-label="Navigasi bagian">
+  <h2>Peta Bagian</h2>
+  <ol>
+    {% for section in sections %}
+    <li><a href="#{{ section.slug }}">{{ section.section }}</a></li>
+    {% endfor %}
+  </ol>
+</nav>
+
+{% for section in sections %}
+<section id="{{ section.slug }}" class="tracker-section glass-card">
+  <header class="section-header">
+    <div>
+      <p class="section-eyebrow">Domain kerja</p>
+      <h2>{{ section.section }}</h2>
+    </div>
+    <a class="section-top-link" href="#top" aria-label="Kembali ke atas">↑</a>
+  </header>
+
+  {% if section.tasks %}
+  <div class="task-grid">
+    {% for task in section.tasks %}
+    <article class="task-card" data-status="{{ task.status }}">
+      <header>
+        <span class="status-icon status-{{ task.status }}">{{ status_meta[task.status].icon }}</span>
+        <h3>{{ task.title }}</h3>
+      </header>
+      <p>{{ task.description }}</p>
+      <footer>
+        <span class="label">Deliverable</span>
+        <span class="deliverable">{{ task.deliverable }}</span>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+  {% elif section.groups %}
+  <div class="grouped-section">
+    {% for group in section.groups %}
+    <section class="task-group">
+      <h3>{{ group.title }}</h3>
+      <div class="task-grid">
+        {% for task in group.tasks %}
+        <article class="task-card" data-status="{{ task.status }}">
+          <header>
+            <span class="status-icon status-{{ task.status }}">{{ status_meta[task.status].icon }}</span>
+            <h4>{{ task.title }}</h4>
+          </header>
+          <p>{{ task.description }}</p>
+          <footer>
+            <span class="label">Deliverable</span>
+            <span class="deliverable">{{ task.deliverable }}</span>
+          </footer>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+
+<section class="tracker-note glass-card">
+  <h2>Catatan Implementasi</h2>
+  <p>
+    Seluruh deliverable wajib ada di repositori ini. Dokumentasikan bukti visual menggunakan screenshot dari implementasi SSR yang
+    berjalan, bukan mockup Figma, untuk menjaga konsistensi referensi lintas tim.
+  </p>
+</section>
+{% endblock %}
