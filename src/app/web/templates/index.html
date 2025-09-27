@@ -1,44 +1,223 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="hero">
-  <div class="hero-text">
-    <h1>Selamat datang di {{ app_name }}</h1>
+<section class="hero glass-surface" id="marketplace">
+  <div class="hero-copy">
+    <span class="badge">Eksplorasi Wewangian Nusantara</span>
+    <h1>Marketplace kurasi parfum artisan dengan jiwa kolaboratif.</h1>
     <p>
-      Platform wewangian lokal dengan marketplace terkurasi, kanal editorial
-      Nusantarum, dan fitur Sambatan untuk kolaborasi produksi.
+      Temukan brand parfum lokal pilihan, akses bahan baku langka, dan ikut membentuk produksi bersama komunitas melalui Sambatan.
     </p>
     <div class="hero-actions">
-      <a class="btn primary" href="#marketplace">Jelajahi Marketplace</a>
-      <a class="btn secondary" href="#nusantarum">Baca Nusantarum</a>
+      <a class="btn gradient-button" href="#katalog">Eksplor Marketplace</a>
+      <a class="btn btn-outline" href="#sambatan">Pelajari Sambatan</a>
     </div>
   </div>
-  <div class="hero-visual"></div>
+  <div class="hero-visual">
+    <div class="hero-aurora"></div>
+    <div class="hero-bottle">
+      <div class="cap"></div>
+      <div class="body"></div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-card glass-card">
+      <span class="stat-value">28</span>
+      <p class="stat-label">Brand Terkurasi</p>
+    </div>
+    <div class="stat-card glass-card">
+      <span class="stat-value">6</span>
+      <p class="stat-label">Sambatan Aktif</p>
+    </div>
+    <div class="stat-card glass-card">
+      <span class="stat-value">14</span>
+      <p class="stat-label">Stories Terbaru</p>
+    </div>
+  </div>
 </section>
 
-<section id="marketplace" class="section glass-panel">
-  <h2>Marketplace Pilot</h2>
-  <p>
-    Mulai bangun struktur katalog empat kategori (Parfum, Raw Material, Tools,
-    Lainnya). Komponen ini akan terhubung dengan Supabase untuk data produk
-    setelah skema siap.
-  </p>
+<section class="catalog" id="katalog">
+  <header class="catalog-header glass-surface">
+    <div>
+      <h2>Katalog Pilihan</h2>
+      <p>Pilih kategori untuk melihat inspirasi produk dan bahan dari kurator Sensasiwangi.id.</p>
+    </div>
+    <div class="tab-list">
+      <button class="tab active">Parfum</button>
+      <button class="tab">Raw Material</button>
+      <button class="tab">Tools</button>
+      <button class="tab">Lainnya</button>
+    </div>
+  </header>
+
+  <div class="filter-bar glass-surface">
+    <div class="filter-group">
+      <label class="filter-chip">Filter kaca</label>
+      <label class="filter-chip">Sort: Popular</label>
+      <label class="filter-chip">Aroma: Bunga</label>
+    </div>
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l5 4.99L20.49 19l-4.99-5zM5 10.5a5.5 5.5 0 1 1 11 0a5.5 5.5 0 0 1-11 0z"
+          fill="currentColor"
+        />
+      </svg>
+      <input type="search" placeholder="Cari parfum, brand, atau bahan baku" />
+    </div>
+  </div>
+
+  <div class="product-grid">
+    <article class="product-card glass-card">
+      <div class="product-media parfum-aurora"></div>
+      <div class="product-content">
+        <div class="product-meta">
+          <span class="product-category">Parfum Artisan</span>
+          <span class="badge sambatan">Sambatan</span>
+        </div>
+        <h3>Rimba Embun</h3>
+        <p class="product-description">Jasmine sambac, vetiver Bali, dan cedar Atlas.</p>
+        <div class="product-footer">
+          <span class="price">Rp420K</span>
+          <div class="progress-indicator">
+            <span class="progress-label">72% terpenuhi</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="--progress: 72%"></div>
+            </div>
+            <span class="progress-deadline">3 hari lagi</span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="product-card glass-card">
+      <div class="product-media parfum-tropis"></div>
+      <div class="product-content">
+        <div class="product-meta">
+          <span class="product-category">Signature Blend</span>
+        </div>
+        <h3>Pelangi Senja</h3>
+        <p class="product-description">Ylang-ylang, patchouli Sulawesi, dan amber praline.</p>
+        <div class="product-footer">
+          <span class="price">Rp380K</span>
+          <button class="btn btn-ghost">Lihat detail</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="product-card glass-card">
+      <div class="product-media parfum-malam"></div>
+      <div class="product-content">
+        <div class="product-meta">
+          <span class="product-category">Kolaborasi Komunitas</span>
+          <span class="badge sambatan">Sambatan</span>
+        </div>
+        <h3>Kidung Laut</h3>
+        <p class="product-description">Sea salt accord, kelopak kenanga, dan oud Kalimantan.</p>
+        <div class="product-footer">
+          <span class="price">Rp450K</span>
+          <div class="progress-indicator">
+            <span class="progress-label">54% terpenuhi</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="--progress: 54%"></div>
+            </div>
+            <span class="progress-deadline">6 hari lagi</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
 </section>
 
-<section id="nusantarum" class="section glass-panel">
-  <h2>Nusantarum Editorial</h2>
-  <p>
-    Artikel kurasi akan tampil di sini lengkap dengan filter aroma, wilayah, dan
-    kurator. Struktur tab dan panel filter akan diimplementasikan pada sprint
-    konten.
-  </p>
+<section class="sambatan-highlight" id="sambatan">
+  <div class="highlight-header">
+    <h2>Sambatan Terbaru</h2>
+    <p>Bergabunglah dalam batch produksi kolaboratif dengan slot terbatas.</p>
+  </div>
+  <div class="highlight-grid">
+    <article class="sambatan-card glass-card">
+      <div class="card-header">
+        <span class="badge sambatan">Batch 02</span>
+        <span class="deadline">Tutup 12 Juni</span>
+      </div>
+      <h3>Batch Kayu Manise</h3>
+      <p>Ekstrak kayu manis Maluku dan tonka bean untuk diffuser edisi lebaran.</p>
+      <div class="progress-indicator">
+        <span class="progress-label">18 slot tersisa</span>
+        <div class="progress-track">
+          <div class="progress-fill" style="--progress: 64%"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="btn gradient-button" href="#">Gabung Sekarang</a>
+      </div>
+    </article>
+
+    <article class="sambatan-card glass-card">
+      <div class="card-header">
+        <span class="badge sambatan">Batch 05</span>
+        <span class="deadline">Tutup 21 Juni</span>
+      </div>
+      <h3>Kolaborasi Aroma Laut Selatan</h3>
+      <p>Kolaborasi eksklusif komunitas surfer Bali dengan profil kelapa panggang.</p>
+      <div class="progress-indicator">
+        <span class="progress-label">9 slot tersisa</span>
+        <div class="progress-track">
+          <div class="progress-fill" style="--progress: 48%"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="btn btn-outline" href="#">Pelajari Detail</a>
+      </div>
+    </article>
+  </div>
 </section>
 
-<section id="sambatan" class="section glass-panel">
-  <h2>Sambatan (Group-Buy)</h2>
-  <p>
-    Progress bar, slot partisipasi, dan countdown deadline akan hadir untuk
-    mendukung kampanye kolaborasi produksi sesuai PRD.
-  </p>
+<section class="nusantarum" id="nusantarum">
+  <header class="nusantarum-header">
+    <h2>Nusantarum Stories</h2>
+    <p>Kurasi cerita wangi Nusantara dari kurator dan perfumer pilihan.</p>
+  </header>
+  <div class="story-carousel">
+    <article class="story-card glass-card">
+      <div class="story-meta">
+        <span class="curator">Kurator: Ayu Laras</span>
+        <span class="tag">#BungaTropis</span>
+      </div>
+      <h3>Jejak Kenanga di Ubud</h3>
+      <p>Menyusuri kebun kenanga tua dan proses enfleurage modern.</p>
+      <a href="#" class="story-link">Baca cerita</a>
+    </article>
+    <article class="story-card glass-card">
+      <div class="story-meta">
+        <span class="curator">Kurator: Raka Pramana</span>
+        <span class="tag">#Ritual</span>
+      </div>
+      <h3>Asap Kemenyan di Labuan Bajo</h3>
+      <p>Ritual bahur laut dan interpretasinya ke parfum resin.</p>
+      <a href="#" class="story-link">Baca cerita</a>
+    </article>
+    <article class="story-card glass-card">
+      <div class="story-meta">
+        <span class="curator">Kurator: Nadine</span>
+        <span class="tag">#Botanical</span>
+      </div>
+      <h3>Rosella Merah dari Flores</h3>
+      <p>Infusi rosella sebagai middle note yang mencuri perhatian.</p>
+      <a href="#" class="story-link">Baca cerita</a>
+    </article>
+  </div>
+</section>
+
+<section class="community-cta glass-surface" id="komunitas">
+  <div>
+    <h2>Siap ikut meracik wewangian Nusantara?</h2>
+    <p>Bergabung bersama komunitas perfumery Sensasiwangi.id untuk akses batch eksklusif dan sesi lokakarya.</p>
+  </div>
+  <form class="newsletter-form">
+    <label for="email" class="sr-only">Email</label>
+    <input id="email" type="email" placeholder="Masukkan email kamu" required />
+    <button type="submit" class="btn gradient-button">Daftar Newsletter</button>
+  </form>
 </section>
 {% endblock %}
