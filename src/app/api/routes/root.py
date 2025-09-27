@@ -472,6 +472,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                     "origin_type": "Brand Partner",
                     "category": "Parfum Artisan",
                     "notes": ["Jasmine sambac", "Vetiver Bali", "Cedar Atlas"],
+                    "perfumer": "Ayu Prameswari",
                     "price": "Rp420K",
                     "media_class": "parfum-aurora",
                     "tags": ["Bestseller", "Signature"],
@@ -482,6 +483,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                     "origin_type": "Brand Partner",
                     "category": "Signature Blend",
                     "notes": ["Ylang-ylang", "Patchouli Sulawesi", "Amber Praline"],
+                    "perfumer": "Devi Larasati",
                     "price": "Rp380K",
                     "media_class": "parfum-tropis",
                     "tags": ["Baru", "Eksklusif"],
@@ -492,6 +494,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                     "origin_type": "Kreator Komunitas",
                     "category": "Kolaborasi Sambatan",
                     "notes": ["Sea salt accord", "Kelopak kenanga", "Oud Kalimantan"],
+                    "perfumer": "Rara Widyanti",
                     "price": "Mulai Rp250K",
                     "media_class": "community-lagoon",
                     "sambatan": {
@@ -559,8 +562,8 @@ async def read_marketplace(request: Request) -> HTMLResponse:
             ],
         },
         {
-            "slug": "lainlain",
-            "label": "Lainlain",
+            "slug": "lain-lain",
+            "label": "Lain-lain",
             "description": "Dukungan lain mulai dari kemasan hingga pengalaman workshop untuk memperluas bisnis parfum Anda.",
             "products": [
                 {
