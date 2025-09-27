@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <h1>Selamat datang di {{ app_name }}</h1>
+    <p>
+      Platform wewangian lokal dengan marketplace terkurasi, kanal editorial
+      Nusantarum, dan fitur Sambatan untuk kolaborasi produksi.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="#marketplace">Jelajahi Marketplace</a>
+      <a class="btn secondary" href="#nusantarum">Baca Nusantarum</a>
+    </div>
+  </div>
+  <div class="hero-visual"></div>
+</section>
+
+<section id="marketplace" class="section glass-panel">
+  <h2>Marketplace Pilot</h2>
+  <p>
+    Mulai bangun struktur katalog empat kategori (Parfum, Raw Material, Tools,
+    Lainnya). Komponen ini akan terhubung dengan Supabase untuk data produk
+    setelah skema siap.
+  </p>
+</section>
+
+<section id="nusantarum" class="section glass-panel">
+  <h2>Nusantarum Editorial</h2>
+  <p>
+    Artikel kurasi akan tampil di sini lengkap dengan filter aroma, wilayah, dan
+    kurator. Struktur tab dan panel filter akan diimplementasikan pada sprint
+    konten.
+  </p>
+</section>
+
+<section id="sambatan" class="section glass-panel">
+  <h2>Sambatan (Group-Buy)</h2>
+  <p>
+    Progress bar, slot partisipasi, dan countdown deadline akan hadir untuk
+    mendukung kampanye kolaborasi produksi sesuai PRD.
+  </p>
+</section>
+{% endblock %}
