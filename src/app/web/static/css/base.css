@@ -1,17 +1,17 @@
 :root {
-  --gradient-background: radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.15), transparent 55%),
-    radial-gradient(circle at 85% 15%, rgba(192, 38, 211, 0.18), transparent 60%),
-    linear-gradient(135deg, #0f172a, #1e293b 55%, #0b1120);
-  --glass-surface: rgba(15, 23, 42, 0.62);
-  --glass-border: rgba(148, 163, 184, 0.35);
-  --glass-shadow: 0 25px 45px rgba(15, 23, 42, 0.45);
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5f5;
-  --accent-primary: linear-gradient(135deg, #f97316, #c026d3);
-  --accent-secondary: #38bdf8;
-  --muted: #94a3b8;
-  --success: #34d399;
-  --danger: #f87171;
+  --gradient-background: radial-gradient(circle at 12% 18%, rgba(255, 199, 168, 0.55), transparent 52%),
+    radial-gradient(circle at 88% 12%, rgba(255, 179, 220, 0.55), transparent 58%),
+    linear-gradient(140deg, #fef6ec, #fde4f2 55%, #f6d8ff);
+  --glass-surface: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 28px 55px rgba(247, 170, 203, 0.32);
+  --text-primary: #3e2443;
+  --text-secondary: #6f5466;
+  --accent-primary: linear-gradient(130deg, #ffb86c, #ff6f91);
+  --accent-secondary: #ff8fa3;
+  --muted: #b791a3;
+  --success: #4bbd8b;
+  --danger: #ff7a7a;
   --radius-lg: 28px;
   --radius-md: 20px;
   --radius-sm: 14px;
@@ -42,8 +42,8 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='.06'%3E%3Cpath d='M80 0h1v160h-1zM0 80h160v1H0z'/%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='.16'%3E%3Cpath d='M80 0h1v160h-1zM0 80h160v1H0z'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.65;
   pointer-events: none;
   z-index: -1;
 }
@@ -64,25 +64,25 @@ body::before {
 }
 
 .glass-surface {
-  backdrop-filter: blur(24px) saturate(140%);
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.4));
+  backdrop-filter: blur(26px) saturate(160%);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.6));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
 }
 
 .glass-card {
-  backdrop-filter: blur(22px) saturate(150%);
-  background: rgba(15, 23, 42, 0.68);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  backdrop-filter: blur(20px) saturate(160%);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--radius-md);
-  box-shadow: 0 18px 40px rgba(8, 15, 29, 0.35);
+  box-shadow: 0 18px 48px rgba(239, 173, 204, 0.32);
   transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .glass-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 28px 60px rgba(8, 15, 29, 0.45);
+  box-shadow: 0 28px 60px rgba(239, 173, 204, 0.42);
 }
 
 h1,
@@ -118,23 +118,23 @@ p {
 
 .gradient-button {
   background: var(--accent-primary);
-  color: #0f172a;
-  box-shadow: 0 12px 30px rgba(249, 115, 22, 0.3);
+  color: #42253f;
+  box-shadow: 0 16px 36px rgba(255, 143, 163, 0.32);
 }
 
 .gradient-button:hover {
-  box-shadow: 0 18px 40px rgba(192, 38, 211, 0.25);
+  box-shadow: 0 22px 48px rgba(255, 143, 163, 0.42);
 }
 
 .btn-outline {
-  background: transparent;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 143, 163, 0.5);
   color: var(--accent-secondary);
 }
 
 .btn-outline:hover {
-  border-color: rgba(56, 189, 248, 0.75);
-  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(255, 143, 163, 0.8);
+  background: rgba(255, 143, 163, 0.15);
 }
 
 .btn-ghost {
@@ -145,7 +145,7 @@ p {
 
 .btn-ghost:hover {
   color: var(--text-primary);
-  border-color: rgba(148, 163, 184, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .navbar {

@@ -10,6 +10,34 @@
 {% set supporting_task = highlight.tasks[1] if highlight.tasks|length > 1 else None %}
 <section class="uiux-hero">
   <div class="hero-nav glass-loop">
+    <div class="hero-brand">
+      <span class="hero-brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" role="presentation" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sensasiBrandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fff1d6" />
+              <stop offset="50%" stop-color="#ffb2d4" />
+              <stop offset="100%" stop-color="#ff80b5" />
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="20" fill="url(#sensasiBrandGradient)" opacity="0.9" />
+          <path
+            d="M24 8c-6.4 6.2-10.4 12.6-10.4 18.8 0 6.3 4.9 11.2 10.4 11.2s10.4-4.9 10.4-11.2C34.4 20.6 30.4 14.2 24 8z"
+            fill="#fff5f8"
+            opacity="0.88"
+          />
+          <path
+            d="M24 15c-3.2 3.2-5.2 6.4-5.2 9.6 0 3.1 2.4 5.6 5.2 5.6s5.2-2.5 5.2-5.6C29.2 21.4 27.2 18.2 24 15z"
+            fill="#ff8fa3"
+            opacity="0.75"
+          />
+        </svg>
+      </span>
+      <div class="hero-brand__text">
+        <span class="hero-brand__title">SensasiWangi.id</span>
+        <span class="hero-brand__subtitle">UI/UX Tracker</span>
+      </div>
+    </div>
     <div class="hero-nav__group">
       {% for section in sections[:4] %}
       <button class="hero-chip {% if loop.first %}is-active{% endif %}">
