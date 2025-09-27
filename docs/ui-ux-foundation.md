@@ -1,93 +1,117 @@
-# Sensasiwangi.id UI/UX Foundations
+# Sensasiwangi.id UI/UX Foundation
 
-Dokumen ini merangkum panduan desain dasar dan wireframe tekstual untuk MVP Sensasiwangi.id sesuai PRD. Fokus utama adalah membangun pengalaman glassmorphism yang elegan, navigasi intuitif, serta mendefinisikan komponen inti sebelum fase implementasi.
+Dokumen ini merangkum bahasa desain, prinsip interaksi, serta wireframe tekstual yang menjadi fondasi implementasi MVP Sensasiwangi.id. Fokus utama adalah menghadirkan pengalaman glassmorphism yang hangat, navigasi intuitif, dan pola komponen reusable agar tim desain maupun engineering memiliki referensi tunggal.
 
-## 1. Prinsip Desain
+## 1. Tujuan & Sasaran Pengalaman
 
-1. **Glassmorphism Hangat**  
-   - Lapisan kartu semi-transparan dengan blur latar (`backdrop-filter: blur(20px)`), border tipis (#FFFFFF33), dan highlight gradien jingga-ke-ungu sebagai aksen utama.  
-   - Background global: gradasi lembut `#0F172A` → `#1E293B` dengan pola cahaya samar sebagai ambience parfum.
-2. **Tipografi**  
-   - Heading: `Playfair Display` (serif modern) untuk kesan premium.  
-   - Body & UI: `Inter` untuk keterbacaan tinggi.  
-   - Hierarki warna teks: `#F8FAFC` (utama), `#CBD5F5` (sekunder), `#38BDF8` (link/CTA sekunder).
-3. **Ikonografi & Ilustrasi**  
-   - Gunakan ikon garis tipis (Feather Icons) dengan efek neon tipis.  
-   - Placeholder foto produk/brand menggunakan kontainer kaca dengan drop shadow lembut (`0 20px 40px rgba(15, 23, 42, 0.45)`).
-4. **Micro-Interaction**  
-   - Transisi hover `transform: translateY(-2px)` pada kartu.  
-   - Tombol utama: `background: linear-gradient(135deg, #F97316, #C026D3); color: #0F172A` dengan animasi kilau halus.
+- Menonjolkan karakter brand parfum Nusantara yang modern namun tetap organik.
+- Menyatukan pengalaman marketplace (brand) dan sambatan (komunitas) dalam satu alur yang konsisten.
+- Menyediakan kerangka kerja visual yang mudah diimplementasikan ke komponen frontend berbasis kartu kaca.
+- Menjamin aksesibilitas dasar (kontras, fokus state, hierarki tipografi) sejak tahap awal.
 
-## 2. Struktur Navigasi Global
+## 2. Bahasa Visual & Token Desain
+
+### 2.1 Palet Warna
+
+| Token | Nilai | Penggunaan |
+|-------|-------|------------|
+| `--color-bg` | `linear-gradient(180deg, #0F172A 0%, #1E293B 100%)` | Latar belakang global, hero |
+| `--color-surface` | `rgba(15, 23, 42, 0.65)` | Kartu kaca, panel filter |
+| `--color-border` | `rgba(255, 255, 255, 0.20)` | Outline kartu, input |
+| `--color-accent` | `linear-gradient(135deg, #F97316 0%, #C026D3 100%)` | Tombol utama, highlight progres |
+| `--color-text-primary` | `#F8FAFC` | Heading, teks utama |
+| `--color-text-secondary` | `#CBD5F5` | Copy sekunder, helper text |
+| `--color-info` | `#38BDF8` | Link, badge info |
+| `--color-success` | `#34D399` | Status terpenuhi |
+| `--color-warning` | `#FB923C` | Batas waktu sambatan |
+
+### 2.2 Tipografi
+
+- Heading: **Playfair Display** (serif modern) untuk judul hero, heading seksi, CTA hero.
+- Body & UI: **Inter** untuk isi teks, label form, dan meta informasi.
+- Ukuran dasar: `16px` dengan skala modular `1.125` (16 → 18 → 20 → 24 → 27 → 32 → 36 → 48).
+
+### 2.3 Ikonografi & Imagery
+
+- Ikon garis tipis (Feather) dengan glow samar (`drop-shadow(0 6px 12px rgba(236, 72, 153, 0.25))`).
+- Placeholder gambar menggunakan kartu kaca dengan blur `20px`, sudut `24px`, dan highlight gradien diagonal.
+- Media komunitas menampilkan overlay partikel aroma (SVG ringan) untuk konsistensi brand.
+
+## 3. Pola Layout & Responsivitas
+
+- **Grid Desktop (≥1280px)**: Lebar maksimum 1200px dengan gutter 32px. Produk ditampilkan 3 kolom.
+- **Tablet (768–1279px)**: Grid 2 kolom, panel filter menjadi horizontal scroll, navigasi berubah menjadi hamburger.
+- **Mobile (≤767px)**: Satu kolom penuh, filter menjadi bottom sheet dengan tombol sticky "Filter".
+- Margin vertikal utama menggunakan kelipatan 40px desktop, 32px tablet, 24px mobile.
+
+## 4. Navigasi Global & Template Dasar
 
 ```
-┌───────────────────────────────────────────────────────────────┐
-│ Navbar (blur kaca)                                            │
-│ Logo | Marketplace | Sambatan | Nusantarum | Dashboard | Profil│
-│ CTA: "Gabung Komunitas" (glass button)                        │
-└───────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Navbar kaca: Logo | Marketplace | Sambatan | Nusantarum | ... │
+│ CTA sekunder "Gabung Komunitas" (ghost glass button)         │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-- Navbar sticky dengan blur dan border kaca.  
-- Mode mobile: hamburger menu membuka drawer kaca penuh.  
-- Breadcrumb ditampilkan pada halaman dalam (Dashboard, Profil).
+- Navbar sticky dengan blur `backdrop-filter: blur(24px)` dan border kaca.
+- Mode mobile: tombol hamburger membuka drawer kaca penuh dengan daftar menu dan CTA.
+- Footer menampilkan CTA newsletter, tautan legal, sosial media, serta highlight komunitas terbaru.
 
-Footer global: CTA newsletter, tautan legal, sosial media, serta highlight komunitas.
+## 5. Wireframe Tekstual Layar Kunci
 
-## 3. Wireframe Tekstual Halaman Utama
-
-### 3.1 Landing Page / Marketplace Overview
+### 5.1 Landing / Marketplace Overview
 
 ```
-Hero Section
+Hero Kolaboratif
 ┌──────────────────────────────────────────────┐
-│ Background gradient + aroma particle animasi │
+│ Background gradient + animasi partikel aroma │
 │ Headline: "Eksplorasi Wewangian Nusantara"   │
-│ Subcopy + CTA ganda (Eksplor Marketplace,    │
-│   Pelajari Sambatan)                         │
-│ Kartu statistik (Brand Terkurasi, Sambatan   │
-│   Aktif, Stories Terbaru)                    │
+│ Subcopy + CTA: "Telusuri Marketplace"       │
+│ Stat Card: Brand Terkurasi | Sambatan Aktif  │
 └──────────────────────────────────────────────┘
 
-Tabs Kategori (Parfum | Raw Material | Tools | Lainnya)
-┌────────────┬────────────┬───────────┬────────────┐
-│ Filter kaca│ Search bar │ Sort chip │ Aroma tags │
-└────────────┴────────────┴───────────┴────────────┘
+Filter & Tabs Kategori
+┌───────────┬───────────────┬────────────┬───────────────┐
+│ Tab: Parfum | Raw Material | Peralatan | Lain-lain     │
+│ Search kaca│ Sort chip     │ Aroma tags │ Reset filter  │
+└───────────┴───────────────┴────────────┴───────────────┘
 
-Grid Produk (3 kol desktop, 1 kol mobile)
+Grid Produk 3 kolom
 ┌───────┐ ┌───────┐ ┌───────┐
 │ Foto  │ │ Foto  │ │ Foto  │
 │ Nama  │ │ Nama  │ │ Nama  │
 │ Harga │ │ Harga │ │ Harga │
-│ Sambatan progress bar + deadline (jika ada) │
+│ Progress Sambatan (jika ada)               │
 └───────┘ └───────┘ └───────┘
 
 Highlight Nusantarum (carousel kaca)
-┌──────────────────────────────────────────────┐
-│ Card cerita, kurator, CTA baca cerita        │
-└──────────────────────────────────────────────┘
-
-Footer CTA Komunitas + Newsletter
+CTA Komunitas & Newsletter
 ```
 
-### 3.2 Detail Produk
+### 5.2 Halaman Marketplace Mandiri
 
 ```
-┌──────────────┬──────────────────────────────────┐
-│ Galeri foto  │ Nama produk + badge Sambatan     │
-│ thumbnail    │ Harga indikatif + stok           │
-│              │ Deskripsi aroma (notes top-mid-  │
-│              │ base)                            │
-│              │ CTA: "Ajukan Pesanan" / "Gabung  │
-│              │ Sambatan"                        │
-└──────────────┴──────────────────────────────────┘
+Hero dua kolom: copy kolaboratif + panel filter kaca
+Filter responsif: kategori, rentang harga, asal brand, status sambatan
+Seksi "Kurasi Brand": kartu produk brand dengan badge Bestseller/Limited
+Seksi "Karya Komunitas": kartu sambatan + progres, slots left, deadline
+Kartu CTA kurator: "Hubungi Kurator" & "Panduan Listing"
+```
+
+### 5.3 Detail Produk
+
+```
+┌──────────────┬────────────────────────────────────┐
+│ Galeri foto  │ Nama produk + badge Sambatan       │
+│ thumbnail    │ Harga indikatif + stok             │
+│              │ Deskripsi aroma (notes top-mid-base)│
+│              │ CTA: "Ajukan Pesanan" / "Gabung"   │
+└──────────────┴────────────────────────────────────┘
 
 Info Brand & Story Link
 ┌──────────────────────────────────────────────┐
-│ Logo brand kaca kecil + ring highlight       │
-│ Deskripsi singkat                            │
-│ Sertifikasi ikon                             │
-│ Link ke cerita Nusantarum & CTA chat         │
+│ Logo kaca kecil, deskripsi singkat, sertifikasi│
+│ Link ke cerita Nusantarum & CTA chat          │
 └──────────────────────────────────────────────┘
 
 Panel Sambatan
@@ -99,85 +123,63 @@ Panel Sambatan
 └────────────────────┘
 ```
 
-### 3.3 Dashboard Internal (Tim Ops)
+### 5.4 Dashboard Internal (Ops)
 
 ```
-Sidebar kaca (ikon vertikal) | Konten utama
-
-Header: Ringkasan metrik (Pesanan aktif, Sambatan aktif, Slot terisi)
-
+Sidebar kaca vertikal | Konten utama
+Header ringkasan metrik (Pesanan aktif, Sambatan aktif, Slot terisi)
 Tab: Pesanan | Sambatan | Brand | Konten
-
-Pesanan Table
-┌─────────┬───────────────┬─────────┬─────────────┐
-│ ID      │ Nama Brand    │ Status  │ Jadwal Kirim│
-└─────────┴───────────────┴─────────┴─────────────┘
-Toolbar: filter status, tombol ekspor CSV
-
-Panel kanan (drawer) ketika baris dipilih: detail pesanan, log aktivitas.
+Tabel pesanan dengan filter status + tombol ekspor CSV
+Drawer kanan ketika baris dipilih menampilkan detail & log aktivitas
 ```
 
-### 3.4 Nusantarum Hub
+### 5.5 Nusantarum Hub
 
 ```
 Hero kaca dengan headline kuratorial
-Filter panel (kategori aroma, wilayah, kurator) di sisi kiri (desktop)
-Konten grid 2 kolom (card cerita) dengan tag brand/perfumer terkait
-CTA: "Ajukan cerita" (untuk kurator)
+Filter kiri (desktop): kategori aroma, wilayah, kurator
+Grid 2 kolom berisi card cerita + tag brand/perfumer
+CTA: "Ajukan cerita" untuk kurator dan form submission ringan
 ```
 
-### 3.5 Profil Pengguna
+### 5.6 Profil Pengguna
 
 ```
-Header profil (avatar kaca, nama, preferensi aroma chip)
+Header profil: avatar kaca, nama, chip preferensi aroma
 Tab: Aktivitas | Favorit | Sambatan Saya
-
-Aktivitas: timeline kartu kaca (pesanan terakhir, sambatan join)
-Favorit: grid produk/brand tersimpan
-Sambatan Saya: daftar progress bar dan status
+Aktivitas → timeline kartu kaca (pesanan terakhir, sambatan bergabung)
+Favorit → grid produk/brand tersimpan
+Sambatan Saya → daftar progres bar + status
 ```
 
-### 3.6 Halaman Marketplace Mandiri
+## 6. Komponen Reusable
 
-```
-Hero dua kolom: copy kolaboratif + panel filter kaca (search, kategori, kisaran harga)
-Filter responsif → menjadi grid 2 kolom (tablet) lalu 1 kolom (mobile)
-Seksi "Kurasi Brand": grid kartu produk brand + tag status (Bestseller, Limited)
-Seksi "Karya Komunitas": kartu sambatan dengan progress bar, slots left, dan deadline
-CTA bantuan kurator: kartu kaca lebar dengan tombol Hubungi Kurator & Panduan Listing
-```
+| Komponen | Visual | Status Interaksi |
+|----------|--------|------------------|
+| **Primary Button** | Gradien jingga→ungu, radius 999px, shadow kaca | Hover: naik 2px, glow border |
+| **Secondary Button** | Latar kaca transparan, border `#38BDF833`, teks aqua | Hover: border solid |
+| **Glass Card** | Surface kaca, blur 20px, border tipis | Hover: `transform: translateY(-2px)` |
+| **Input Field** | Prefix icon, placeholder `#94A3B8` | Fokus: border gradien & glow lembut |
+| **Progress Bar** | Track kaca, fill gradien, label persentase | Animasi fill halus |
+| **Badge Sambatan** | Chip kaca kecil dengan ikon tangan | Pulse halus menjelang deadline |
 
-## 4. Komponen UI Standar
+State fokus untuk setiap komponen harus menggunakan outline `2px` dengan warna `#38BDF8` dan offset `2px` agar aksesibilitas keyboard terjaga.
 
-| Komponen           | Deskripsi Visual | Status Interaksi |
-|--------------------|------------------|-------------------|
-| Primary Button     | Gradien jingga→ungu, glass shadow, radius 999px | Hover naik 2px, glow border |
-| Secondary Button   | Latar kaca transparan, border `#38BDF833`, teks aqua | Hover ubah border menjadi solid |
-| Card                | Background `rgba(15, 23, 42, 0.65)`, blur 20px, border 1px translucent | Hover shading naik |
-| Input Field         | Kaca dengan icon prefix, placeholder `#94A3B8` | Fokus: border gradien |
-| Progress Bar        | Track kaca, fill gradien, label persentase di atas | Animasi fill lembut |
-| Badge Sambatan      | Chip kaca kecil dengan ikon tangan terangkat | Pulse halus bila mendekati deadline |
+## 7. Prinsip Interaksi
 
-## 5. Grid & Breakpoint
+1. **Transisi Halus** – Gunakan durasi `200ms` untuk hover, `300ms` untuk overlay masuk/keluar.
+2. **Feedback Langsung** – Setiap aksi (tambah favorit, gabung sambatan) menampilkan toast kaca di pojok kanan atas.
+3. **Status Availability** – Produk terbatas menampilkan indikator label & progres; item habis stok memiliki overlay redup + CTA daftar tunggu.
+4. **Konten Prioritas** – Hero menonjolkan kampanye kolaboratif, sedangkan grid menampilkan kombinasi brand resmi dan kreasi komunitas secara seimbang.
 
-- **Desktop (≥1280px)**: Konten maksimum 1200px dengan gutter 32px. 3 kolom untuk grid produk.  
-- **Tablet (768-1279px)**: Navbar tetap, grid 2 kolom, sidebar berubah jadi top tabs.  
-- **Mobile (≤767px)**: Satu kolom, hero lebih ringkas, filter menjadi bottom sheet.
+## 8. Checklist Implementasi
 
-## 6. Alur Pengguna Kunci (User Flow Ringkas)
-
-1. **Eksplorasi Sambatan**: Landing → pilih kartu Sambatan → detail produk → klik "Gabung Sambatan" → login magic link → konfirmasi slot.  
-2. **Kurator Nusantarum**: Dashboard → tab Konten → buat cerita → tautkan ke brand → publish → tampil di Nusantarum.  
-3. **Ops Pesanan**: Dashboard → tab Pesanan → filter status Draft → buka drawer → update status & nomor resi → simpan.
-
-## 7. Checklist Implementasi UI
-
-- [ ] Siapkan partial template `base.html` dengan theme token & navbar/footer.  
-- [ ] Implementasikan komponen reusable: `GlassCard`, `GradientButton`, `ProgressIndicator`.  
-- [ ] Pastikan CSS variable untuk warna/opacity terdefinisi di `:root`.  
-- [ ] Uji kontras teks terhadap background kaca (WCAG AA).  
-- [ ] Dokumentasikan varian mobile vs desktop sebelum sprint implementasi.
+- [ ] Partial `base.html` memuat token warna, font, dan slot navbar/footer.
+- [ ] Komponen `GlassCard`, `GradientButton`, `ProgressIndicator`, dan `Badge` tersedia sebagai utilitas CSS.
+- [ ] Validasi kontras teks terhadap latar kaca mengikuti standar WCAG AA.
+- [ ] Pastikan animasi dapat dinonaktifkan saat prefers-reduced-motion aktif.
+- [ ] Dokumentasikan variasi mobile vs desktop sebelum handoff ke engineering.
 
 ---
 
-Dokumen ini menjadi referensi tim desain dan engineering untuk menyelaraskan ekspektasi visual serta struktur halaman sebelum pengembangan lebih lanjut.
+Dokumen ini menjadi referensi utama bagi tim lintas fungsi untuk menjaga konsistensi UI/UX, mempermudah iterasi, dan meminimalkan konflik saat implementasi lintas branch berikutnya.
