@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/purchase-workflow.css') }}" />
+{% endblock %}
+
+{% block content %}
+<section class="purchase-hero glass-surface">
+  <div class="hero-copy">
+    <span class="badge">UI Foundation</span>
+    <h1>Blueprint workflow pembelian produk Sensasiwangi.id</h1>
+    <p>
+      Halaman ini menerjemahkan <strong>docs/ui-ux-foundation.md</strong> menjadi artefak visual
+      untuk dua skenario pembelian utama: checkout reguler dan sambatan komunitas. Informasi
+      disusun agar tim engineering dapat langsung menerapkan interaksi glassmorphism, validasi,
+      serta state notifikasi yang dibutuhkan tanpa menunggu mockup lanjutan.
+    </p>
+  </div>
+  <aside class="status-legend glass-card">
+    <h2>Status Implementasi</h2>
+    <ul>
+      {% for key, meta in flow_status_meta.items() %}
+      <li>
+        <span class="status-icon status-{{ key }}">{{ meta.icon }}</span>
+        <div>
+          <p class="status-label">{{ meta.label }}</p>
+          <p class="status-description">{{ meta.description }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+</section>
+
+<nav class="flow-nav glass-card" aria-label="Navigasi workflow">
+  <h2>Jelajahi Flow</h2>
+  <ol>
+    {% for flow in flows %}
+    <li><a href="#{{ flow.slug }}">{{ flow.title }}</a></li>
+    {% endfor %}
+  </ol>
+</nav>
+
+{% for flow in flows %}
+<section id="{{ flow.slug }}" class="flow-section glass-card">
+  <header class="flow-header">
+    <div>
+      <p class="flow-eyebrow">Blueprint</p>
+      <h2>{{ flow.title }}</h2>
+      <p class="flow-summary">{{ flow.summary }}</p>
+      <p class="flow-persona">Persona utama: <strong>{{ flow.persona }}</strong></p>
+    </div>
+    <div class="flow-meta">
+      <span class="status-chip status-{{ flow.status }}">
+        <span class="status-icon">{{ flow_status_meta[flow.status].icon }}</span>
+        {{ flow_status_meta[flow.status].label }}
+      </span>
+      <div class="metric-list">
+        <h3>Ukuran Keberhasilan</h3>
+        <ul>
+          {% for metric in flow.success_metrics %}
+          <li>{{ metric }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <ol class="flow-steps">
+    {% for step in flow.steps %}
+    <li class="flow-step" data-status="{{ step.status }}">
+      <div class="step-header">
+        <span class="step-index">{{ loop.index }}</span>
+        <div>
+          <p class="step-stage">{{ step.stage }}</p>
+          <h3>{{ step.goal }}</h3>
+        </div>
+        <span class="step-status status-{{ step.status }}">
+          <span class="status-icon">{{ flow_status_meta[step.status].icon }}</span>
+          {{ flow_status_meta[step.status].label }}
+        </span>
+      </div>
+      <div class="step-body">
+        <div class="touchpoints">
+          <h4>Touchpoint & Komponen</h4>
+          <ul>
+            {% for point in step.touchpoints %}
+            <li>{{ point }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="notes">
+          <h4>Catatan Implementasi</h4>
+          <ul>
+            {% for note in step.notes %}
+            <li>{{ note }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endfor %}
+
+<section class="foundation-notes glass-card">
+  <h2>Checklist Lanjutan</h2>
+  <p>
+    Pastikan integrasi teknis mengikuti <em>In Memory Session</em> dan struktur SSR FastAPI → Jinja seperti
+    yang sudah tersedia di repositori. Untuk setiap tahap, dokumentasikan endpoint atau partial template
+    yang diperlukan sehingga flow ini dapat dirangkai secara end-to-end.
+  </p>
+  <ul>
+    <li>Mapping modul backend ke setiap touchpoint agar kontrak data jelas.</li>
+    <li>Verifikasi aksesibilitas: fokus, pembaca layar, dan urutan tab saat checkout.</li>
+    <li>Rencanakan telemetry dasar (event HTMX/JS) guna mengukur metrik keberhasilan.</li>
+  </ul>
+</section>
+{% endblock %}

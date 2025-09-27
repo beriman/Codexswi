@@ -1,0 +1,341 @@
+.purchase-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 2rem;
+  padding: 2.5rem;
+  align-items: start;
+}
+
+.purchase-hero .hero-copy h1 {
+  font-size: clamp(2.2rem, 3vw, 2.8rem);
+  margin-bottom: 1rem;
+}
+
+.purchase-hero .hero-copy p {
+  margin: 0;
+}
+
+.purchase-hero .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent-secondary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.5rem;
+}
+
+.status-legend h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.35rem;
+}
+
+.status-legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.status-legend li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.15);
+  font-size: 1.25rem;
+}
+
+.status-label {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.status-description {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+}
+
+.flow-nav {
+  padding: 1.75rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.flow-nav h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.flow-nav ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.flow-nav a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.45);
+  transition: transform var(--transition-base), border-color var(--transition-base);
+}
+
+.flow-nav a:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.flow-section {
+  padding: 2.25rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.flow-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.flow-summary {
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.flow-persona {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.flow-meta {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: start;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.metric-list {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
+}
+
+.metric-list h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.metric-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.flow-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.flow-step {
+  background: rgba(15, 23, 42, 0.55);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 1.75rem;
+  box-shadow: 0 16px 45px rgba(8, 15, 29, 0.35);
+  backdrop-filter: blur(18px);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.flow-step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 55px rgba(8, 15, 29, 0.45);
+}
+
+.step-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.step-index {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-primary);
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 12px 30px rgba(249, 115, 22, 0.25);
+}
+
+.step-stage {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  color: var(--accent-secondary);
+}
+
+.step-header h3 {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+}
+
+.step-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.step-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.step-body h4 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.step-body ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.foundation-notes {
+  padding: 2rem 2.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.foundation-notes ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Status color accents */
+.step-status.status-live,
+.status-chip.status-live,
+.status-icon.status-live {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.18);
+}
+
+.step-status.status-ready,
+.status-chip.status-ready,
+.status-icon.status-ready {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.16);
+}
+
+.step-status.status-in-design,
+.status-chip.status-in-design,
+.status-icon.status-in-design {
+  border-color: rgba(192, 132, 252, 0.4);
+  background: rgba(192, 132, 252, 0.16);
+}
+
+.step-status.status-in-discovery,
+.status-chip.status-in-discovery,
+.status-icon.status-in-discovery {
+  border-color: rgba(248, 180, 0, 0.4);
+  background: rgba(248, 180, 0, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .purchase-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .status-legend {
+    order: 2;
+  }
+
+  .flow-header {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-meta {
+    justify-items: stretch;
+  }
+
+  .step-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .purchase-hero,
+  .flow-section,
+  .foundation-notes {
+    padding: 1.75rem;
+  }
+
+  .flow-nav ol {
+    flex-direction: column;
+  }
+
+  .step-header {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .step-status {
+    margin-top: 0.75rem;
+  }
+}

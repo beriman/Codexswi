@@ -439,6 +439,230 @@ UIUX_IMPLEMENTATION_PLAN = [
 ]
 
 
+PURCHASE_FLOW_STATUS_META = {
+    "in-discovery": {
+        "label": "Discovery",
+        "icon": "🔍",
+        "description": "Sedang dimatangkan oleh tim produk & riset pengguna.",
+    },
+    "in-design": {
+        "label": "Desain",
+        "icon": "🎨",
+        "description": "UI/UX sedang distabilisasi berdasarkan panduan glassmorphism.",
+    },
+    "ready": {
+        "label": "Siap Implementasi",
+        "icon": "🚀",
+        "description": "Spesifikasi visual dan interaksi sudah dikunci untuk developer.",
+    },
+    "live": {
+        "label": "Telah Dibangun",
+        "icon": "✅",
+        "description": "Flow sudah tersedia di staging/production build MVP.",
+    },
+}
+
+
+PURCHASE_FLOW_BLUEPRINT = [
+    {
+        "slug": "regular",
+        "title": "Belanja Produk Regular",
+        "summary": "Flow standar untuk pembelian katalog marketplace tanpa mekanisme sambatan.",
+        "status": "ready",
+        "persona": "Pembeli retail dan B2B ringan yang ingin checkout cepat.",
+        "success_metrics": [
+            "Waktu dari landing ke checkout < 3 menit",
+            "Rasio keranjang → pembayaran sukses > 60%",
+            "Validasi alamat berhasil dalam satu kali input",
+        ],
+        "steps": [
+            {
+                "stage": "Eksplorasi & Pencarian",
+                "goal": "Menemukan produk yang relevan",
+                "status": "live",
+                "touchpoints": [
+                    "Landing/Marketplace menampilkan search bar kaca dengan auto-suggest",
+                    "Filter aroma dan sort toggle untuk mempersonalisasi katalog",
+                    "Grid kartu produk dengan foto, harga, dan badge stok",
+                ],
+                "notes": [
+                    "Microcopy jumlah hasil dan skeleton loading saat filter berubah",
+                    "Optimasi keyboard navigation untuk aksesibilitas",
+                ],
+            },
+            {
+                "stage": "Melihat Detail Produk",
+                "goal": "Memahami deskripsi dan manfaat",
+                "status": "ready",
+                "touchpoints": [
+                    "Halaman detail dengan galeri foto dan deskripsi top-mid-base notes",
+                    "Panel info brand serta highlight review singkat",
+                    "CTA utama 'Tambah ke Keranjang' dengan varian quantity stepper",
+                ],
+                "notes": [
+                    "Toast info saat varian berubah dan disabled state ketika stok habis",
+                    "Badge Sambatan disembunyikan untuk produk non-sambatan",
+                ],
+            },
+            {
+                "stage": "Menambahkan ke Keranjang",
+                "goal": "Mengelola item yang akan dibeli",
+                "status": "ready",
+                "touchpoints": [
+                    "Drawer keranjang kaca dari sisi kanan dengan daftar item",
+                    "Kontrol kuantitas in-line dan subtotal dinamis",
+                    "CTA 'Checkout' dan aksi 'Lanjutkan Belanja'",
+                ],
+                "notes": [
+                    "Badge jumlah item pada ikon navbar diperbarui real time",
+                    "Toast sukses ketika produk berhasil masuk keranjang",
+                ],
+            },
+            {
+                "stage": "Checkout Informasi",
+                "goal": "Mengisi data pengiriman & opsi pengiriman",
+                "status": "in-design",
+                "touchpoints": [
+                    "Checkout multi-step dengan breadcrumb Keranjang → Alamat → Pengiriman → Pembayaran",
+                    "Form alamat kaca dengan auto-complete dan opsi simpan alamat default",
+                    "Pilihan pengiriman (Reguler, Same Day) dalam kartu radio glass",
+                ],
+                "notes": [
+                    "Validasi inline dengan ikon cek/eror",
+                    "Order summary sticky di kanan menampilkan estimasi tiba",
+                ],
+            },
+            {
+                "stage": "Pembayaran",
+                "goal": "Memilih metode dan melakukan pembayaran",
+                "status": "in-discovery",
+                "touchpoints": [
+                    "Opsi e-wallet, transfer bank, dan kartu kredit dengan ikon brand",
+                    "Panel instruksi dinamis setelah metode dipilih",
+                    "Countdown batas waktu pembayaran dan CTA salin nomor tujuan",
+                ],
+                "notes": [
+                    "State tombol lanjut disabled sampai metode dipilih",
+                    "Rencana integrasi webhook pembayaran untuk update status otomatis",
+                ],
+            },
+            {
+                "stage": "Pelacakan & Penerimaan",
+                "goal": "Memantau status sampai barang diterima",
+                "status": "in-design",
+                "touchpoints": [
+                    "Timeline status di riwayat pesanan (Dibuat → Diproses → Dikirim → Selesai)",
+                    "Notifikasi email/push saat status berubah",
+                    "CTA 'Konfirmasi Terima Barang' saat status dikirim",
+                ],
+                "notes": [
+                    "Setelah konfirmasi, munculkan prompt rating produk",
+                    "Simpan log aktivitas untuk dashboard ops",
+                ],
+            },
+        ],
+    },
+    {
+        "slug": "sambatan",
+        "title": "Belanja Produk Sambatan",
+        "summary": "Flow kolaboratif ketika produk dijual melalui kampanye sambatan komunitas.",
+        "status": "in-design",
+        "persona": "Kontributor komunitas yang berbagi slot pembelian batch.",
+        "success_metrics": [
+            "80% kampanye mencapai target slot sebelum deadline",
+            "< 24 jam untuk menyelesaikan checkout akhir setelah sambatan sukses",
+            "Minim pertanyaan support terkait status sambatan berkat UI jelas",
+        ],
+        "steps": [
+            {
+                "stage": "Eksplorasi Sambatan",
+                "goal": "Menemukan kampanye sambatan aktif",
+                "status": "ready",
+                "touchpoints": [
+                    "Tab Sambatan di landing dengan kartu progress radial dan badge deadline",
+                    "Filter tambahan untuk kategori sambatan dan progress",
+                    "Label urgensi seperti 'Butuh 5 lagi' untuk sense of urgency",
+                ],
+                "notes": [
+                    "Progress bar beranimasi saat hover",
+                    "Tooltip menjelaskan istilah sambatan untuk pendatang baru",
+                ],
+            },
+            {
+                "stage": "Detail Kampanye",
+                "goal": "Memahami mekanisme sambatan dan benefit",
+                "status": "ready",
+                "touchpoints": [
+                    "Panel progres besar dengan countdown dan daftar kontribusi terbaru",
+                    "Breakdown harga normal vs sambatan dan minimum slot",
+                    "CTA utama 'Gabung Sambatan' serta CTA sekunder 'Tanya Tim'",
+                ],
+                "notes": [
+                    "Banner info saat kampanye hampir penuh atau mendekati deadline",
+                    "Tooltip untuk istilah teknis dan modul FAQ ringan",
+                ],
+            },
+            {
+                "stage": "Gabung Sambatan",
+                "goal": "Memilih jumlah slot dan komitmen pembayaran",
+                "status": "in-design",
+                "touchpoints": [
+                    "Modal stepper: pilih jumlah slot → konfirmasi total → pilih metode pembayaran",
+                    "Konfirmasi bahwa dana ditahan (escrow) sampai slot terpenuhi",
+                    "Badge status 'Menunggu Slot Terpenuhi' di akhir modal",
+                ],
+                "notes": [
+                    "Notifikasi email/in-app berisi ringkasan komitmen",
+                    "Pertimbangkan progress share untuk ajak teman (link copy)",
+                ],
+            },
+            {
+                "stage": "Progres Sambatan",
+                "goal": "Memantau apakah sambatan terpenuhi",
+                "status": "in-design",
+                "touchpoints": [
+                    "Halaman profil > Sambatan Saya dengan progress radial besar",
+                    "Countdown dan CTA 'Ajak Teman' untuk membagikan kampanye",
+                    "Status otomatis berubah menjadi 'Sambatan Terkonfirmasi' saat target tercapai",
+                ],
+                "notes": [
+                    "Notifikasi otomatis ketika progress menyentuh 80%",
+                    "State fallback 'Sambatan Gagal' menampilkan estimasi refund",
+                ],
+            },
+            {
+                "stage": "Checkout Akhir",
+                "goal": "Menuntaskan detail pengiriman setelah sambatan sukses",
+                "status": "in-discovery",
+                "touchpoints": [
+                    "Redirect ke flow checkout reguler dengan harga final sambatan",
+                    "Form alamat pre-populated bila sudah pernah diisi",
+                    "Banner hijau 'Selamat! Sambatan berhasil' dengan countdown pembayaran akhir",
+                ],
+                "notes": [
+                    "Validasi ulang jadwal produksi/pengiriman batch",
+                    "Instruksi pembayaran bertahap bila metode tersebut dipilih",
+                ],
+            },
+            {
+                "stage": "Pemrosesan & Penerimaan",
+                "goal": "Menunggu produksi/pengiriman kolektif",
+                "status": "in-discovery",
+                "touchpoints": [
+                    "Timeline status menambahkan fase 'Produksi/Batching' sebelum dikirim",
+                    "Notifikasi di setiap tahapan dan update refund jika gagal",
+                    "Permintaan testimoni sambatan setelah barang tiba",
+                ],
+                "notes": [
+                    "Tampilkan estimasi waktu refund di status gagal",
+                    "Log detail tersedia untuk tim ops di dashboard",
+                ],
+            },
+        ],
+    },
+]
+
+
 @router.get("/", response_class=HTMLResponse)
 async def read_home(request: Request) -> HTMLResponse:
     """Render the marketplace landing page placeholder."""
@@ -684,3 +908,21 @@ async def read_uiux_tracker(request: Request) -> HTMLResponse:
         "sections": UIUX_IMPLEMENTATION_PLAN,
     }
     return templates.TemplateResponse("ui_ux_tracker.html", context)
+
+
+@router.get("/ui-ux/foundation/purchase", response_class=HTMLResponse)
+async def read_purchase_foundation(request: Request) -> HTMLResponse:
+    """Render the product purchase workflow blueprint derived from the foundation document."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Blueprint Flow Pembelian",
+        "flow_status_meta": PURCHASE_FLOW_STATUS_META,
+        "flows": PURCHASE_FLOW_BLUEPRINT,
+    }
+    return templates.TemplateResponse("purchase_workflow.html", context)

@@ -24,9 +24,17 @@
     <li>
       <a
         href="{{ url_for('read_uiux_tracker') }}"
-        class="{% if request.url.path.startswith('/ui-ux') %}active{% endif %}"
+        class="{% if request.url.path.startswith('/ui-ux/implementation') %}active{% endif %}"
       >
         UI/UX Tracker
+      </a>
+    </li>
+    <li>
+      <a
+        href="{{ url_for('read_purchase_foundation') }}"
+        class="{% if request.url.path.startswith('/ui-ux/foundation') %}active{% endif %}"
+      >
+        Flow Pembelian
       </a>
     </li>
     <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
