@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/ui-ux-tracker.css') }}" />
+{% endblock %}
+
+{% block content %}
+{% set highlight = sections[0] %}
+{% set highlight_task = highlight.tasks[0] %}
+{% set supporting_task = highlight.tasks[1] if highlight.tasks|length > 1 else None %}
+<section class="uiux-hero">
+  <div class="hero-nav glass-loop">
+    <div class="hero-nav__group">
+      {% for section in sections[:4] %}
+      <button class="hero-chip {% if loop.first %}is-active{% endif %}">
+        <span class="hero-chip__index">{{ '%02d' % loop.index }}</span>
+        <span class="hero-chip__label">{{ section.section.split('.')[-1].strip() }}</span>
+      </button>
+      {% endfor %}
+    </div>
+    <button class="hero-chip hero-chip--icon" aria-label="Lihat seluruh tracker">
+      <span class="hero-chip__icon">&#11088;</span>
+    </button>
+  </div>
+
+  <div class="hero-stage glass-shell">
+    <aside class="stage-panel stage-panel--side">
+      <div class="mini-card">
+        <header>
+          <span class="mini-card__eyebrow">{{ sections[1].section.split('.')[-1].strip() }}</span>
+          <h3>{{ sections[1].tasks[0].title }}</h3>
+        </header>
+        <p>{{ sections[1].tasks[0].description }}</p>
+        <div class="mini-card__cta">
+          <span class="badge">Deliverable</span>
+          <span class="deliverable">{{ sections[1].tasks[0].deliverable }}</span>
+        </div>
+        <button class="refresh-btn" type="button">Refresh</button>
+      </div>
+    </aside>
+
+    <article class="stage-panel stage-panel--main">
+      <header class="stage-meta">
+        <div>
+          <span class="stage-meta__index">{{ '%02d' % 1 }}</span>
+          <p class="stage-meta__eyebrow">{{ highlight.section.split('.')[-1].strip() }}</p>
+          <h1>{{ highlight_task.title }}</h1>
+        </div>
+        <button class="ghost-btn" type="button">Log in</button>
+      </header>
+      <p class="stage-description">{{ highlight_task.description }}</p>
+      {% if supporting_task %}
+      <div class="stage-support">
+        <span class="badge">Next</span>
+        <div>
+          <h4>{{ supporting_task.title }}</h4>
+          <p>{{ supporting_task.description }}</p>
+        </div>
+      </div>
+      {% endif %}
+      <footer class="stage-footer">
+        <button class="primary-btn" type="button">Mulai Implementasi</button>
+        <button class="secondary-btn" type="button">Tambah Catatan</button>
+      </footer>
+      <div class="stage-media">
+        <div class="bubble bubble-lg"></div>
+        <div class="bubble bubble-md"></div>
+        <div class="bubble bubble-sm"></div>
+        <div class="media-orb">
+          <span>{{ status_meta[highlight_task.status].icon }}</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="hero-carousel glass-loop">
+    <div class="carousel-meta">
+      <span class="carousel-title">New · Cosmiq Set</span>
+      <span class="carousel-index">Sep 23</span>
+    </div>
+    <div class="carousel-track">
+      {% for task in sections[2].tasks %}
+      <div class="carousel-card">
+        <span class="carousel-status status-{{ task.status }}">{{ status_meta[task.status].icon }}</span>
+        <h3>{{ task.title }}</h3>
+        <p>{{ task.description }}</p>
+        <span class="carousel-deliverable">{{ task.deliverable }}</span>
+        <button class="carousel-action" type="button">Add to cart</button>
+      </div>
+      {% endfor %}
+    </div>
+    <button class="carousel-next" type="button" aria-label="Halaman berikut">
+      <span>➜</span>
+    </button>
+  </div>
+</section>
+
+<section class="uiux-tracker">
+  <header class="tracker-header">
+    <div>
+      <span class="tracker-eyebrow">Blueprint backlog</span>
+      <h2>Implementasi UI/UX Sensasiwangi.id</h2>
+    </div>
+    <div class="status-legend">
+      {% for key, info in status_meta.items() %}
+      <span class="legend-item">
+        <span class="legend-icon status-{{ key }}">{{ info.icon }}</span>
+        <span>{{ info.label }}</span>
+      </span>
+      {% endfor %}
+    </div>
+  </header>
+
+  <div class="tracker-grid">
+    {% for section in sections %}
+    <article class="tracker-card">
+      <header>
+        <span class="tracker-card__index">{{ '%02d' % loop.index0 }}</span>
+        <h3>{{ section.section }}</h3>
+      </header>
+      {% if section.tasks %}
+      <ul class="tracker-list">
+        {% for task in section.tasks %}
+        <li class="tracker-item">
+          <div class="tracker-item__meta">
+            <span class="tracker-item__status status-{{ task.status }}">{{ status_meta[task.status].icon }}</span>
+            <div>
+              <h4>{{ task.title }}</h4>
+              <p>{{ task.description }}</p>
+            </div>
+          </div>
+          <span class="tracker-item__deliverable">{{ task.deliverable }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% elif section.groups %}
+      {% for group in section.groups %}
+      <div class="tracker-group">
+        <h4>{{ group.title }}</h4>
+        <ul class="tracker-list">
+          {% for task in group.tasks %}
+          <li class="tracker-item">
+            <div class="tracker-item__meta">
+              <span class="tracker-item__status status-{{ task.status }}">{{ status_meta[task.status].icon }}</span>
+              <div>
+                <h5>{{ task.title }}</h5>
+                <p>{{ task.description }}</p>
+              </div>
+            </div>
+            <span class="tracker-item__deliverable">{{ task.deliverable }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
