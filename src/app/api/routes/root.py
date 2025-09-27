@@ -164,3 +164,38 @@ async def read_marketplace(request: Request) -> HTMLResponse:
         "marketplace_catalog": marketplace_catalog,
     }
     return templates.TemplateResponse("marketplace.html", context)
+
+
+@router.get("/onboarding", response_class=HTMLResponse)
+async def read_onboarding(request: Request) -> HTMLResponse:
+    """Render the onboarding flow playground used by the product team."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+
+    steps = [
+        {
+            "key": "register",
+            "title": "Buat Akun",
+            "description": "Isi data dasar dan konfirmasi email untuk mulai eksplorasi Sensasiwangi.",
+        },
+        {
+            "key": "verify",
+            "title": "Verifikasi Email",
+            "description": "Masukkan kode yang kami kirim dan pantau batas waktunya secara real-time.",
+        },
+        {
+            "key": "profile",
+            "title": "Lengkapi Profil",
+            "description": "Beritahu kami tujuan bisnis parfum Anda untuk rekomendasi kurasi.",
+        },
+    ]
+
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Onboarding Pengguna",
+        "steps": steps,
+    }
+    return templates.TemplateResponse("onboarding.html", context)

@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="onboarding-hero glass-surface">
+  <div class="hero-copy">
+    <span class="badge">Alur 3 Langkah</span>
+    <h1>Onboarding pengguna baru Sensasiwangi.id</h1>
+    <p>
+      Validasi alur registrasi, verifikasi email, dan pengisian profil dalam satu layar.
+      Halaman ini membantu tim mengecek feedback langsung sebelum dirilis ke publik.
+    </p>
+  </div>
+  <div class="hero-progress">
+    <div class="progress-bar">
+      <div class="progress-fill" data-progress-fill></div>
+    </div>
+    <ol class="progress-steps">
+      {% for step in steps %}
+      <li class="progress-step" data-progress-step data-step-key="{{ step.key }}">
+        <span class="step-index">{{ loop.index }}</span>
+        <div>
+          <p class="step-title">{{ step.title }}</p>
+          <p class="step-description">{{ step.description }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<section class="onboarding-layout">
+  <div class="onboarding-main glass-surface">
+    <header class="section-header">
+      <div>
+        <h2>Langkah-langkah</h2>
+        <p>Lakukan 3 langkah sederhana untuk menyelesaikan onboarding.</p>
+      </div>
+      <div class="status-chip" data-status-label>Belum mulai</div>
+    </header>
+
+    <div id="onboarding-feedback" class="feedback" role="alert" aria-live="polite"></div>
+
+    <div class="onboarding-forms">
+      <form id="registration-form" data-step="register" class="onboarding-form">
+        <fieldset>
+          <legend>1. Registrasi Pengguna</legend>
+          <label>
+            Nama Lengkap
+            <input type="text" name="full_name" minlength="3" maxlength="120" placeholder="Mis. Ayu Laras" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" placeholder="nama@contoh.com" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" minlength="8" maxlength="128" placeholder="Minimal 8 karakter" required />
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" name="marketing_opt_in" value="true" />
+            Kirimkan update komunitas via email
+          </label>
+        </fieldset>
+        <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Token</button>
+      </form>
+
+      <form id="verification-form" data-step="verify" class="onboarding-form" aria-disabled="true">
+        <fieldset>
+          <legend>2. Verifikasi Email</legend>
+          <p class="form-help">
+            Masukkan token verifikasi yang dikirim ke email Anda. Token berlaku selama <span id="verification-countdown">--</span>.
+          </p>
+          <label>
+            Token Verifikasi
+            <input type="text" name="token" minlength="4" maxlength="64" placeholder="Masukkan token" required disabled />
+          </label>
+        </fieldset>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-outline" disabled>Verifikasi Email</button>
+          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Token</button>
+        </div>
+        <p class="debug-token" data-debug-token hidden></p>
+      </form>
+
+      <form id="profile-form" data-step="profile" class="onboarding-form" aria-disabled="true">
+        <fieldset>
+          <legend>3. Lengkapi Profil</legend>
+          <label>
+            Nama Brand / Tampilan
+            <input type="text" name="display_name" minlength="2" maxlength="80" placeholder="Mis. Studio Senja" required disabled />
+          </label>
+          <label>
+            Tujuan Bergabung
+            <input type="text" name="business_goal" minlength="3" maxlength="160" placeholder="Mis. skala produksi parfum" required disabled />
+          </label>
+          <label>
+            Pengalaman Meracik
+            <select name="experience_level" required disabled>
+              <option value="">Pilih pengalaman</option>
+              <option value="Pemula">Pemula</option>
+              <option value="Eksperimen Mandiri">Eksperimen Mandiri</option>
+              <option value="Profesional">Profesional</option>
+            </select>
+          </label>
+        </fieldset>
+        <button type="submit" class="btn gradient-button" disabled>Selesaikan Onboarding</button>
+      </form>
+    </div>
+  </div>
+
+  <aside class="onboarding-sidebar glass-surface">
+    <h2>Log Aktivitas</h2>
+    <p>Pantau setiap event yang terjadi selama onboarding. Data ini juga tersimpan oleh backend untuk audit.</p>
+    <ul id="onboarding-events" class="event-log"></ul>
+
+    <div class="qa-notes">
+      <h3>Checklist QA Mini</h3>
+      <ul>
+        <li>Token kedaluwarsa otomatis dalam 15 menit.</li>
+        <li>Batasi percobaan verifikasi maksimal 3 kali.</li>
+        <li>Profil baru hanya dapat dikirim setelah email tervalidasi.</li>
+      </ul>
+    </div>
+  </aside>
+</section>
+
+<script>
+  const state = {
+    onboardingId: null,
+    progress: null,
+    verificationToken: null,
+    countdownTimer: null,
+  };
+
+  const feedbackEl = document.getElementById("onboarding-feedback");
+  const progressFill = document.querySelector("[data-progress-fill]");
+  const statusLabel = document.querySelector("[data-status-label]");
+  const stepElements = document.querySelectorAll("[data-progress-step]");
+  const eventList = document.getElementById("onboarding-events");
+
+  const registrationForm = document.getElementById("registration-form");
+  const verificationForm = document.getElementById("verification-form");
+  const profileForm = document.getElementById("profile-form");
+  const resendButton = verificationForm.querySelector("[data-resend]");
+  const debugTokenEl = verificationForm.querySelector("[data-debug-token]");
+  const countdownEl = document.getElementById("verification-countdown");
+
+  function setFeedback(message, tone = "info") {
+    feedbackEl.textContent = message;
+    feedbackEl.dataset.tone = tone;
+    if (message) {
+      feedbackEl.classList.add("visible");
+    } else {
+      feedbackEl.classList.remove("visible");
+    }
+  }
+
+  function updateProgress(progress) {
+    state.progress = progress;
+    const ratio = progress.total_steps > 1 ? (progress.step_index - 1) / (progress.total_steps - 1) : 0;
+    const percent = Math.max(0, Math.min(ratio, 1)) * 100;
+    progressFill.style.width = `${percent}%`;
+    stepElements.forEach((element) => {
+      const index = Number(element.querySelector(".step-index").textContent);
+      element.classList.toggle("completed", index < progress.step_index);
+      element.classList.toggle("active", index === progress.step_index);
+    });
+    statusLabel.textContent =
+      progress.is_complete ? "Onboarding selesai" : `Langkah ${progress.step_index} dari ${progress.total_steps}`;
+  }
+
+  function enableForm(formEl, enabled) {
+    formEl.dataset.enabled = String(enabled);
+    formEl.setAttribute("aria-disabled", String(!enabled));
+    const controls = formEl.querySelectorAll("input, select, button");
+    controls.forEach((control) => {
+      control.disabled = !enabled;
+    });
+  }
+
+  function syncForms() {
+    const status = state.progress ? state.progress.status : "registered";
+    enableForm(verificationForm, Boolean(state.onboardingId) && status === "registered");
+    enableForm(profileForm, status === "email_verified");
+  }
+
+  function refreshCountdown(expiresAt) {
+    if (state.countdownTimer) {
+      clearInterval(state.countdownTimer);
+    }
+
+    if (!expiresAt) {
+      countdownEl.textContent = "--";
+      return;
+    }
+
+    const expiry = new Date(expiresAt);
+    function tick() {
+      const remaining = expiry - new Date();
+      if (remaining <= 0) {
+        clearInterval(state.countdownTimer);
+        countdownEl.textContent = "kedaluwarsa";
+        return;
+      }
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      countdownEl.textContent = `${minutes}m ${seconds}s`;
+    }
+
+    tick();
+    state.countdownTimer = setInterval(tick, 1000);
+  }
+
+  function renderEvents(events) {
+    eventList.innerHTML = "";
+    events.forEach((event) => {
+      const item = document.createElement("li");
+      const time = new Date(event.timestamp).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      item.innerHTML = `<span class="event-time">${time}</span><span class="event-name">${event.event}</span>`;
+      eventList.appendChild(item);
+    });
+  }
+
+  async function fetchEvents() {
+    if (!state.onboardingId) return;
+    const response = await fetch(`/api/onboarding/events/${state.onboardingId}`);
+    if (!response.ok) return;
+    const data = await response.json();
+    renderEvents(data.events);
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault();
+    const formData = new FormData(registrationForm);
+    const payload = Object.fromEntries(formData.entries());
+    payload.marketing_opt_in = Boolean(payload.marketing_opt_in);
+
+    setFeedback("Memproses registrasi...");
+    const response = await fetch("/api/onboarding/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      setFeedback(error.detail || "Registrasi gagal", "danger");
+      return;
+    }
+
+    const data = await response.json();
+    state.onboardingId = data.onboarding_id;
+    state.verificationToken = data.verification_token;
+    verificationForm.reset();
+    profileForm.reset();
+    updateProgress(data.progress);
+    syncForms();
+    refreshCountdown(data.verification_expires_at);
+    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.hidden = !state.verificationToken;
+    setFeedback("Registrasi berhasil. Token verifikasi telah dikirim.", "success");
+    await fetchEvents();
+  }
+
+  async function handleVerification(event) {
+    event.preventDefault();
+    if (!state.onboardingId) return;
+
+    const formData = new FormData(verificationForm);
+    const payload = { onboarding_id: state.onboardingId, token: formData.get("token") };
+
+    setFeedback("Memeriksa token...");
+    const response = await fetch("/api/onboarding/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setFeedback(data.detail || "Token tidak valid", "danger");
+      await fetchEvents();
+      return;
+    }
+
+    updateProgress(data.progress);
+    syncForms();
+    refreshCountdown(data.progress.verification.expires_at);
+    verificationForm.reset();
+    setFeedback("Email berhasil diverifikasi.", "success");
+    await fetchEvents();
+  }
+
+  async function handleResend() {
+    if (!state.onboardingId) return;
+    setFeedback("Meminta token baru...");
+    const response = await fetch("/api/onboarding/resend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ onboarding_id: state.onboardingId }),
+    });
+    if (!response.ok) {
+      setFeedback("Gagal memperbarui token", "danger");
+      return;
+    }
+    const data = await response.json();
+    state.verificationToken = data.verification_token;
+    updateProgress(data.progress);
+    refreshCountdown(data.verification_expires_at);
+    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.hidden = !state.verificationToken;
+    verificationForm.reset();
+    setFeedback("Token baru dikirim. Cek email Anda.", "success");
+    await fetchEvents();
+  }
+
+  async function handleProfile(event) {
+    event.preventDefault();
+    if (!state.onboardingId) return;
+
+    const formData = new FormData(profileForm);
+    const payload = {
+      onboarding_id: state.onboardingId,
+      display_name: formData.get("display_name"),
+      business_goal: formData.get("business_goal"),
+      experience_level: formData.get("experience_level"),
+    };
+
+    setFeedback("Menyimpan profil...");
+    const response = await fetch("/api/onboarding/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setFeedback(data.detail || "Profil tidak valid", "danger");
+      return;
+    }
+
+    updateProgress(data.progress);
+    syncForms();
+    setFeedback("Profil berhasil disimpan. Onboarding selesai!", "success");
+    profileForm.reset();
+    await fetchEvents();
+  }
+
+  registrationForm.addEventListener("submit", handleRegister);
+  verificationForm.addEventListener("submit", handleVerification);
+  profileForm.addEventListener("submit", handleProfile);
+  resendButton.addEventListener("click", handleResend);
+
+  updateProgress({ step_index: 1, total_steps: 3, is_complete: false, status: "registered", verification: { active: false, expires_at: null } });
+  syncForms();
+</script>
+{% endblock %}
