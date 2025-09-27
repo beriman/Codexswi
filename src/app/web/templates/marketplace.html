@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="marketplace-hero glass-surface">
+  <div class="hero-intro">
+    <span class="badge">Eksplorasi Marketplace</span>
+    <h1>Kurasi parfum artisan dan karya komunitas dalam satu etalase.</h1>
+    <p>
+      Bandingkan koleksi brand terpilih dengan kreasi komunitas Nusantarum, cek ketersediaan
+      sambatan, dan lanjutkan kolaborasi langsung dari dashboard Anda.
+    </p>
+    <div class="hero-actions">
+      <a class="btn gradient-button" href="#marketplace-catalog">Lihat katalog</a>
+    </div>
+  </div>
+  <div class="hero-filters glass-card">
+    <div class="filter-heading">
+      <h2>Pencarian cepat</h2>
+      <p>Gunakan filter untuk mempersempit aroma, status sambatan, dan kisaran harga.</p>
+    </div>
+    <form class="filter-form" aria-label="Filter marketplace parfum">
+      <label class="field">
+        <span>Kata kunci</span>
+        <input type="search" name="q" placeholder="Cari brand, notes, atau kreator" />
+      </label>
+      <label class="field">
+        <span>Kategori</span>
+        <select name="category">
+          <option value="">Semua kategori</option>
+          {% for tab in marketplace_catalog %}
+          <option value="{{ tab.slug }}">{{ tab.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Status Sambatan</span>
+        <select name="sambatan">
+          <option>Semua</option>
+          <option>Aktif</option>
+          <option>Menjelang penuh</option>
+          <option>Selesai</option>
+        </select>
+      </label>
+      <label class="field range">
+        <span>Kisaran harga</span>
+        <div class="range-inputs">
+          <input type="number" name="min" placeholder="Rp150K" min="0" />
+          <span class="divider">—</span>
+          <input type="number" name="max" placeholder="Rp500K" min="0" />
+        </div>
+      </label>
+      <button class="btn gradient-button" type="submit">Terapkan filter</button>
+    </form>
+  </div>
+</section>
+
+<section class="marketplace-section" id="marketplace-catalog">
+  <div class="section-header">
+    <div>
+      <span class="badge brand">Katalog Marketplace</span>
+      <h2>Produk brand partner dan kreator komunitas</h2>
+      <p>
+        Gunakan tab kategori untuk beralih antara parfum siap pakai, bahan baku, peralatan, dan opsi
+        pendukung lainnya.
+      </p>
+    </div>
+  </div>
+
+  <div class="catalog-tabs" role="tablist">
+    {% for tab in marketplace_catalog %}
+    <button
+      type="button"
+      class="catalog-tab {% if loop.first %}is-active{% endif %}"
+      data-tab="{{ tab.slug }}"
+      role="tab"
+      id="tab-{{ tab.slug }}"
+      aria-controls="panel-{{ tab.slug }}"
+      aria-selected="{{ 'true' if loop.first else 'false' }}"
+    >
+      {{ tab.label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for tab in marketplace_catalog %}
+  <div
+    class="catalog-panel {% if not loop.first %}is-hidden{% endif %}"
+    data-tab-panel="{{ tab.slug }}"
+    role="tabpanel"
+    id="panel-{{ tab.slug }}"
+    aria-labelledby="tab-{{ tab.slug }}"
+    {% if not loop.first %}hidden{% endif %}
+  >
+    <p class="panel-description">{{ tab.description }}</p>
+    <div class="product-grid marketplace-grid">
+      {% for product in tab.products %}
+      <article class="product-card glass-card">
+        <div class="product-media {{ product.media_class }}"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">{{ product.origin_type }}</span>
+            <span class="product-owner">{{ product.origin }}</span>
+          </div>
+          <h3>{{ product.name }}</h3>
+          {% if product.description %}
+          <p class="product-description">{{ product.description }}</p>
+          {% elif product.notes %}
+          <p class="product-description">{{ product.notes | join(', ') }}</p>
+          {% endif %}
+          <div class="product-footer">
+            <span class="price">{{ product.price }}</span>
+            {% if product.tags %}
+            <div class="product-tags">
+              {% for tag in product.tags %}
+              <span class="tag">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% if product.sambatan %}
+          <div class="progress-indicator">
+            <span class="progress-label">{{ product.sambatan.slots_left }} slot tersisa</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="--progress: {{ product.sambatan.progress_percent }}%"></div>
+            </div>
+            <span class="progress-deadline">{{ product.sambatan.deadline }}</span>
+          </div>
+          {% endif %}
+          {% if product.availability %}
+          <p class="product-availability">{{ product.availability }}</p>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<script>
+  (function () {
+    const tabButtons = document.querySelectorAll('[data-tab]');
+    const tabPanels = document.querySelectorAll('[data-tab-panel]');
+
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const target = button.getAttribute('data-tab');
+
+        tabButtons.forEach((tab) => {
+          const isActive = tab === button;
+          tab.classList.toggle('is-active', isActive);
+          tab.setAttribute('aria-selected', String(isActive));
+        });
+
+        tabPanels.forEach((panel) => {
+          const match = panel.getAttribute('data-tab-panel') === target;
+          panel.classList.toggle('is-hidden', !match);
+          panel.toggleAttribute('hidden', !match);
+        });
+      });
+    });
+  })();
+</script>
+{% endblock %}

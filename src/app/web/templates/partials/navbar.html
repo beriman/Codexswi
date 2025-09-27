@@ -1,15 +1,28 @@
-<nav class="navbar glass-panel">
+<nav class="navbar glass-surface">
   <div class="navbar-brand">
     <span class="logo">Sensasiwangi.id</span>
   </div>
+  <button class="navbar-toggle" aria-label="Buka navigasi">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
   <ul class="navbar-menu">
-    <li><a href="/">Dashboard</a></li>
-    <li><a href="#marketplace">Marketplace</a></li>
-    <li><a href="#nusantarum">Nusantarum</a></li>
-    <li><a href="#sambatan">Sambatan</a></li>
-    <li><a href="#profil">Profil</a></li>
+    <li>
+      <a href="{{ url_for('read_home') }}" class="{% if request.url.path == '/' %}active{% endif %}">Beranda</a>
+    </li>
+    <li>
+      <a href="{{ url_for('read_marketplace') }}" class="{% if request.url.path.startswith('/marketplace') %}active{% endif %}">
+        Marketplace
+      </a>
+    </li>
+    <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
+    <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
+    <li><a href="{{ url_for('read_home') }}#dashboard">Dashboard</a></li>
+    <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
   </ul>
   <div class="navbar-actions">
-    <a class="btn tertiary" href="#login">Login</a>
+    <a class="btn btn-ghost" href="#login">Masuk</a>
+    <a class="btn gradient-button" href="#komunitas">Gabung Komunitas</a>
   </div>
 </nav>
