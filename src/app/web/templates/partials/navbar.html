@@ -16,6 +16,11 @@
         Marketplace
       </a>
     </li>
+    <li>
+      <a href="{{ url_for('read_onboarding') }}" class="{% if request.url.path.startswith('/onboarding') %}active{% endif %}">
+        Onboarding
+      </a>
+    </li>
     <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
     <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
     <li><a href="{{ url_for('read_home') }}#dashboard">Dashboard</a></li>
