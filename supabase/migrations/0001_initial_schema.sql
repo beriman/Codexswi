@@ -72,6 +72,34 @@ create trigger set_updated_at_user_profiles
 before update on user_profiles
 for each row execute function set_updated_at();
 
+create table if not exists auth_accounts (
+    id uuid primary key default gen_random_uuid(),
+    email citext not null unique,
+    password_hash text not null,
+    full_name text not null,
+    status text not null default 'active',
+    last_login_at timestamptz,
+    created_at timestamptz not null default timezone('utc', now()),
+    updated_at timestamptz not null default timezone('utc', now())
+);
+
+create trigger set_updated_at_auth_accounts
+before update on auth_accounts
+for each row execute function set_updated_at();
+
+create table if not exists auth_sessions (
+    id uuid primary key default gen_random_uuid(),
+    account_id uuid not null references auth_accounts(id) on delete cascade,
+    session_token text not null unique,
+    ip_address text,
+    user_agent text,
+    created_at timestamptz not null default timezone('utc', now()),
+    expires_at timestamptz not null
+);
+
+create index if not exists idx_auth_sessions_account_expires
+    on auth_sessions (account_id, expires_at desc);
+
 create table if not exists onboarding_registrations (
     id uuid primary key default gen_random_uuid(),
     email citext not null unique,

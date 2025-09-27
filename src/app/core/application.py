@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
 from app.core.config import get_settings
+from app.core.session import InMemorySessionMiddleware
 from app.web.templates import template_engine
 from app.api.routes import onboarding as onboarding_routes
 from app.api.routes import reports as reports_routes
@@ -21,6 +22,12 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(title=settings.app_name)
+
+    app.add_middleware(
+        InMemorySessionMiddleware,
+        max_age=60 * 60 * 24 * 14,
+        same_site="lax",
+    )
 
     # Basic CORS setup to simplify early integrations with Supabase and
     # front-end previews during the MVP stage.
@@ -38,6 +45,9 @@ def create_app() -> FastAPI:
     app.include_router(root_routes.router)
     app.include_router(reports_routes.router)
     app.include_router(onboarding_routes.router)
+    from app.api.routes import auth as auth_routes
+
+    app.include_router(auth_routes.router)
 
     # Expose the template engine on the app state for reuse by routers.
     app.state.templates = template_engine
