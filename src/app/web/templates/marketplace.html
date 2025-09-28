@@ -99,6 +99,11 @@
               {% endfor %}
             </div>
             {% endif %}
+            {% if product.slug %}
+            <a class="button button-ghost product-detail-link" href="/marketplace/products/{{ product.slug }}"
+              >Lihat detail</a
+            >
+            {% endif %}
           </div>
           {% if product.sambatan %}
           <div class="progress-indicator">

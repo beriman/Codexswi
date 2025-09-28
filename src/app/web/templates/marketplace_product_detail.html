@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="product-detail-page">
+  <div class="product-detail-container">
+    <nav class="product-breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        {% for crumb in breadcrumbs %}
+        <li>
+          {% if crumb.url %}
+          <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+          {% else %}
+          <span aria-current="page">{{ crumb.label }}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+    </nav>
+
+    <div class="product-detail-hero glass-panel">
+      <div class="product-hero-copy">
+        <span class="hero-kicker">{{ product.hero_kicker }}</span>
+        <h1>{{ product.name }}</h1>
+        <p class="product-tagline">{{ product.tagline }} • {{ product.brand }}</p>
+        <p class="product-summary">{{ product.summary }}</p>
+        <p class="product-description">{{ product.description }}</p>
+        <div class="product-pricing">
+          <span class="price-primary">{{ product.price_primary }}</span>
+          <span class="price-secondary">{{ product.price_secondary }}</span>
+        </div>
+        <div class="product-volume-options" role="list">
+          {% for option in product.volume_options %}
+          <div class="volume-option" role="listitem">
+            <span class="volume-size">{{ option.size }}</span>
+            <span class="volume-price">{{ option.price }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="button button-primary product-cta">Tambahkan ke Keranjang</button>
+        <p class="origin-info">Diracik di {{ product.origin_city }}</p>
+      </div>
+      <div class="product-hero-visual {{ product.image_class | default('product-visual-default') }}" aria-hidden="true">
+        <div class="product-visual-glow"></div>
+      </div>
+    </div>
+
+    <div class="product-detail-grid">
+      <section class="glass-panel scent-profile">
+        <header>
+          <h2>Profil Aroma</h2>
+          <p>Piramida aroma dirancang untuk memberikan transisi halus dari pembuka hingga basis.</p>
+        </header>
+        <div class="scent-columns">
+          {% for layer in product.scent_pyramid %}
+            <div class="scent-column">
+              <h3>{{ layer.title }}</h3>
+              <ul>
+                {% for note in layer.notes %}
+                <li>{{ note }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="glass-panel experience-section">
+        <header>
+          <h2>Kenapa Kolektor Memilihnya</h2>
+        </header>
+        <ul class="experience-list">
+          {% for item in product.experience_points %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+        <div class="production-meta">
+          <div>
+            <span class="meta-label">Durasi macerasi</span>
+            <strong>{{ product.production_notes.macration }}</strong>
+          </div>
+          <div>
+            <span class="meta-label">Jumlah tiap batch</span>
+            <strong>{{ product.production_notes.bottle_batch }}</strong>
+          </div>
+          <div>
+            <span class="meta-label">Estimasi pengiriman</span>
+            <strong>{{ product.production_notes.dispatch }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="glass-panel featured-categories">
+        <h2>Featured Categories</h2>
+        <div class="category-chips" role="tablist">
+          {% for category in product.featured_categories %}
+          <span class="category-chip">{{ category.label }}</span>
+          {% endfor %}
+        </div>
+        <div class="featured-summary">
+          <p>
+            Eksplor pilihan kategori untuk menemukan parfum lain dalam kisaran aroma dan karakter yang serupa.
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="glass-panel recommendations">
+      <header>
+        <h2>Rekomendasi Lainnya</h2>
+        <p>Produk dengan DNA aroma yang melengkapi koleksi Anda.</p>
+      </header>
+      <div class="recommendation-grid">
+        {% for item in product.recommendations %}
+        <article class="recommendation-card">
+          <div class="recommendation-visual {{ item.media_class }}" aria-hidden="true"></div>
+          <div class="recommendation-body">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.category }}</p>
+            <span class="recommendation-price">{{ item.price }}</span>
+            <a class="button button-ghost" href="/marketplace/products/{{ item.slug }}">Lihat detail</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
