@@ -5,19 +5,29 @@
   </div>
   <div class="footer-links">
     <div>
-      <h4>Komunitas</h4>
+      <h4>Navigasi</h4>
       <ul>
-        <li><a href="#komunitas">Newsletter</a></li>
-        <li><a href="#sambatan">Sambatan</a></li>
-        <li><a href="#nusantarum">Nusantarum</a></li>
+        <li><a href="{{ url_for('read_home') }}">Beranda</a></li>
+        <li><a href="{{ url_for('read_marketplace') }}">Marketplace</a></li>
+        <li><a href="{{ url_for('list_brands') }}">Brand Partner</a></li>
+        <li><a href="{{ url_for('read_onboarding') }}">Onboarding</a></li>
+        <li><a href="{{ url_for('read_uiux_tracker') }}">UI/UX Tracker</a></li>
+        <li><a href="{{ url_for('read_purchase_foundation') }}">Flow Pembelian</a></li>
       </ul>
     </div>
     <div>
-      <h4>Dukungan</h4>
+      <h4>Dashboard</h4>
       <ul>
-        <li><a href="#kontak">Kontak</a></li>
-        <li><a href="#kebijakan">Kebijakan Privasi</a></li>
-        <li><a href="#syarat">Syarat Layanan</a></li>
+        <li><a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a></li>
+        <li><a href="{{ url_for('read_moderation_dashboard') }}">Dashboard Moderasi</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Komunitas</h4>
+      <ul>
+        <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
+        <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
+        <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
       </ul>
     </div>
     <div>

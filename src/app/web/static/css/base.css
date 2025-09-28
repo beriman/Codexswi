@@ -212,12 +212,97 @@ p {
   gap: 0.75rem;
 }
 
-.navbar-user {
+.navbar-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.navbar-dropdown__toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
   color: var(--text-secondary);
   font-weight: 600;
+  text-decoration: none;
+  user-select: none;
+  margin: 0;
+}
+
+.navbar-dropdown__toggle:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.navbar-dropdown__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.navbar-dropdown__toggle:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 3px;
+}
+
+.navbar-dropdown[open] .navbar-dropdown__toggle {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.navbar-dropdown__icon {
+  font-size: 0.75rem;
+  transition: transform var(--transition-fast);
+}
+
+.navbar-dropdown[open] .navbar-dropdown__icon {
+  transform: rotate(180deg);
+}
+
+.navbar-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  min-width: 200px;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+  z-index: 25;
+}
+
+.navbar-dropdown:not([open]) .navbar-dropdown__menu {
+  display: none;
+}
+
+.navbar-dropdown__menu a,
+.navbar-dropdown__menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.navbar-dropdown__menu a:hover,
+.navbar-dropdown__menu a:focus-visible,
+.navbar-dropdown__menu button:hover,
+.navbar-dropdown__menu button:focus-visible {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .navbar-actions .is-loading {
