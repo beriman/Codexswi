@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+{% set profile = snapshot.brand_profile %}
+<section class="dashboard-hero glass-surface">
+  <div class="hero-main">
+    <span class="hero-badge">Dashboard Brand Owner</span>
+    <h1>Halo, {{ profile.owner_name }} 👋</h1>
+    <p>{{ profile.tagline }}</p>
+    <div class="hero-meta">
+      <span class="sync-status">{{ profile.sync_status }}</span>
+      <span class="brand-name">Brand aktif: {{ profile.brand_name }}</span>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="btn gradient-button">Tambah Produk</button>
+      <button type="button" class="btn btn-outline">Buat Kampanye</button>
+      <button type="button" class="btn btn-ghost">Undang Anggota Tim</button>
+    </div>
+  </div>
+  <div class="hero-kpis">
+    <ul class="kpi-grid">
+      {% for kpi in snapshot.kpis %}
+      <li class="kpi-card glass-card">
+        <p class="kpi-label">{{ kpi.label }}</p>
+        <p class="kpi-value">{{ kpi.value }}</p>
+        <p class="kpi-delta {% if kpi.is_positive %}positive{% else %}negative{% endif %}">{{ kpi.delta_label }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="dashboard-overview glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Ringkasan Hari Ini</h2>
+      <p>Pantau KPI utama, status pesanan, dan notifikasi operasional.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-ghost">Refresh Data</button>
+      <button type="button" class="btn btn-outline">Ekspor Laporan</button>
+    </div>
+  </header>
+
+  <div class="overview-content">
+    <div class="status-pills" role="list">
+      {% for status in snapshot.order_statuses %}
+      <div class="status-pill tone-{{ status.tone }}" role="listitem">
+        <span class="status-count">{{ status.count }}</span>
+        <span class="status-label">{{ status.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="notification-panel">
+      <h3>Notifikasi Penting</h3>
+      <ul class="notification-list" data-notification-list>
+        {% for notif in snapshot.notifications %}
+        <li class="notification-item glass-card">
+          <div class="notification-header">
+            <span class="notification-category">{{ notif.category }}</span>
+            <span class="notification-urgency">{{ notif.urgency }}</span>
+          </div>
+          <p>{{ notif.message }}</p>
+          <button type="button" class="btn btn-ghost" data-dismiss-notification>Tandai selesai</button>
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="notification-empty" data-notification-empty hidden>Semua notifikasi telah ditangani 🎉</p>
+    </aside>
+  </div>
+</section>
+
+<section class="dashboard-management">
+  <article class="management-card glass-surface" id="product-management">
+    <header class="section-heading">
+      <div>
+        <h2>Manajemen Produk</h2>
+        <p>Kelola katalog, status publikasi, dan stok setiap SKU.</p>
+      </div>
+      <div class="section-tools">
+        <button type="button" class="btn btn-outline">Impor CSV</button>
+        <button type="button" class="btn gradient-button">Produk Baru</button>
+      </div>
+    </header>
+
+    <div class="management-controls">
+      <div class="filter-chips" role="tablist" aria-label="Filter status produk">
+        {% set product_filters = [
+          {"key": "semua", "label": "Semua"},
+          {"key": "aktif", "label": "Aktif"},
+          {"key": "draft", "label": "Draft"},
+          {"key": "pending", "label": "Menunggu Approval"},
+          {"key": "arsip", "label": "Arsip"}
+        ] %}
+        {% for filter in product_filters %}
+        <button
+          type="button"
+          class="chip {% if loop.first %}is-active{% endif %}"
+          data-product-filter="{{ filter.key }}"
+          role="tab"
+          aria-selected="{{ 'true' if loop.first else 'false' }}"
+        >
+          {{ filter.label }}
+        </button>
+        {% endfor %}
+      </div>
+      <label class="search-field">
+        <span>Cari SKU</span>
+        <input type="search" placeholder="Nama produk atau SKU" data-product-search />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Produk</th>
+            <th scope="col">Status</th>
+            <th scope="col">Stok</th>
+            <th scope="col">Harga</th>
+            <th scope="col">Terakhir Diperbarui</th>
+            <th scope="col" class="actions">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in snapshot.products %}
+          <tr
+            data-product-row
+            data-status="{{ product.status }}"
+            data-name="{{ product.name | lower }}"
+            data-sku="{{ product.sku | lower }}"
+          >
+            <td>
+              <div class="table-primary">
+                <span class="primary-text">{{ product.name }}</span>
+                <span class="secondary-text">SKU: {{ product.sku }}</span>
+              </div>
+            </td>
+            <td><span class="status-badge status-{{ product.status }}">{{ product.status|title }}</span></td>
+            <td>{{ product.stock_level }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.updated }}</td>
+            <td class="actions">
+              <button type="button" class="btn btn-ghost">Edit</button>
+              <button type="button" class="btn btn-ghost">Lihat</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="management-card glass-surface" id="order-management">
+    <header class="section-heading">
+      <div>
+        <h2>Manajemen Pesanan</h2>
+        <p>Prioritaskan pesanan baru, pantau SLA, dan respon pelanggan.</p>
+      </div>
+      <div class="section-tools">
+        <button type="button" class="btn btn-outline">Cetak Picking List</button>
+      </div>
+    </header>
+
+    <div class="management-controls">
+      <div class="filter-chips" role="tablist" aria-label="Filter status pesanan">
+        {% set order_filters = [
+          {"key": "semua", "label": "Semua"},
+          {"key": "baru", "label": "Baru"},
+          {"key": "diproses", "label": "Diproses"},
+          {"key": "dikirim", "label": "Dikirim"},
+          {"key": "perlu perhatian", "label": "Perlu Perhatian"}
+        ] %}
+        {% for filter in order_filters %}
+        <button
+          type="button"
+          class="chip {% if loop.first %}is-active{% endif %}"
+          data-order-filter="{{ filter.key }}"
+          role="tab"
+          aria-selected="{{ 'true' if loop.first else 'false' }}"
+        >
+          {{ filter.label }}
+        </button>
+        {% endfor %}
+      </div>
+      <label class="search-field">
+        <span>Cari Invoice</span>
+        <input type="search" placeholder="Nomor invoice atau pelanggan" data-order-search />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Invoice</th>
+            <th scope="col">Pelanggan</th>
+            <th scope="col">Item</th>
+            <th scope="col">Total</th>
+            <th scope="col">Status</th>
+            <th scope="col">Update Terakhir</th>
+            <th scope="col" class="actions">Tindakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in snapshot.orders %}
+          <tr
+            data-order-row
+            data-status="{{ order.status | lower }}"
+            data-invoice="{{ order.invoice | lower }}"
+            data-customer="{{ order.customer | lower }}"
+          >
+            <td class="table-primary">
+              <span class="primary-text">{{ order.invoice }}</span>
+            </td>
+            <td>{{ order.customer }}</td>
+            <td>{{ order.items }}</td>
+            <td>{{ order.total }}</td>
+            <td><span class="status-badge status-{{ order.status | replace(' ', '-') | lower }}">{{ order.status }}</span></td>
+            <td>{{ order.updated }}</td>
+            <td class="actions">
+              <button type="button" class="btn btn-ghost">Detail</button>
+              <button type="button" class="btn btn-ghost">Perbarui Status</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
+
+<section class="analytics-section glass-surface" id="sales-analytics">
+  <header class="section-heading">
+    <div>
+      <h2>Analitik Penjualan</h2>
+      <p>Gunakan rentang waktu untuk melihat tren penjualan dan kontribusi produk.</p>
+    </div>
+    <div class="analytics-controls" role="tablist" aria-label="Rentang waktu analitik">
+      {% for dataset in snapshot.analytics_ranges %}
+      <button
+        type="button"
+        class="chip {% if loop.first %}is-active{% endif %}"
+        data-analytics-range="{{ dataset.key }}"
+        role="tab"
+        aria-selected="{{ 'true' if loop.first else 'false' }}"
+      >
+        {{ dataset.label }}
+      </button>
+      {% endfor %}
+    </div>
+  </header>
+
+  {% for dataset in snapshot.analytics_ranges %}
+  <div
+    class="analytics-panel {% if not loop.first %}is-hidden{% endif %}"
+    data-analytics-panel="{{ dataset.key }}"
+    {% if not loop.first %}hidden{% endif %}
+  >
+    <div class="analytics-summary">
+      <div>
+        <span class="summary-label">Revenue</span>
+        <span class="summary-value">{{ dataset.summary.revenue }}</span>
+      </div>
+      <div>
+        <span class="summary-label">Jumlah Order</span>
+        <span class="summary-value">{{ dataset.summary.orders }}</span>
+      </div>
+      <div>
+        <span class="summary-label">Average Order Value</span>
+        <span class="summary-value">{{ dataset.summary.avg_order }}</span>
+      </div>
+      <div>
+        <span class="summary-label">Konversi</span>
+        <span class="summary-value">{{ dataset.summary.conversion }}</span>
+      </div>
+    </div>
+
+    <div
+      class="analytics-chart"
+      data-chart
+      data-chart-points="{{ dataset.points | join(',') }}"
+      data-chart-labels="{{ dataset.x_labels | join(',') }}"
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="gradient-{{ dataset.key }}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(56, 189, 248, 0.7)" />
+            <stop offset="100%" stop-color="rgba(56, 189, 248, 0)" />
+          </linearGradient>
+        </defs>
+        <path class="chart-area" data-chart-area d="" fill="url(#gradient-{{ dataset.key }})" />
+        <polyline class="chart-line" data-chart-line points="" />
+      </svg>
+    </div>
+
+    <div class="analytics-details">
+      <div class="top-products">
+        <h3>Produk Terlaris</h3>
+        <ul>
+          {% for product in dataset.top_products %}
+          <li>
+            <span>{{ product.name }}</span>
+            <span>{{ product.share }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="customer-segments">
+        <h3>Segmentasi Pelanggan</h3>
+        <ul>
+          {% for segment in dataset.segments %}
+          <li>
+            <span>{{ segment.label }}</span>
+            <span>{{ segment.value }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="promotion-section">
+  <header class="section-heading">
+    <div>
+      <h2>Promosi &amp; Kampanye</h2>
+      <p>Pantau performa voucher, kolaborasi sambatan, dan kampanye marketing.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Rekomendasi Kampanye</button>
+      <button type="button" class="btn gradient-button">Buat Voucher</button>
+    </div>
+  </header>
+
+  <div class="promotion-grid">
+    {% for promo in snapshot.promotions %}
+    <article class="promotion-card glass-card">
+      <header>
+        <span class="promotion-status">{{ promo.status }}</span>
+        <h3>{{ promo.name }}</h3>
+      </header>
+      <p>{{ promo.goal }}</p>
+      <div class="promotion-meta">
+        <span>Periode: {{ promo.period }}</span>
+        <span>{{ promo.progress_percent }}% tercapai</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="--progress: {{ promo.progress_percent }}%"></div>
+      </div>
+      <div class="promotion-actions">
+        <button type="button" class="btn btn-ghost">Detail</button>
+        <button type="button" class="btn btn-ghost">Duplikasi</button>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="verification-section" id="brand-verification">
+  <div class="verification-steps glass-surface">
+    <header class="section-heading">
+      <div>
+        <h2>Verifikasi Brand</h2>
+        <p>Pastikan seluruh dokumen lengkap untuk mempercepat approval kurator.</p>
+      </div>
+      <div class="section-tools">
+        <button type="button" class="btn btn-outline">Hubungi Kurator</button>
+      </div>
+    </header>
+
+    <ol class="step-list">
+      {% for step in snapshot.verification_steps %}
+      <li class="step-item step-{{ step.status }}">
+        <div class="step-icon"></div>
+        <div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.description }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  <aside class="verification-aside glass-card">
+    <h3>Checklist Dokumen</h3>
+    <ul class="document-list">
+      {% for doc in snapshot.verification_documents %}
+      <li>
+        <div>
+          <span class="document-name">{{ doc.name }}</span>
+          {% if doc.note %}<span class="document-note">{{ doc.note }}</span>{% endif %}
+        </div>
+        <span class="status-badge status-{{ doc.status | lower | replace(' ', '-') }}">{{ doc.status }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <h3 class="timeline-heading">Riwayat Komunikasi</h3>
+    <ul class="timeline">
+      {% for item in snapshot.verification_timeline %}
+      <li>
+        <span class="timeline-date">{{ item.date.strftime('%d %b %Y') }}</span>
+        <div>
+          <span class="timeline-actor">{{ item.actor }}</span>
+          <p>{{ item.message }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+</section>
+
+<section class="team-section glass-surface" id="team-management">
+  <header class="section-heading">
+    <div>
+      <h2>Pengaturan &amp; Tim</h2>
+      <p>Kelola peran, undangan anggota baru, dan audit aktivitas.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Undang Anggota</button>
+      <button type="button" class="btn btn-ghost">Kelola Peran</button>
+    </div>
+  </header>
+
+  <div class="team-layout">
+    <div class="team-members">
+      <h3>Anggota Aktif</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Nama</th>
+            <th scope="col">Peran</th>
+            <th scope="col">Email</th>
+            <th scope="col">Aktivitas Terakhir</th>
+            <th scope="col">Izin</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in snapshot.team_members %}
+          <tr>
+            <td class="table-primary">
+              <span class="primary-text">{{ member.name }}</span>
+            </td>
+            <td>{{ member.role }}</td>
+            <td>{{ member.email }}</td>
+            <td>{{ member.last_active }}</td>
+            <td>
+              <ul class="permission-list">
+                {% for permission in member.permissions %}
+                <li>{{ permission }}</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <aside class="team-sidebar">
+      <div class="invitation-card glass-card">
+        <h3>Undangan Tertunda</h3>
+        <ul>
+          {% for invite in snapshot.team_invitations %}
+          <li>
+            <div>
+              <span class="primary-text">{{ invite.email }}</span>
+              <span class="secondary-text">Peran: {{ invite.role }}</span>
+            </div>
+            <div class="invitation-meta">
+              <span>Dikirim: {{ invite.sent_at }}</span>
+              <span>Kedaluwarsa: {{ invite.expires_at }}</span>
+            </div>
+            <div class="invitation-actions">
+              <button type="button" class="btn btn-ghost">Kirim Ulang</button>
+              <button type="button" class="btn btn-ghost">Batalkan</button>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="activity-card glass-card">
+        <h3>Log Aktivitas Tim</h3>
+        <ul class="activity-list">
+          {% for log in snapshot.activity_log %}
+          <li>
+            <span class="activity-time">{{ log.timestamp }}</span>
+            <div>
+              <span class="activity-actor">{{ log.actor }}</span>
+              <p>{{ log.action }}</p>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', path='js/dashboard-brand-owner.js') }}" defer></script>
+{% endblock %}

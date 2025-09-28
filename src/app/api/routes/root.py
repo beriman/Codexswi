@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from app.core.config import get_settings
+from app.services.brand_dashboard import brand_dashboard_service
 from app.services.products import product_service
 from app.services.sambatan import SambatanCampaign, sambatan_service
 
@@ -1010,3 +1011,21 @@ async def read_purchase_foundation(request: Request) -> HTMLResponse:
         "flows": PURCHASE_FLOW_BLUEPRINT,
     }
     return templates.TemplateResponse("purchase_workflow.html", context)
+
+
+@router.get("/dashboard/brand-owner", response_class=HTMLResponse)
+async def read_brand_owner_dashboard(request: Request) -> HTMLResponse:
+    """Render the operational dashboard playground for brand owners."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+    snapshot = brand_dashboard_service.get_snapshot()
+
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Dashboard Brand Owner",
+        "snapshot": snapshot,
+    }
+    return templates.TemplateResponse("pages/dashboard/brand_owner.html", context)
