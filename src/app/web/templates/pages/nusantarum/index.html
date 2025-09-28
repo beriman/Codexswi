@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/nusantarum.css') }}" />
+{% endblock %}
+
+{% block content %}
+<section class="nusantarum-page">
+  <header class="nusantarum-header">
+    <div>
+      <span class="nusantarum-badge">Direktori Nusantara</span>
+      <h1>Pusat Kurasi Parfum Lokal Indonesia</h1>
+      <p>
+        Jelajahi parfum dari brand terverifikasi, temukan profil perfumer komunitas, dan pantau ketersediaan produk di marketplace Sensasiwangi.
+      </p>
+    </div>
+
+    <form
+      id="nusantarum-search-form"
+      class="nusantarum-search"
+      hx-get="/nusantarum/search"
+      hx-target="#nusantarum-search-results"
+      hx-trigger="keyup changed delay:400ms"
+      hx-indicator="#nusantarum-search-results"
+    >
+      <label class="sr-only" for="nusantarum-search-input">Cari parfum, brand, atau perfumer</label>
+      <input
+        id="nusantarum-search-input"
+        type="search"
+        name="q"
+        placeholder="Cari parfum, brand, atau perfumer"
+        autocomplete="off"
+      />
+    </form>
+    <div id="nusantarum-search-results">
+      {% with results={'perfumes': [], 'brands': [], 'perfumers': []}, error_message=None %}
+      {% include 'components/nusantarum/search-results.html' %}
+      {% endwith %}
+    </div>
+
+    <nav class="nusantarum-tabs" role="tablist">
+      <button
+        type="button"
+        class="nusantarum-tab"
+        role="tab"
+        aria-selected="{{ 'true' if active_tab == 'parfum' else 'false' }}"
+        hx-get="/nusantarum/tab/parfum"
+        hx-target="#nusantarum-tab-content"
+        hx-include="#nusantarum-filter-form"
+        hx-on::after-request="document.getElementById('nusantarum-filter-form')?.setAttribute('hx-get', '/nusantarum/tab/parfum')"
+      >Parfum</button>
+      <button
+        type="button"
+        class="nusantarum-tab"
+        role="tab"
+        aria-selected="{{ 'true' if active_tab == 'brand' else 'false' }}"
+        hx-get="/nusantarum/tab/brand"
+        hx-target="#nusantarum-tab-content"
+        hx-include="#nusantarum-filter-form"
+        hx-on::after-request="document.getElementById('nusantarum-filter-form')?.setAttribute('hx-get', '/nusantarum/tab/brand')"
+      >Brand</button>
+      <button
+        type="button"
+        class="nusantarum-tab"
+        role="tab"
+        aria-selected="{{ 'true' if active_tab == 'perfumer' else 'false' }}"
+        hx-get="/nusantarum/tab/perfumer"
+        hx-target="#nusantarum-tab-content"
+        hx-include="#nusantarum-filter-form"
+        hx-on::after-request="document.getElementById('nusantarum-filter-form')?.setAttribute('hx-get', '/nusantarum/tab/perfumer')"
+      >Perfumer</button>
+    </nav>
+  </header>
+
+  <div class="nusantarum-body">
+    {% with filters=filters, sync_status=sync_status, active_tab=active_tab %}
+    {% include 'components/nusantarum/filter-panel.html' %}
+    {% endwith %}
+
+    <section id="nusantarum-tab-content" aria-live="polite" aria-busy="false">
+      {% with page=perfume_page, error_message=error_message, active_tab=active_tab %}
+      {% include 'components/nusantarum/perfume-list.html' %}
+      {% endwith %}
+    </section>
+  </div>
+</section>
+{% endblock %}

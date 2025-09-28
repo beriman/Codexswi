@@ -1,0 +1,41 @@
+<div class="nusantarum-search-results" role="status" aria-live="polite">
+  {% if error_message %}
+  <p>{{ error_message }}</p>
+  {% elif results.perfumes or results.brands or results.perfumers %}
+  <div>
+    <strong>Parfum</strong>
+    <ul>
+      {% for item in results.perfumes %}
+      <li>{{ item }}</li>
+      {% endfor %}
+      {% if not results.perfumes %}
+      <li>Tidak ada hasil.</li>
+      {% endif %}
+    </ul>
+  </div>
+  <div>
+    <strong>Brand</strong>
+    <ul>
+      {% for item in results.brands %}
+      <li>{{ item }}</li>
+      {% endfor %}
+      {% if not results.brands %}
+      <li>Tidak ada hasil.</li>
+      {% endif %}
+    </ul>
+  </div>
+  <div>
+    <strong>Perfumer</strong>
+    <ul>
+      {% for item in results.perfumers %}
+      <li>{{ item }}</li>
+      {% endfor %}
+      {% if not results.perfumers %}
+      <li>Tidak ada hasil.</li>
+      {% endif %}
+    </ul>
+  </div>
+  {% else %}
+  <p>Masukkan kata kunci untuk menelusuri katalog.</p>
+  {% endif %}
+</div>

@@ -1,0 +1,55 @@
+<article class="nusantarum-list-card" tabindex="0">
+  <header class="nusantarum-meta">
+    <strong>{{ perfume.name }}</strong>
+    <span>oleh <a href="/brands/{{ perfume.brand_slug }}">{{ perfume.brand_name }}</a></span>
+    {% if perfume.perfumer_name %}
+    <span>
+      Perfumer:
+      {% if perfume.perfumer_profile_url %}
+      <a href="{{ perfume.perfumer_profile_url }}">{{ perfume.perfumer_name }}</a>
+      {% else %}
+      {{ perfume.perfumer_name }}
+      {% endif %}
+    </span>
+    {% endif %}
+  </header>
+
+  {% if perfume.hero_note %}
+  <p>{{ perfume.hero_note }}</p>
+  {% elif perfume.description %}
+  <p>{{ perfume.description[:180] }}{% if perfume.description|length > 180 %}…{% endif %}</p>
+  {% endif %}
+
+  <div class="nusantarum-meta">
+    {% if perfume.aroma_families %}
+    <span>Aroma: {{ perfume.aroma_families | join(', ') }}</span>
+    {% endif %}
+    {% if perfume.marketplace_price %}
+    <span>Harga Marketplace: Rp{{ '%.0f'|format(perfume.marketplace_price) }}</span>
+    {% elif perfume.price_reference %}
+    <span>Harga Referensi: Rp{{ '%.0f'|format(perfume.price_reference) }}</span>
+    {% endif %}
+    {% if perfume.marketplace_rating %}
+    <span>Rating: {{ '%.1f'|format(perfume.marketplace_rating) }}</span>
+    {% endif %}
+    {% if perfume.brand_profile_url %}
+    <span><a href="{{ perfume.brand_profile_url }}">Profil Brand</a></span>
+    {% endif %}
+    {% if perfume.perfumer_profile_url %}
+    <span><a href="{{ perfume.perfumer_profile_url }}">Profil Perfumer</a></span>
+    {% endif %}
+  </div>
+
+  <footer class="nusantarum-meta">
+    <span class="sync-status">{{ perfume.sync_source|title }} · {{ perfume.sync_status or 'Terjadwal' }}</span>
+    {% if perfume.marketplace_url %}
+    <a href="{{ perfume.marketplace_url }}">Lihat di Marketplace</a>
+    {% endif %}
+  </footer>
+
+  {% if perfume.base_image_url %}
+  <div class="hover-preview">
+    <img src="{{ perfume.base_image_url }}" alt="{{ perfume.name }}" loading="lazy" />
+  </div>
+  {% endif %}
+</article>
