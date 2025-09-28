@@ -36,7 +36,60 @@
           </div>
           {% endfor %}
         </div>
-        <button type="button" class="button button-primary product-cta">Tambahkan ke Keranjang</button>
+        {% if product.purchase.mode == 'sambatan' %}
+        <section class="purchase-mode purchase-mode--sambatan" aria-label="Detail pembelian sambatan">
+          <header class="purchase-mode__header">
+            <span class="badge sambatan">Sambatan Komunitas</span>
+            <p>{{ product.purchase.description }}</p>
+            <strong class="purchase-mode__price">{{ product.purchase.slot_price_label }}</strong>
+          </header>
+          <div class="sambatan-progress" role="status" aria-live="polite">
+            <div class="sambatan-progress__bar">
+              <span
+                class="sambatan-progress__fill"
+                style="--progress: {{ product.purchase.progress_percent }}%"
+                aria-hidden="true"
+              ></span>
+            </div>
+            <div class="sambatan-progress__meta">
+              <span>{{ product.purchase.slots_taken }} slot terisi</span>
+              <span>{{ product.purchase.slots_remaining }} slot tersisa dari {{ product.purchase.slots_total }}</span>
+            </div>
+          </div>
+          <div class="slot-selector" role="group" aria-label="Pilih jumlah slot sambatan">
+            <button type="button" class="slot-stepper" aria-label="Kurangi slot">−</button>
+            <input
+              type="number"
+              inputmode="numeric"
+              min="1"
+              max="{{ product.purchase.max_slots_per_user }}"
+              value="1"
+              class="slot-input"
+              aria-label="Jumlah slot sambatan"
+            />
+            <button type="button" class="slot-stepper" aria-label="Tambah slot">+</button>
+          </div>
+          <p class="slot-hint">Ambil hingga {{ product.purchase.max_slots_per_user }} slot untuk mengamankan stokmu.</p>
+          <ul class="purchase-benefits">
+            {% for benefit in product.purchase.benefits %}
+            <li>{{ benefit }}</li>
+            {% endfor %}
+          </ul>
+          <button type="button" class="button button-primary product-cta">{{ product.purchase.cta_label }}</button>
+          <p class="purchase-footnote">{{ product.purchase.deadline_text }}</p>
+        </section>
+        {% else %}
+        <section class="purchase-mode purchase-mode--regular" aria-label="Detail pembelian reguler">
+          <h3>Pembelian Reguler</h3>
+          <ul class="purchase-benefits">
+            {% for benefit in product.purchase.benefits %}
+            <li>{{ benefit }}</li>
+            {% endfor %}
+          </ul>
+          <button type="button" class="button button-primary product-cta">{{ product.purchase.cta_label }}</button>
+          <p class="purchase-footnote">{{ product.purchase.supporting_text }}</p>
+        </section>
+        {% endif %}
         <p class="origin-info">Diracik di {{ product.origin_city }}</p>
       </div>
       <div class="product-hero-visual {{ product.image_class | default('product-visual-default') }}" aria-hidden="true">
