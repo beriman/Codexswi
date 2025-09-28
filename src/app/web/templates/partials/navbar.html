@@ -28,6 +28,14 @@
     </li>
     <li>
       <a
+        href="{{ url_for('read_brand_owner_dashboard') }}"
+        class="{% if request.url.path.startswith('/dashboard/brand-owner') %}active{% endif %}"
+      >
+        Dashboard Brand
+      </a>
+    </li>
+    <li>
+      <a
         href="{{ url_for('read_uiux_tracker') }}"
         class="{% if request.url.path.startswith('/ui-ux/implementation') %}active{% endif %}"
       >
