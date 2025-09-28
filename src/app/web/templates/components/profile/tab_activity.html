@@ -1,0 +1,16 @@
+{% if profile.activities %}
+  <ul class="profile-timeline">
+    {% for activity in profile.activities %}
+      <li class="profile-timeline__item glass-panel">
+        <h3 class="profile-timeline__title">{{ activity.title }}</h3>
+        <span class="profile-timeline__time">{{ activity.timestamp }}</span>
+        <p class="profile-timeline__description">{{ activity.description }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="profile-empty glass-panel">
+    <h3>Belum ada aktivitas publik</h3>
+    <p>Aktivitas terbaru profil akan tampil di sini setelah kolaborasi pertama.</p>
+  </div>
+{% endif %}

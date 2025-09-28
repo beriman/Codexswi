@@ -1,0 +1,27 @@
+<div class="profile-modal__overlay" role="dialog" aria-modal="true" aria-label="{{ title }}">
+  <div class="profile-modal__content glass-panel">
+    <header class="profile-modal__header">
+      <h2>{{ title }}</h2>
+      <button
+        class="profile-modal__close"
+        type="button"
+        hx-on="click: document.getElementById('profile-modal').innerHTML = ''"
+      >✕</button>
+    </header>
+    {% if profiles %}
+      <ul class="profile-modal__list">
+        {% for item in profiles %}
+          <li class="profile-modal__item">
+            <span class="profile-modal__avatar" aria-hidden="true">{{ item.full_name[:1] }}</span>
+            <div class="profile-modal__meta">
+              <span class="profile-modal__name">{{ item.full_name }}</span>
+              <span class="profile-modal__username">@{{ item.username }}</span>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="profile-modal__empty">Belum ada data untuk ditampilkan.</p>
+    {% endif %}
+  </div>
+</div>

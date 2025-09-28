@@ -1,0 +1,12 @@
+{% if profile.favorites %}
+  <ul class="profile-list glass-panel">
+    {% for favorite in profile.favorites %}
+      <li class="profile-list__item">{{ favorite }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="profile-empty glass-panel">
+    <h3>Belum ada produk favorit</h3>
+    <p>Tambahkan produk favorit untuk menunjukkan selera aromamu ke komunitas.</p>
+  </div>
+{% endif %}

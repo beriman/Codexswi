@@ -1,0 +1,8 @@
+<div class="profile-badge profile-badge--{{ badge.slug }}" role="presentation">
+  <span class="profile-badge__icon" aria-hidden="true">{{ badge.icon }}</span>
+  <span class="profile-badge__label">{{ badge.label }}</span>
+  {% if badge.count is not none %}
+    <span class="profile-badge__meta">{{ badge.count }}</span>
+  {% endif %}
+  <span class="sr-only">{{ badge.description }}</span>
+</div>

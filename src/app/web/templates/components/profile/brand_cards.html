@@ -1,0 +1,19 @@
+{% if brands %}
+  <div class="profile-grid">
+    {% for brand in brands %}
+      <article class="profile-card glass-panel" aria-label="Brand {{ brand.name }}">
+        <div class="profile-card__header">
+          <h3 class="profile-card__title">{{ brand.name }}</h3>
+          <span class="profile-card__badge profile-card__badge--{{ brand.status }}">{{ brand.status|capitalize }}</span>
+        </div>
+        <p class="profile-card__notes">{{ brand.tagline }}</p>
+        <a class="profile-card__cta" href="/brands/{{ brand.slug }}">Kunjungi brand</a>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="profile-empty glass-panel">
+    <h3>Belum memiliki brand</h3>
+    <p>Ciptakan brand pertamamu dan tampilkan identitas unikmu di komunitas.</p>
+  </div>
+{% endif %}

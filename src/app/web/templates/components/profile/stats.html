@@ -1,0 +1,32 @@
+{% set follower_url = request.url_for('profile_followers', username=profile.username) %}
+{% set following_url = request.url_for('profile_following', username=profile.username) %}
+<section id="profile-community-stats" class="profile-stats glass-panel" aria-label="Statistik komunitas">
+  <div class="profile-stat">
+    <span class="profile-stat__label">Pengikut</span>
+    <button
+      class="profile-stat__value"
+      type="button"
+      hx-get="{{ follower_url }}"
+      hx-target="#profile-modal"
+      hx-trigger="click"
+    >{{ stats.follower_count }}</button>
+  </div>
+  <div class="profile-stat">
+    <span class="profile-stat__label">Mengikuti</span>
+    <button
+      class="profile-stat__value"
+      type="button"
+      hx-get="{{ following_url }}"
+      hx-target="#profile-modal"
+      hx-trigger="click"
+    >{{ stats.following_count }}</button>
+  </div>
+  <div class="profile-stat">
+    <span class="profile-stat__label">Karya Perfumer</span>
+    <span class="profile-stat__value" aria-live="polite">{{ stats.perfumer_product_count }}</span>
+  </div>
+  <div class="profile-stat">
+    <span class="profile-stat__label">Brand Dimiliki</span>
+    <span class="profile-stat__value" aria-live="polite">{{ stats.owned_brand_count }}</span>
+  </div>
+</section>
