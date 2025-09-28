@@ -792,6 +792,16 @@ MARKETPLACE_PRODUCTS = {
                 "untuk menghadirkan nuansa sejuk sehabis hujan. Formula ini diproses secara slow maceration "
                 "selama 21 hari untuk memastikan karakter aroma menyatu secara halus."
             ),
+            "purchase": {
+                "mode": "regular",
+                "cta_label": "Tambahkan ke Keranjang",
+                "supporting_text": "Pembayaran aman dengan proteksi pembeli Sensasiwangi.",
+                "benefits": [
+                    "Pengiriman kilat 2-3 hari kerja langsung dari Bandung.",
+                    "Batch terbatas 250 botol – stok diperbarui setiap rilis.",
+                    "Gratis kartu catatan aroma dan stiker kolektor di setiap paket.",
+                ],
+            },
             "experience_points": [
                 "Batch artisan maksimal 250 botol setiap rilis sehingga kualitas terjaga.",
                 "Semua bahan baku memiliki sertifikasi analisis GC-MS dan COA terbaru.",
@@ -868,6 +878,16 @@ MARKETPLACE_PRODUCTS = {
                 "mewujudkan suasana senja tropis dengan langit bergradasi. Aromanya bergeser secara halus "
                 "dari floral creamy ke basis amber dan sandalwood."
             ),
+            "purchase": {
+                "mode": "regular",
+                "cta_label": "Tambahkan ke Keranjang",
+                "supporting_text": "Gratis penyesuaian sampel ulang jika aroma kurang cocok dalam 7 hari.",
+                "benefits": [
+                    "Pengemasan eksklusif dengan booklet proses kreatif komunitas.",
+                    "Pilihan pembayaran penuh atau cicilan melalui mitra tepercaya.",
+                    "Layanan konsultasi aroma lanjutan via chat setelah pembelian.",
+                ],
+            },
             "experience_points": [
                 "Menggunakan gula kelapa organik sebagai bahan tincture praline.",
                 "Didistilasi mikro setiap bulan agar aroma selalu segar.",
@@ -943,6 +963,23 @@ MARKETPLACE_PRODUCTS = {
                 "Komposisinya memanfaatkan absolut kenanga Sulawesi dan hasil eksperimen accord laut alami. "
                 "Oud Kalimantan memberikan kedalaman resinous yang bertahan lama."
             ),
+            "purchase": {
+                "mode": "sambatan",
+                "cta_label": "Gabung Sambatan",
+                "description": "Gabung dalam pool pembelian komunitas untuk mengamankan slot produksi batch 03.",
+                "slot_price_label": "Rp250.000 per slot sambatan",
+                "slots_total": 180,
+                "slots_taken": 132,
+                "slots_remaining": 48,
+                "progress_percent": 73,
+                "deadline_text": "Butuh 48 slot lagi sebelum 12 Mei 2024.",
+                "max_slots_per_user": 3,
+                "benefits": [
+                    "Dana aman dalam escrow sampai kampanye terpenuhi.",
+                    "Update progres otomatis melalui email dan aplikasi.",
+                    "Dapat memilih lebih dari satu slot untuk dukung produksi.",
+                ],
+            },
             "experience_points": [
                 "Sambatan batch 03 dengan total 180 slot untuk produksi Juni 2024.",
                 "Sebagian keuntungan dialokasikan untuk pelatihan nelayan rumput laut.",
