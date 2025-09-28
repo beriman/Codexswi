@@ -23,13 +23,12 @@ async def read_brand(request: Request, slug: str) -> HTMLResponse:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": brand.name,
         "brand": brand,
     }
-    return templates.TemplateResponse("pages/brand/detail.html", context)
+    return templates.TemplateResponse(request, "pages/brand/detail.html", context)
 
 
 @router.get("/brands", response_class=HTMLResponse)
@@ -41,11 +40,10 @@ async def list_brands(request: Request) -> HTMLResponse:
     brands = list(brand_service.list_brands())
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Brand Partner",
         "brands": brands,
     }
-    return templates.TemplateResponse("pages/brand/index.html", context)
+    return templates.TemplateResponse(request, "pages/brand/index.html", context)
 

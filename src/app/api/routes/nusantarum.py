@@ -121,7 +121,6 @@ async def nusantarum_index(
         error_message = str(exc)
 
     context = {
-        "request": request,
         "title": "Nusantarum Directory",
         "filters": filters,
         "perfume_page": perfume_page,
@@ -129,7 +128,7 @@ async def nusantarum_index(
         "error_message": error_message,
         "active_tab": "parfum",
     }
-    return templates.TemplateResponse("pages/nusantarum/index.html", context)
+    return templates.TemplateResponse(request, "pages/nusantarum/index.html", context)
 
 
 @router.get("/tab/{slug}", response_class=HTMLResponse, name="nusantarum:tab")
@@ -169,7 +168,6 @@ async def nusantarum_tab(
         error_message = str(exc)
 
     context = {
-        "request": request,
         "page": page_data,
         "error_message": error_message,
         "filters": {
@@ -181,7 +179,7 @@ async def nusantarum_tab(
         },
         "active_tab": slug,
     }
-    return templates.TemplateResponse(template_name, context)
+    return templates.TemplateResponse(request, template_name, context)
 
 
 @router.get("/search", response_class=HTMLResponse, name="nusantarum:search")
@@ -195,14 +193,21 @@ async def nusantarum_search(
         results = await service.search(query)
     except NusantarumConfigurationError as exc:
         context = {
-            "request": request,
             "results": {"perfumes": [], "brands": [], "perfumers": []},
             "error_message": str(exc),
         }
-        return templates.TemplateResponse("components/nusantarum/search-results.html", context)
+        return templates.TemplateResponse(
+            request,
+            "components/nusantarum/search-results.html",
+            context,
+        )
 
-    context = {"request": request, "results": results, "error_message": None}
-    return templates.TemplateResponse("components/nusantarum/search-results.html", context)
+    context = {"results": results, "error_message": None}
+    return templates.TemplateResponse(
+        request,
+        "components/nusantarum/search-results.html",
+        context,
+    )
 
 
 @router.post("/sync/{source}", response_class=JSONResponse, name="nusantarum:trigger-sync")

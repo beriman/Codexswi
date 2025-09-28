@@ -5,11 +5,19 @@ from __future__ import annotations
 import secrets
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Dict, Iterable, List, Optional
 
 from app.services.products import ProductService, product_service
+
+
+def _coerce_utc(value: Optional[datetime] = None) -> datetime:
+    if value is None:
+        return datetime.now(UTC)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 class SambatanError(Exception):
@@ -133,7 +141,8 @@ class SambatanService:
         deadline: datetime,
         now: Optional[datetime] = None,
     ) -> SambatanCampaign:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
+        deadline = _coerce_utc(deadline)
 
         product = self._product_service.get_product(product_id)
         if not product.is_sambatan_enabled:
@@ -184,7 +193,7 @@ class SambatanService:
         note: str | None = None,
         now: Optional[datetime] = None,
     ) -> SambatanParticipant:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
 
         with self._lock:
             campaign = self.get_campaign(campaign_id)
@@ -235,7 +244,7 @@ class SambatanService:
         reason: str | None = None,
         now: Optional[datetime] = None,
     ) -> SambatanParticipant:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
 
         with self._lock:
             participant = self._get_participation(participation_id)
@@ -264,7 +273,7 @@ class SambatanService:
         participation_id: str,
         now: Optional[datetime] = None,
     ) -> SambatanParticipant:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
 
         participant = self._get_participation(participation_id)
         if participant.status is not ParticipationStatus.RESERVED:
@@ -287,7 +296,7 @@ class SambatanService:
 
     # Lifecycle -----------------------------------------------------------
     def run_lifecycle(self, *, now: Optional[datetime] = None) -> List[SambatanAuditLog]:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
         transitions: List[SambatanAuditLog] = []
 
         for campaign in list(self._campaigns.values()):
@@ -378,7 +387,7 @@ class SambatanLifecycleService:
         self._last_run: Optional[datetime] = None
 
     def run(self, *, now: Optional[datetime] = None) -> List[SambatanAuditLog]:
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
         transitions = self._sambatan_service.run_lifecycle(now=now)
         self._last_run = now
         return transitions
