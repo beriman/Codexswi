@@ -290,6 +290,18 @@ p {
   border-color: rgba(250, 204, 21, 0.45);
 }
 
+.badge.accent {
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.16);
+  border-color: rgba(249, 115, 22, 0.45);
+}
+
+.badge.subtle {
+  color: var(--text-secondary);
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
 .hero-copy h1 {
   font-size: clamp(2.2rem, 3vw, 3.3rem);
   margin: 1rem 0;
@@ -537,6 +549,35 @@ p {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+.product-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 10px 25px rgba(8, 15, 29, 0.35);
+}
+
+.product-badge .badge-icon {
+  font-size: 0.95rem;
+}
+
+.product-badge-sambatan {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.8), rgba(192, 38, 211, 0.8));
+  color: #0f172a;
+  border: 1px solid rgba(248, 250, 252, 0.6);
 }
 
 .product-media {
@@ -683,13 +724,6 @@ p {
   background: var(--accent-primary);
   border-radius: 999px;
   transition: width 320ms ease;
-}
-
-.marketplace-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 3rem;
 }
 
 .section-header {
@@ -1387,3 +1421,10 @@ p {
     padding: 1.5rem;
   }
 }
+.marketplace-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+

@@ -66,6 +66,11 @@
         data-brand="{{ product.origin }}"
         data-perfumer="{{ product.perfumer or '' }}"
       >
+        {% if product.sambatan %}
+        <span class="product-badge product-badge-sambatan"
+          ><span class="badge-icon" aria-hidden="true">🤝</span> Sambatan</span
+        >
+        {% endif %}
         <div class="product-media {{ product.media_class }}"></div>
         <div class="product-content">
           <div class="product-meta">

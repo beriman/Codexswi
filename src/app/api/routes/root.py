@@ -1,9 +1,13 @@
 """Landing page routes for the MVP."""
 
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from app.core.config import get_settings
+from app.services.products import product_service
+from app.services.sambatan import SambatanCampaign, sambatan_service
 
 router = APIRouter()
 
@@ -663,6 +667,73 @@ PURCHASE_FLOW_BLUEPRINT = [
 ]
 
 
+def _format_deadline(deadline: datetime, *, now: datetime | None = None) -> str:
+    now = now or datetime.utcnow()
+    delta = deadline - now
+    if delta.total_seconds() <= 0:
+        return "Berakhir"
+    days = delta.days
+    hours = delta.seconds // 3600
+    minutes = (delta.seconds % 3600) // 60
+    if days > 0:
+        return f"{days} hari lagi"
+    if hours > 0:
+        return f"{hours} jam lagi"
+    return f"{minutes} menit lagi"
+
+
+def _ensure_demo_sambatan(now: datetime | None = None) -> None:
+    now = now or datetime.utcnow()
+    if list(sambatan_service.list_campaigns()):
+        return
+
+    product = product_service.create_product(name="Kidung Laut Sambatan", base_price=250_000)
+    product_service.toggle_sambatan(
+        product_id=product.id,
+        enabled=True,
+        total_slots=60,
+        deadline=now + timedelta(days=6),
+    )
+
+    campaign = sambatan_service.create_campaign(
+        product_id=product.id,
+        title="Kidung Laut Batch Komunitas",
+        total_slots=60,
+        price_per_slot=250_000,
+        deadline=now + timedelta(days=6, hours=12),
+        now=now,
+    )
+
+    sambatan_service.join_campaign(
+        campaign_id=campaign.id,
+        user_id="demo-user-1",
+        quantity=8,
+        shipping_address="Jl. Kenanga No. 12, Bandung, Jawa Barat",
+        note="Pickup komunitas setelah produksi",
+        now=now,
+    )
+    sambatan_service.join_campaign(
+        campaign_id=campaign.id,
+        user_id="demo-user-2",
+        quantity=12,
+        shipping_address="Perumahan Harmoni Blok B5, Surabaya",
+        now=now + timedelta(hours=2),
+    )
+
+
+def _serialize_campaign_for_ui(campaign: SambatanCampaign, *, now: datetime | None = None) -> dict[str, object]:
+    return {
+        "id": campaign.id,
+        "title": campaign.title,
+        "status": campaign.status.value,
+        "progress": campaign.progress_percent(),
+        "slots_taken": campaign.slots_taken,
+        "total_slots": campaign.total_slots,
+        "slots_remaining": campaign.slots_remaining(),
+        "deadline_label": _format_deadline(campaign.deadline, now=now),
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 async def read_home(request: Request) -> HTMLResponse:
     """Render the marketplace landing page placeholder."""
@@ -683,6 +754,12 @@ async def read_marketplace(request: Request) -> HTMLResponse:
 
     settings = get_settings()
     templates = request.app.state.templates
+
+    now = datetime.utcnow()
+    _ensure_demo_sambatan(now=now)
+
+    sambatan_campaigns = list(sambatan_service.list_campaigns())
+    sambatan_cards = [_serialize_campaign_for_ui(campaign, now=now) for campaign in sambatan_campaigns]
 
     marketplace_catalog = [
         {
@@ -721,11 +798,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                     "perfumer": "Rara Widyanti",
                     "price": "Mulai Rp250K",
                     "media_class": "community-lagoon",
-                    "sambatan": {
-                        "progress_percent": 68,
-                        "slots_left": 12,
-                        "deadline": "6 hari lagi",
-                    },
+                    "sambatan": None,
                 },
             ],
         },
@@ -813,6 +886,14 @@ async def read_marketplace(request: Request) -> HTMLResponse:
             ],
         },
     ]
+
+    if sambatan_cards:
+        highlight = sambatan_cards[0]
+        marketplace_catalog[0]["products"][2]["sambatan"] = {
+            "progress_percent": highlight["progress"],
+            "slots_left": highlight["slots_remaining"],
+            "deadline": highlight["deadline_label"],
+        }
 
     context = {
         "request": request,
