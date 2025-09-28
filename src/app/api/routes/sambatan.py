@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -242,8 +242,9 @@ def get_dashboard_summary(service: SambatanService = Depends(get_sambatan_servic
 @router.post("/lifecycle/run", response_model=LifecycleRunResponse)
 def run_lifecycle(service: SambatanLifecycleService = Depends(get_lifecycle_service)) -> LifecycleRunResponse:
     transitions = service.run()
+    executed_at = service.last_run or datetime.now(UTC)
     return LifecycleRunResponse(
-        executed_at=service.last_run or datetime.utcnow(),
+        executed_at=executed_at,
         transitions=[_serialize_audit(log) for log in transitions],
     )
 

@@ -36,13 +36,12 @@ def profile_detail(
     profile_view = service.get_profile(username, viewer_id=viewer)
     templates = request.app.state.templates
     context = {
-        "request": request,
         "profile_view": profile_view,
         "profile": profile_view.profile,
         "stats": profile_view.stats,
         "viewer_query": _viewer_query_param(profile_view.viewer.id),
     }
-    return templates.TemplateResponse("pages/profile/detail.html", context)
+    return templates.TemplateResponse(request, "pages/profile/detail.html", context)
 
 
 def _render_follow_button(
@@ -51,13 +50,12 @@ def _render_follow_button(
 ) -> HTMLResponse:
     templates = request.app.state.templates
     context = {
-        "request": request,
         "profile_view": profile_view,
         "profile": profile_view.profile,
         "stats": profile_view.stats,
         "viewer_query": _viewer_query_param(profile_view.viewer.id),
     }
-    return templates.TemplateResponse("components/profile/follow_button.html", context)
+    return templates.TemplateResponse(request, "components/profile/follow_button.html", context)
 
 
 @router.post("/{username}/follow", response_class=HTMLResponse, name="profile_follow")
@@ -106,12 +104,11 @@ def followers_modal(
     profile_view = service.get_profile(username)
     templates = request.app.state.templates
     context = {
-        "request": request,
         "title": "Pengikut",
         "profiles": followers,
         "profile": profile_view.profile,
     }
-    return templates.TemplateResponse("components/profile/user_list.html", context)
+    return templates.TemplateResponse(request, "components/profile/user_list.html", context)
 
 
 @router.get("/{username}/following", response_class=HTMLResponse, name="profile_following")
@@ -124,12 +121,11 @@ def following_modal(
     profile_view = service.get_profile(username)
     templates = request.app.state.templates
     context = {
-        "request": request,
         "title": "Mengikuti",
         "profiles": following,
         "profile": profile_view.profile,
     }
-    return templates.TemplateResponse("components/profile/user_list.html", context)
+    return templates.TemplateResponse(request, "components/profile/user_list.html", context)
 
 
 TAB_TEMPLATES: Dict[str, str] = {
@@ -156,7 +152,6 @@ def profile_tab(
     templates = request.app.state.templates
 
     context = {
-        "request": request,
         "profile_view": profile_view,
         "profile": profile_view.profile,
     }
@@ -167,4 +162,4 @@ def profile_tab(
         context["brands"] = service.list_owned_brands(username)
 
     template_name = TAB_TEMPLATES[tab]
-    return templates.TemplateResponse(template_name, context)
+    return templates.TemplateResponse(request, template_name, context)

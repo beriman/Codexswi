@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Dict, Iterable, Optional
 
 
@@ -24,6 +24,12 @@ class ProductNotFound(ProductError):
     status_code = 404
 
 
+def _ensure_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
 @dataclass
 class Product:
     """Represents an item listed in the marketplace catalog."""
@@ -40,19 +46,21 @@ class Product:
     def enable_sambatan(self, *, total_slots: int, deadline: datetime) -> None:
         if total_slots <= 0:
             raise ProductError("Total slot sambatan harus lebih dari 0.")
-        if deadline <= datetime.utcnow():
+        deadline = _ensure_utc(deadline)
+        now = datetime.now(UTC)
+        if deadline <= now:
             raise ProductError("Deadline sambatan harus berada di masa depan.")
 
         self.is_sambatan_enabled = True
         self.sambatan_total_slots = total_slots
         self.sambatan_deadline = deadline
-        self.updated_at = datetime.utcnow()
+        self.updated_at = now
 
     def disable_sambatan(self) -> None:
         self.is_sambatan_enabled = False
         self.sambatan_total_slots = None
         self.sambatan_deadline = None
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(UTC)
 
 
 class ProductService:
@@ -66,7 +74,7 @@ class ProductService:
             raise ProductError("Harga dasar produk harus lebih dari 0.")
 
         product_id = secrets.token_urlsafe(8)
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         product = Product(
             id=product_id,
             name=name.strip(),

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -25,7 +25,7 @@ def enable_product(product_service: ProductService) -> str:
         product_id=product.id,
         enabled=True,
         total_slots=20,
-        deadline=datetime.utcnow() + timedelta(days=5),
+        deadline=datetime.now(UTC) + timedelta(days=5),
     )
     return product.id
 
@@ -40,7 +40,7 @@ def test_create_campaign_requires_enabled_product() -> None:
             title="Batch Tanpa Toggle",
             total_slots=10,
             price_per_slot=150_000,
-            deadline=datetime.utcnow() + timedelta(days=2),
+            deadline=datetime.now(UTC) + timedelta(days=2),
         )
 
 
@@ -52,7 +52,7 @@ def test_join_campaign_updates_progress_and_status() -> None:
         title="Batch Perdana",
         total_slots=10,
         price_per_slot=200_000,
-        deadline=datetime.utcnow() + timedelta(days=2),
+        deadline=datetime.now(UTC) + timedelta(days=2),
     )
 
     participant = sambatan_service.join_campaign(
@@ -95,7 +95,7 @@ def test_lifecycle_completes_and_fails_based_on_deadline() -> None:
         title="Batch Lengkap",
         total_slots=5,
         price_per_slot=210_000,
-        deadline=datetime.utcnow() + timedelta(hours=2),
+        deadline=datetime.now(UTC) + timedelta(hours=2),
     )
     sambatan_service.join_campaign(
         campaign_id=complete_campaign.id,
@@ -109,7 +109,7 @@ def test_lifecycle_completes_and_fails_based_on_deadline() -> None:
         title="Batch Pending",
         total_slots=4,
         price_per_slot=195_000,
-        deadline=datetime.utcnow() + timedelta(hours=1),
+        deadline=datetime.now(UTC) + timedelta(hours=1),
     )
     sambatan_service.join_campaign(
         campaign_id=failing_campaign.id,
@@ -118,7 +118,7 @@ def test_lifecycle_completes_and_fails_based_on_deadline() -> None:
         shipping_address="Jl. Cendana No. 3",
     )
 
-    future = datetime.utcnow() + timedelta(hours=3)
+    future = datetime.now(UTC) + timedelta(hours=3)
     logs = sambatan_service.run_lifecycle(now=future)
 
     assert any(log.event == "campaign_completed" for log in logs)

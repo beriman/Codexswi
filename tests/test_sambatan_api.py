@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -77,7 +77,7 @@ def _prepare_product(product_service: ProductService) -> str:
         product_id=product.id,
         enabled=True,
         total_slots=10,
-        deadline=datetime.utcnow() + timedelta(days=3),
+        deadline=datetime.now(UTC) + timedelta(days=3),
     )
     return product.id
 
@@ -86,7 +86,7 @@ def test_sambatan_campaign_flow(sambatan_services) -> None:
     product_service, sambatan_service, lifecycle_service = sambatan_services
 
     product_id = _prepare_product(product_service)
-    deadline = (datetime.utcnow() + timedelta(hours=4)).isoformat()
+    deadline = (datetime.now(UTC) + timedelta(hours=4)).isoformat()
 
     status, _, body = asyncio.run(
         _send_request(
@@ -149,7 +149,7 @@ def test_join_campaign_validations(sambatan_services) -> None:
     product_service, sambatan_service, lifecycle_service = sambatan_services
     product_id = _prepare_product(product_service)
 
-    deadline = (datetime.utcnow() + timedelta(hours=1)).isoformat()
+    deadline = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     status, _, body = asyncio.run(
         _send_request(
             "POST",

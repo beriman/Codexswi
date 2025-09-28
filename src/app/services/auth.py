@@ -6,7 +6,7 @@ import hashlib
 import re
 import secrets
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Dict, Optional
 
@@ -81,7 +81,7 @@ class AuthService:
             raise UserAlreadyExists("Email sudah terdaftar. Silakan login.")
 
         user_id = secrets.token_urlsafe(8)
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         user = AuthUser(
             id=user_id,
             email=normalized_email,
@@ -105,7 +105,7 @@ class AuthService:
         if not secrets.compare_digest(user.password_hash, _hash_password(password)):
             raise InvalidCredentials("Email atau password salah.")
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         user.last_login_at = now
         user.updated_at = now
         return user

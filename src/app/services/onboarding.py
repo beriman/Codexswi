@@ -6,7 +6,7 @@ import hashlib
 import re
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Dict, Iterable, List, MutableMapping, Optional
 
@@ -97,6 +97,16 @@ def _hash_password(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _coerce_utc(now: Optional[datetime] = None) -> datetime:
+    """Ensure all internal timestamps are timezone-aware UTC values."""
+
+    if now is None:
+        return datetime.now(UTC)
+    if now.tzinfo is None:
+        return now.replace(tzinfo=UTC)
+    return now.astimezone(UTC)
+
+
 class OnboardingService:
     """Coordinator for the onboarding workflow."""
 
@@ -121,7 +131,7 @@ class OnboardingService:
     ) -> OnboardingUser:
         """Register a new onboarding user and issue an email token."""
 
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
 
         normalized_email = email.strip().lower()
         self._validate_email(normalized_email)
@@ -184,7 +194,7 @@ class OnboardingService:
     ) -> OnboardingUser:
         """Validate an email verification token."""
 
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
         user = self._get_user(onboarding_id)
 
         if user.verification_attempts >= self.MAX_VERIFICATION_ATTEMPTS:
@@ -226,7 +236,7 @@ class OnboardingService:
     ) -> str:
         """Generate a new verification token for a user."""
 
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
         user = self._get_user(onboarding_id)
 
         if user.status is not OnboardingStatus.REGISTERED:
@@ -252,7 +262,7 @@ class OnboardingService:
     ) -> OnboardingUser:
         """Mark the onboarding profile as completed."""
 
-        now = now or datetime.utcnow()
+        now = _coerce_utc(now)
         user = self._get_user(onboarding_id)
 
         if user.status is not OnboardingStatus.EMAIL_VERIFIED:

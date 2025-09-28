@@ -1,6 +1,6 @@
 """Landing page routes for the MVP."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -669,8 +669,17 @@ PURCHASE_FLOW_BLUEPRINT = [
 ]
 
 
+def _ensure_timezone(dt: datetime) -> datetime:
+    """Normalize datetimes to timezone-aware UTC instances."""
+
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
+
+
 def _format_deadline(deadline: datetime, *, now: datetime | None = None) -> str:
-    now = now or datetime.utcnow()
+    now = _ensure_timezone(now or datetime.now(UTC))
+    deadline = _ensure_timezone(deadline)
     delta = deadline - now
     if delta.total_seconds() <= 0:
         return "Berakhir"
@@ -685,7 +694,7 @@ def _format_deadline(deadline: datetime, *, now: datetime | None = None) -> str:
 
 
 def _ensure_demo_sambatan(now: datetime | None = None) -> None:
-    now = now or datetime.utcnow()
+    now = _ensure_timezone(now or datetime.now(UTC))
     if list(sambatan_service.list_campaigns()):
         return
 
@@ -743,11 +752,10 @@ async def read_home(request: Request) -> HTMLResponse:
     settings = get_settings()
     templates = request.app.state.templates
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
     }
-    return templates.TemplateResponse("index.html", context)
+    return templates.TemplateResponse(request, "index.html", context)
 
 
 @router.get("/marketplace", response_class=HTMLResponse)
@@ -757,7 +765,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
     settings = get_settings()
     templates = request.app.state.templates
 
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     _ensure_demo_sambatan(now=now)
 
     sambatan_campaigns = list(sambatan_service.list_campaigns())
@@ -901,13 +909,12 @@ async def read_marketplace(request: Request) -> HTMLResponse:
         }
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Marketplace",
         "marketplace_catalog": marketplace_catalog,
     }
-    return templates.TemplateResponse("marketplace.html", context)
+    return templates.TemplateResponse(request, "marketplace.html", context)
 
 
 @router.get("/onboarding", response_class=HTMLResponse)
@@ -936,13 +943,12 @@ async def read_onboarding(request: Request) -> HTMLResponse:
     ]
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Onboarding Pengguna",
         "steps": steps,
     }
-    return templates.TemplateResponse("onboarding.html", context)
+    return templates.TemplateResponse(request, "onboarding.html", context)
 
 
 @router.get("/auth", response_class=HTMLResponse)
@@ -968,14 +974,13 @@ async def read_auth(request: Request) -> HTMLResponse:
     ]
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Masuk & Daftar",
         "perks": perks,
         "session_user": request.session.get("user"),
     }
-    return templates.TemplateResponse("auth.html", context)
+    return templates.TemplateResponse(request, "auth.html", context)
 
 
 @router.get("/ui-ux/implementation", response_class=HTMLResponse)
@@ -986,14 +991,13 @@ async def read_uiux_tracker(request: Request) -> HTMLResponse:
     templates = request.app.state.templates
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "UI/UX Implementation Tracker",
         "status_meta": STATUS_META,
         "sections": UIUX_IMPLEMENTATION_PLAN,
     }
-    return templates.TemplateResponse("ui_ux_tracker.html", context)
+    return templates.TemplateResponse(request, "ui_ux_tracker.html", context)
 
 
 @router.get("/ui-ux/foundation/purchase", response_class=HTMLResponse)
@@ -1004,14 +1008,13 @@ async def read_purchase_foundation(request: Request) -> HTMLResponse:
     templates = request.app.state.templates
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Blueprint Flow Pembelian",
         "flow_status_meta": PURCHASE_FLOW_STATUS_META,
         "flows": PURCHASE_FLOW_BLUEPRINT,
     }
-    return templates.TemplateResponse("purchase_workflow.html", context)
+    return templates.TemplateResponse(request, "purchase_workflow.html", context)
 
 
 @router.get("/dashboard/brand-owner", response_class=HTMLResponse)
@@ -1023,13 +1026,12 @@ async def read_brand_owner_dashboard(request: Request) -> HTMLResponse:
     snapshot = brand_dashboard_service.get_snapshot()
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Dashboard Brand Owner",
         "snapshot": snapshot,
     }
-    return templates.TemplateResponse("pages/dashboard/brand_owner.html", context)
+    return templates.TemplateResponse(request, "pages/dashboard/brand_owner.html", context)
 
 
 @router.get("/dashboard/moderation", response_class=HTMLResponse)
@@ -1041,10 +1043,9 @@ async def read_moderation_dashboard(request: Request) -> HTMLResponse:
     snapshot = moderation_dashboard_service.get_snapshot()
 
     context = {
-        "request": request,
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Dashboard Moderasi",
         "snapshot": snapshot,
     }
-    return templates.TemplateResponse("pages/dashboard/moderation.html", context)
+    return templates.TemplateResponse(request, "pages/dashboard/moderation.html", context)
