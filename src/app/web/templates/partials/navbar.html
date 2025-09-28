@@ -1,7 +1,7 @@
 <nav class="navbar glass-surface">
-  <div class="navbar-brand">
+  <a class="navbar-brand" href="{{ url_for('read_home') }}">
     <span class="logo">Sensasiwangi.id</span>
-  </div>
+  </a>
   <button class="navbar-toggle" aria-label="Buka navigasi">
     <span></span>
     <span></span>
@@ -9,69 +9,49 @@
   </button>
   <ul class="navbar-menu">
     <li>
-      <a href="{{ url_for('read_home') }}" class="{% if request.url.path == '/' %}active{% endif %}">Beranda</a>
-    </li>
-    <li>
       <a href="{{ url_for('read_marketplace') }}" class="{% if request.url.path.startswith('/marketplace') %}active{% endif %}">
         Marketplace
       </a>
     </li>
     <li>
-      <a href="{{ url_for('list_brands') }}" class="{% if request.url.path.startswith('/brands') %}active{% endif %}">
-        Brand
+      <a href="{{ url_for('read_home') }}#nusantarum" class="{% if request.url.path == '/' %}active{% endif %}">
+        Nusantarum
       </a>
     </li>
-    <li>
-      <a href="{{ url_for('read_onboarding') }}" class="{% if request.url.path.startswith('/onboarding') %}active{% endif %}">
-        Onboarding
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url_for('read_brand_owner_dashboard') }}"
-        class="{% if request.url.path.startswith('/dashboard/brand-owner') %}active{% endif %}"
-      >
-        Dashboard Brand
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url_for('read_moderation_dashboard') }}"
-        class="{% if request.url.path.startswith('/dashboard/moderation') %}active{% endif %}"
-      >
-        Dashboard Moderasi
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url_for('read_uiux_tracker') }}"
-        class="{% if request.url.path.startswith('/ui-ux/implementation') %}active{% endif %}"
-      >
-        UI/UX Tracker
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url_for('read_purchase_foundation') }}"
-        class="{% if request.url.path.startswith('/ui-ux/foundation') %}active{% endif %}"
-      >
-        Flow Pembelian
-      </a>
-    </li>
-    <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
-    <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
-    <li><a href="{{ url_for('read_home') }}#dashboard">Dashboard</a></li>
-    <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
   </ul>
   {% set session_user = request.session.get('user') %}
   <div class="navbar-actions">
-    {% if session_user %}
-    <span class="navbar-user">👋 {{ session_user.full_name }}</span>
-    <button class="btn btn-ghost" type="button" data-action="logout">Keluar</button>
-    <a class="btn gradient-button" href="{{ url_for('read_marketplace') }}">Marketplace</a>
-    {% else %}
-    <a class="btn btn-ghost" href="{{ url_for('read_auth') }}#login">Masuk</a>
-    <a class="btn gradient-button" href="{{ url_for('read_auth') }}#register">Daftar</a>
-    {% endif %}
+    <details class="navbar-dropdown">
+      <summary class="navbar-dropdown__toggle">
+        <span>{% if session_user %}{{ session_user.full_name }}{% else %}Login{% endif %}</span>
+        <span class="navbar-dropdown__icon" aria-hidden="true">▾</span>
+      </summary>
+      <ul class="navbar-dropdown__menu">
+        {% if session_user %}
+        {% set profile_username = session_user.get('username') if session_user else None %}
+        <li>
+          {% if profile_username %}
+          <a href="{{ url_for('profile_detail', username=profile_username) }}">Profil</a>
+          {% else %}
+          <a href="{{ url_for('read_auth') }}#login">Profil</a>
+          {% endif %}
+        </li>
+        <li>
+          <a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a>
+        </li>
+        {% if session_user.get('is_admin') %}
+        <li>
+          <a href="{{ url_for('read_moderation_dashboard') }}">Admin Menu</a>
+        </li>
+        {% endif %}
+        <li>
+          <button type="button" data-action="logout">Keluar</button>
+        </li>
+        {% else %}
+        <li><a href="{{ url_for('read_auth') }}#login">Masuk</a></li>
+        <li><a href="{{ url_for('read_auth') }}#register">Daftar</a></li>
+        {% endif %}
+      </ul>
+    </details>
   </div>
 </nav>
