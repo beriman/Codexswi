@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/moderation-dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+{% set persona = snapshot.persona %}
+<section class="mod-hero glass-surface">
+  <div class="mod-hero__main">
+    <span class="role-badge">{{ persona.role }}</span>
+    <h1>Halo, {{ persona.name }} 👋</h1>
+    <p class="mission">{{ persona.mission }}</p>
+    <dl class="hero-meta" aria-label="Detail shift dan fokus hari ini">
+      <div>
+        <dt>Hari &amp; Tanggal</dt>
+        <dd>{{ persona.date }}</dd>
+      </div>
+      <div>
+        <dt>Shift Aktif</dt>
+        <dd>{{ persona.shift }}</dd>
+      </div>
+      <div>
+        <dt>Fokus</dt>
+        <dd>{{ persona.focus }}</dd>
+      </div>
+    </dl>
+    <div class="hero-actions">
+      <button type="button" class="btn gradient-button">Tambah Moderator</button>
+      <button type="button" class="btn btn-outline">Lihat SOP</button>
+      <button type="button" class="btn btn-ghost">Bagikan Laporan</button>
+    </div>
+    <p class="acknowledgement">🔔 {{ persona.acknowledgement }}</p>
+  </div>
+  <div class="mod-hero__kpis">
+    <ul class="kpi-grid" role="list">
+      {% for kpi in snapshot.kpis %}
+      <li class="kpi-card glass-card tone-{{ kpi.tone }}" role="listitem">
+        <p class="kpi-label">{{ kpi.label }}</p>
+        <p class="kpi-value">{{ kpi.value }}</p>
+        <p class="kpi-delta">{{ kpi.delta }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="mod-overview glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Overview &amp; Alerts</h2>
+      <p>Monitor kesehatan operasional, SLA, dan eskalasi lintas tim dalam satu layar.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-ghost">Refresh</button>
+      <button type="button" class="btn btn-outline">Download KPI</button>
+    </div>
+  </header>
+  <div class="overview-grid">
+    <div class="summary-pills" role="list">
+      {% for summary in snapshot.report_summary %}
+      <article class="summary-pill tone-{{ summary.tone }}" role="listitem">
+        <span class="summary-value">{{ summary.value }}</span>
+        <span class="summary-label">{{ summary.label }}</span>
+      </article>
+      {% endfor %}
+    </div>
+    <aside class="alert-stream" aria-label="Daftar alert terbaru">
+      <h3>Alert &amp; Eskalasi</h3>
+      <ul class="alert-list">
+        {% for alert in snapshot.alerts %}
+        <li class="alert-item glass-card severity-{{ alert.severity }}">
+          <div class="alert-header">
+            <span class="alert-severity">{{ alert.severity|title }}</span>
+            <span class="alert-time">{{ alert.timestamp }}</span>
+          </div>
+          <h4>{{ alert.title }}</h4>
+          <p>{{ alert.description }}</p>
+          <div class="alert-actions">
+            <button type="button" class="btn btn-ghost">Tandai selesai</button>
+            <button type="button" class="btn btn-outline">Lihat detail</button>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<section class="mod-team">
+  <article class="glass-surface team-roster">
+    <header class="section-heading">
+      <div>
+        <h2>Manajemen Tim &amp; Peran</h2>
+        <p>Kelola moderator, kurator, dan Quality Lead dengan visibilitas penuh terhadap kapasitas.</p>
+      </div>
+      <div class="section-tools">
+        <button type="button" class="btn gradient-button">Undang Pengguna</button>
+        <button type="button" class="btn btn-outline">Atur Shift</button>
+      </div>
+    </header>
+    <div class="team-layout">
+      <div class="team-table" role="table" aria-label="Daftar anggota tim">
+        <div class="team-header" role="row">
+          <span role="columnheader">Nama</span>
+          <span role="columnheader">Peran</span>
+          <span role="columnheader">Status</span>
+          <span role="columnheader">Kasus Aktif</span>
+          <span role="columnheader">Aktivitas Terakhir</span>
+          <span role="columnheader">Shift</span>
+        </div>
+        {% for member in snapshot.team_members %}
+        <div class="team-row" role="row">
+          <span role="cell">{{ member.name }}</span>
+          <span role="cell">{{ member.role }}</span>
+          <span role="cell">{{ member.status }}</span>
+          <span role="cell">{{ member.active_cases }}</span>
+          <span role="cell">{{ member.last_active }}</span>
+          <span role="cell">{{ member.shift }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <aside class="team-sidepanel">
+        <section class="invite-panel">
+          <h3>Undangan Pending</h3>
+          <ul>
+            {% for invite in snapshot.pending_invites %}
+            <li>
+              <p><strong>{{ invite.email }}</strong> · {{ invite.role }}</p>
+              <p>Dikirim {{ invite.sent_at }} · Kedaluwarsa {{ invite.expires_at }}</p>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost">Kirim ulang</button>
+                <button type="button" class="btn btn-outline">Batalkan</button>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        <section class="audit-trail">
+          <h3>Audit Trail Terbaru</h3>
+          <ol>
+            {% for entry in snapshot.audit_trail %}
+            <li>
+              <span class="audit-time">{{ entry.time }}</span>
+              <div>
+                <strong>{{ entry.actor }}</strong>
+                <p>{{ entry.action }}</p>
+              </div>
+            </li>
+            {% endfor %}
+          </ol>
+        </section>
+      </aside>
+    </div>
+  </article>
+</section>
+
+<section class="mod-queues glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Moderasi Laporan</h2>
+      <p>Prioritaskan laporan komunitas, transaksi, dan pelanggaran seller sesuai SLA.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-ghost">Mode Fokus</button>
+      <button type="button" class="btn btn-outline">Bulk Action</button>
+    </div>
+  </header>
+  <div class="queue-grid">
+    <aside class="queue-sidebar">
+      <h3>Status Antrian</h3>
+      <ul>
+        {% for item in snapshot.report_summary %}
+        <li><span class="indicator tone-{{ item.tone }}"></span>{{ item.label }} · {{ item.value }}</li>
+        {% endfor %}
+      </ul>
+      <div class="queue-note">
+        <p>Pemetaan otomatis berdasarkan kapasitas moderator aktif. Tiket tanpa pemilik akan muncul paling atas.</p>
+      </div>
+    </aside>
+    <div class="queue-table-wrapper">
+      <table class="queue-table">
+        <thead>
+          <tr>
+            <th scope="col">Ticket</th>
+            <th scope="col">Kategori</th>
+            <th scope="col">Prioritas</th>
+            <th scope="col">Status</th>
+            <th scope="col">SLA</th>
+            <th scope="col">Penanggung Jawab</th>
+            <th scope="col">Sumber</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in snapshot.report_tickets %}
+          <tr>
+            <td>{{ ticket.ticket_id }}</td>
+            <td>{{ ticket.category }}</td>
+            <td><span class="priority-badge priority-{{ ticket.priority | lower }}">{{ ticket.priority }}</span></td>
+            <td>{{ ticket.status }}</td>
+            <td>{{ ticket.sla_remaining }}</td>
+            <td>{{ ticket.assigned_to }}</td>
+            <td>{{ ticket.source }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="mod-curation glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Kurasi Konten &amp; Brand</h2>
+      <p>Checklist kualitas dan riwayat brand terkonsolidasi membantu keputusan lebih cepat.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Checklist Kurasi</button>
+      <button type="button" class="btn btn-ghost">Kolaborasi</button>
+    </div>
+  </header>
+  <div class="curation-grid">
+    <aside>
+      <h3>Ringkasan Pipeline</h3>
+      <ul class="summary-list">
+        {% for summary in snapshot.curation_summary %}
+        <li class="tone-{{ summary.tone }}">
+          <span class="summary-value">{{ summary.value }}</span>
+          <span class="summary-label">{{ summary.label }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <h4>Highlight Checklist</h4>
+      <ul class="checklist">
+        {% for item in snapshot.checklist_highlights %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </aside>
+    <div class="curation-table-wrapper">
+      <table class="curation-table">
+        <thead>
+          <tr>
+            <th scope="col">Brand / Kampanye</th>
+            <th scope="col">Tipe</th>
+            <th scope="col">Pemilik</th>
+            <th scope="col">Status</th>
+            <th scope="col">Update Terakhir</th>
+            <th scope="col">Catatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in snapshot.curation_submissions %}
+          <tr>
+            <td>{{ submission.brand }}</td>
+            <td>{{ submission.submission_type }}</td>
+            <td>{{ submission.owner }}</td>
+            <td>{{ submission.status }}</td>
+            <td>{{ submission.updated }}</td>
+            <td>{{ submission.notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="mod-analytics glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Analitik &amp; Insight</h2>
+      <p>Jelajahi metrik utama untuk menjaga kualitas keputusan dan efisiensi operasional.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Ekspor CSV</button>
+      <button type="button" class="btn btn-ghost">Penjadwalan Laporan</button>
+    </div>
+  </header>
+  <div class="analytics-grid">
+    <div class="insight-cards">
+      {% for insight in snapshot.insights %}
+      <article class="insight-card glass-card tone-{{ insight.tone }}">
+        <h3>{{ insight.label }}</h3>
+        <p class="insight-value">{{ insight.current }}</p>
+        <p>{{ insight.change }}</p>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="analytics-details">
+      <section>
+        <h3>Heatmap Beban Kerja</h3>
+        <ul class="heatmap">
+          {% for slot in snapshot.heatmap %}
+          <li class="heatmap-slot state-{{ slot.state }}">
+            <span>{{ slot.label }}</span>
+            <strong>{{ slot.load }}</strong>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      <section>
+        <h3>Top Kategori Pelanggaran</h3>
+        <ol class="violation-list">
+          {% for violation in snapshot.violations %}
+          <li>
+            <span>{{ violation.category }}</span>
+            <strong>{{ violation.count }}</strong>
+          </li>
+          {% endfor %}
+        </ol>
+      </section>
+      <section>
+        <h3>Performa Tim</h3>
+        <table class="team-performance">
+          <thead>
+            <tr>
+              <th scope="col">Nama</th>
+              <th scope="col">Kasus Selesai</th>
+              <th scope="col">Akurasi Audit</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for member in snapshot.team_productivity %}
+            <tr>
+              <td>{{ member.name }}</td>
+              <td>{{ member.resolved }}</td>
+              <td>{{ member.accuracy }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</section>
+
+<section class="mod-policies glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Pengaturan Kebijakan &amp; Template</h2>
+      <p>Simpan jejak perubahan kebijakan serta template komunikasi lintas peran.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Buat Kebijakan</button>
+      <button type="button" class="btn btn-ghost">Atur Automasi</button>
+    </div>
+  </header>
+  <div class="policy-grid">
+    <section>
+      <h3>Kebijakan Terbaru</h3>
+      <ul class="policy-list">
+        {% for policy in snapshot.policies %}
+        <li class="glass-card">
+          <div>
+            <h4>{{ policy.title }}</h4>
+            <p>Versi {{ policy.version }} · {{ policy.updated_at }} · Oleh {{ policy.owner }}</p>
+          </div>
+          <div class="policy-tags">
+            {% for tag in policy.tags %}<span>{{ tag }}</span>{% endfor %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section>
+      <h3>Template Pesan</h3>
+      <ul class="template-list">
+        {% for template in snapshot.templates %}
+        <li>
+          <strong>{{ template.name }}</strong>
+          <p>Untuk {{ template.usage }} · Update {{ template.updated_at }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+      <h4>Aturan Automasi</h4>
+      <ul class="automation-list">
+        {% for rule in snapshot.automation_rules %}
+        <li>{{ rule }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</section>
+
+<section class="mod-help glass-surface">
+  <header class="section-heading">
+    <div>
+      <h2>Pusat Bantuan Internal</h2>
+      <p>Dukung pembelajaran berkelanjutan dan jalur eskalasi jelas untuk seluruh tim moderasi.</p>
+    </div>
+    <div class="section-tools">
+      <button type="button" class="btn btn-outline">Kirim Feedback</button>
+      <button type="button" class="btn btn-ghost">Jadwalkan Coaching</button>
+    </div>
+  </header>
+  <div class="help-grid">
+    <section>
+      <h3>Materi &amp; FAQ</h3>
+      <ul class="resource-list">
+        {% for resource in snapshot.help_resources %}
+        <li class="glass-card">
+          <h4>{{ resource.title }}</h4>
+          <p>{{ resource.category }} · {{ resource.format }} · Update {{ resource.updated_at }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section>
+      <h3>Kontak Eskalasi</h3>
+      <ul class="contact-list">
+        {% for contact in snapshot.contacts %}
+        <li>
+          <strong>{{ contact.name }}</strong>
+          <p>{{ contact.role }} · {{ contact.channel }} · {{ contact.availability }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="feedback-box glass-card">
+        <h4>Form Masukan Cepat</h4>
+        <p>Catat kendala atau ide perbaikan. Admin akan menindaklanjuti dalam 24 jam.</p>
+        <button type="button" class="btn gradient-button">Buka Form</button>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
