@@ -1,6 +1,7 @@
 """Service exports for convenience."""
 
 from .auth import AuthService, auth_service
+from .brands import BrandService, brand_service
 from .onboarding import OnboardingService, onboarding_service
 from .products import ProductService, product_service
 from .sambatan import (
@@ -13,6 +14,8 @@ from .sambatan import (
 __all__ = [
     "AuthService",
     "auth_service",
+    "BrandService",
+    "brand_service",
     "OnboardingService",
     "onboarding_service",
     "ProductService",

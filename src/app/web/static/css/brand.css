@@ -1,0 +1,521 @@
+.brand-page {
+  display: grid;
+  gap: 3rem;
+  padding-bottom: 4rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.button-secondary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+}
+
+.button-ghost {
+  background: transparent;
+  border-style: dashed;
+}
+
+.button-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.brand-hero {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 1.4fr;
+  gap: 2rem;
+  padding: 2.5rem;
+  align-items: center;
+}
+
+.brand-hero__branding {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.brand-logo {
+  width: 104px;
+  height: 104px;
+  border-radius: 28px;
+  object-fit: cover;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.35);
+}
+
+.brand-logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 2.1rem;
+  letter-spacing: 0.08em;
+  width: 104px;
+  height: 104px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.32), rgba(14, 165, 233, 0.42));
+  color: #e0f2fe;
+  border: 1px solid rgba(14, 165, 233, 0.45);
+  text-transform: uppercase;
+}
+
+.brand-logo-upload {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.brand-logo-upload__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1px dashed rgba(148, 163, 184, 0.55);
+  background: rgba(15, 23, 42, 0.45);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.brand-logo-upload__trigger:hover {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(148, 163, 184, 0.8);
+}
+
+.brand-logo-upload__trigger input {
+  display: none;
+}
+
+.brand-logo-upload__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.75);
+}
+
+.brand-hero__media {
+  width: 100%;
+  padding-top: 75%;
+  background-size: cover;
+  background-position: center;
+  border-radius: 1.5rem;
+  position: relative;
+}
+
+.brand-hero__content h1 {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(2.4rem, 3vw, 3.6rem);
+  margin: 0;
+}
+
+.brand-title-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.brand-tagline {
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.brand-description {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+}
+
+.brand-description h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+.brand-description p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.brand-meta {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.brand-meta dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.brand-meta dd {
+  margin: 0.25rem 0 0;
+  font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge.verified {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.18);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.chip-owner {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #bfdbfe;
+}
+
+.chip-muted {
+  background: rgba(148, 163, 184, 0.1);
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.brand-cta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand-section {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.brand-story-list {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.brand-story-item {
+  position: relative;
+  padding: 1.75rem;
+}
+
+.story-index {
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.4);
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+}
+
+.brand-product-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.brand-product-card {
+  padding: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.brand-product-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.brand-product-card__note {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.brand-product-card__price {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.brand-product-card__availability {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.brand-product-card__actions {
+  margin-top: 0.5rem;
+}
+
+.brand-collaboration .team-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.brand-team-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.team-list {
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+.team-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+}
+
+.team-card img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.team-card--pending {
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.team-name {
+  font-weight: 600;
+}
+
+.team-role {
+  text-transform: capitalize;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.team-expertise {
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.team-invited {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.25rem;
+}
+
+.team-actions {
+  display: flex;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+
+.team-actions .button-small {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.invite-form {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.invite-form label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.invite-form input,
+.invite-form textarea {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 18, 41, 0.35);
+  color: inherit;
+}
+
+.brand-highlight-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.highlight-card {
+  padding: 1.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.highlight-timestamp {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.brand-directory {
+  display: grid;
+  gap: 2.5rem;
+  padding-bottom: 4rem;
+}
+
+.brand-directory-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.brand-directory-card {
+  padding: 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.brand-directory-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.brand-directory-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 1.25rem;
+  object-fit: cover;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.brand-directory-logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  width: 72px;
+  height: 72px;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.32), rgba(14, 165, 233, 0.42));
+  color: #e0f2fe;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brand-directory-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.brand-directory-card__meta h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.brand-directory-meta-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.brand-directory-meta-extra p {
+  margin: 0;
+}
+
+.brand-directory-tagline {
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.brand-directory-card .badge.verified {
+  align-self: flex-start;
+}
+
+.brand-directory-location {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.brand-directory-summary {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.brand-directory-focus {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 960px) {
+  .brand-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-hero__media {
+    padding-top: 55%;
+  }
+}
+
+@media (max-width: 640px) {
+  .brand-page {
+    gap: 2rem;
+  }
+
+  .brand-hero {
+    padding: 1.75rem;
+  }
+
+  .brand-product-grid,
+  .brand-team-grid,
+  .brand-highlight-grid,
+  .brand-directory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-card {
+    grid-template-columns: 48px 1fr;
+  }
+}
+

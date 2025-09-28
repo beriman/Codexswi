@@ -770,6 +770,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                 {
                     "name": "Rimba Embun",
                     "origin": "Atar Nusantara",
+                    "brand_slug": "atar-nusantara",
                     "origin_type": "Brand Partner",
                     "category": "Parfum Artisan",
                     "notes": ["Jasmine sambac", "Vetiver Bali", "Cedar Atlas"],
@@ -781,6 +782,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                 {
                     "name": "Pelangi Senja",
                     "origin": "Studio Senja",
+                    "brand_slug": "studio-senja",
                     "origin_type": "Brand Partner",
                     "category": "Signature Blend",
                     "notes": ["Ylang-ylang", "Patchouli Sulawesi", "Amber Praline"],
@@ -849,6 +851,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
                 {
                     "name": "Timbangan Digital 0.01g",
                     "origin": "Studio Senja",
+                    "brand_slug": "studio-senja",
                     "origin_type": "Brand Partner",
                     "category": "Peralatan Produksi",
                     "description": "Akurasi 0.01g dengan kalibrasi otomatis dan penutup kaca mini.",
