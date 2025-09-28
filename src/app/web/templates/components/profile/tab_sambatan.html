@@ -1,0 +1,12 @@
+{% if profile.sambatan_updates %}
+  <ul class="profile-list glass-panel">
+    {% for update in profile.sambatan_updates %}
+      <li class="profile-list__item">{{ update }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="profile-empty glass-panel">
+    <h3>Belum ada aktivitas Sambatan</h3>
+    <p>Kolaborasi Sambatan akan tampil di sini untuk menunjukkan dampak komunitasmu.</p>
+  </div>
+{% endif %}

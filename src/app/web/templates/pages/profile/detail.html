@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/profile.css') }}" />
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener("click", function (event) {
+      const button = event.target.closest(".profile-tabs__button");
+      if (!button) {
+        return;
+      }
+      const nav = button.parentElement;
+      if (!nav) {
+        return;
+      }
+      nav.querySelectorAll(".profile-tabs__button").forEach((item) => {
+        item.classList.remove("profile-tabs__button--active");
+      });
+      button.classList.add("profile-tabs__button--active");
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+  <section class="profile-page">
+    <header class="profile-hero glass-panel">
+      <div class="profile-hero__avatar">
+        <img src="{{ profile.avatar_url }}" alt="{{ profile.full_name }}" />
+      </div>
+      <div class="profile-hero__content">
+        <div class="profile-hero__headline">
+          <div>
+            <h1>{{ profile.full_name }}</h1>
+            <p class="profile-hero__username">@{{ profile.username }}</p>
+          </div>
+          {% include 'components/profile/follow_button.html' %}
+        </div>
+        <p class="profile-hero__bio">{{ profile.bio }}</p>
+        <ul class="profile-hero__meta">
+          {% if profile.tagline %}
+            <li>{{ profile.tagline }}</li>
+          {% endif %}
+          {% if profile.preferred_aroma %}
+            <li>Preferensi aroma: <strong>{{ profile.preferred_aroma }}</strong></li>
+          {% endif %}
+          {% if profile.location %}
+            <li>Domisili: {{ profile.location }}</li>
+          {% endif %}
+        </ul>
+        {% if profile_view.badges %}
+          <div class="profile-badges" role="list">
+            {% for badge in profile_view.badges %}
+              {% include 'components/profile/badge.html' with context %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="profile-empty profile-empty--subtle">
+            <p>Belum ada badge aktif. Kolaborasi dengan brand untuk menampilkan pencapaianmu.</p>
+          </div>
+        {% endif %}
+      </div>
+    </header>
+
+    {% include 'components/profile/stats.html' %}
+
+    <section class="profile-tabs glass-panel" aria-label="Konten profil">
+      <div class="profile-tabs__nav" role="tablist">
+        <button
+          class="profile-tabs__button profile-tabs__button--active"
+          type="button"
+          data-tab="aktivitas"
+          hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='aktivitas') }}"
+          hx-target="#profile-tab-content"
+          hx-swap="innerHTML"
+        >Aktivitas</button>
+        <button
+          class="profile-tabs__button"
+          type="button"
+          data-tab="favorit"
+          hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='favorit') }}"
+          hx-target="#profile-tab-content"
+          hx-swap="innerHTML"
+        >Favorit</button>
+        <button
+          class="profile-tabs__button"
+          type="button"
+          data-tab="sambatan"
+          hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='sambatan') }}"
+          hx-target="#profile-tab-content"
+          hx-swap="innerHTML"
+        >Sambatan</button>
+        <button
+          class="profile-tabs__button"
+          type="button"
+          data-tab="karya"
+          hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='karya') }}"
+          hx-target="#profile-tab-content"
+          hx-swap="innerHTML"
+        >Karya Perfumer</button>
+        <button
+          class="profile-tabs__button"
+          type="button"
+          data-tab="brand"
+          hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='brand') }}"
+          hx-target="#profile-tab-content"
+          hx-swap="innerHTML"
+        >Brand Dimiliki</button>
+      </div>
+      <div id="profile-tab-content" class="profile-tabs__content">
+        {% include 'components/profile/tab_activity.html' %}
+      </div>
+    </section>
+  </section>
+  <div id="profile-modal" class="profile-modal" aria-live="polite"></div>
+{% endblock %}

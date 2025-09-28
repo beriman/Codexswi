@@ -10,6 +10,7 @@ from app.core.config import get_settings
 from app.core.session import InMemorySessionMiddleware
 from app.web.templates import template_engine
 from app.api.routes import onboarding as onboarding_routes
+from app.api.routes import profile as profile_routes
 from app.api.routes import reports as reports_routes
 from app.api.routes import root as root_routes
 from app.api.routes import sambatan as sambatan_routes
@@ -47,6 +48,7 @@ def create_app() -> FastAPI:
     app.include_router(reports_routes.router)
     app.include_router(onboarding_routes.router)
     app.include_router(sambatan_routes.router)
+    app.include_router(profile_routes.router)
     from app.api.routes import auth as auth_routes
 
     app.include_router(auth_routes.router)

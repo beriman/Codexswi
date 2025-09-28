@@ -1,0 +1,32 @@
+<div id="profile-follow-button" class="profile-follow">
+  {% if profile_view.viewer.is_owner %}
+    <a href="#" class="profile-follow__edit" aria-label="Edit profil">Edit Profil</a>
+  {% elif profile_view.viewer.is_following %}
+    {% set unfollow_url = request.url_for('profile_unfollow', username=profile.username) %}
+    <form
+      hx-delete="{{ unfollow_url }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+      hx-target="#profile-follow-button"
+      hx-swap="outerHTML"
+      class="profile-follow__form"
+    >
+      <button type="submit" class="profile-follow__button profile-follow__button--muted">Mengikuti</button>
+    </form>
+  {% elif profile_view.viewer.can_follow %}
+    {% set follow_url = request.url_for('profile_follow', username=profile.username) %}
+    <form
+      hx-post="{{ follow_url }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+      hx-target="#profile-follow-button"
+      hx-swap="outerHTML"
+      class="profile-follow__form"
+    >
+      <button type="submit" class="profile-follow__button">Ikuti</button>
+    </form>
+  {% else %}
+    <a href="/auth" class="profile-follow__button profile-follow__button--ghost">Masuk untuk mengikuti</a>
+  {% endif %}
+</div>
+{% if request.headers.get('hx-request') %}
+  <div hx-swap-oob="true" id="profile-community-stats">
+    {% include 'components/profile/stats.html' %}
+  </div>
+{% endif %}

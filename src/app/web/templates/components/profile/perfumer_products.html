@@ -1,0 +1,20 @@
+{% if products %}
+  <div class="profile-grid">
+    {% for product in products %}
+      <article class="profile-card glass-panel" aria-label="Produk racikan {{ product.name }}">
+        <div class="profile-card__header">
+          <h3 class="profile-card__title">{{ product.name }}</h3>
+          <span class="profile-card__brand">{{ product.brand_name }}</span>
+        </div>
+        <p class="profile-card__notes">{{ product.aroma_notes }}</p>
+        <p class="profile-card__highlight">{{ product.highlight }}</p>
+        <a class="profile-card__cta" href="/marketplace/{{ product.brand_slug }}">Lihat detail</a>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="profile-empty glass-panel">
+    <h3>Belum ada karya perfumer</h3>
+    <p>Ajak brand favoritmu menandai profil ini sebagai perfumer kolaborator.</p>
+  </div>
+{% endif %}
