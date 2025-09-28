@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.core.config import get_settings
@@ -758,6 +758,238 @@ async def read_home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "index.html", context)
 
 
+MARKETPLACE_PRODUCTS = {
+    "rimba-embun": {
+        "catalog": {
+            "name": "Rimba Embun",
+            "slug": "rimba-embun",
+            "origin": "Atar Nusantara",
+            "brand_slug": "atar-nusantara",
+            "origin_type": "Brand Partner",
+            "category": "Parfum Artisan",
+            "notes": ["Jasmine sambac", "Vetiver Bali", "Cedar Atlas"],
+            "perfumer": "Ayu Prameswari",
+            "price": "Rp420K",
+            "media_class": "parfum-aurora",
+            "tags": ["Bestseller", "Signature"],
+        },
+        "detail": {
+            "name": "Rimba Embun",
+            "tagline": "Eau de Parfum Artisan",
+            "brand": "Atar Nusantara",
+            "origin_city": "Bandung, Indonesia",
+            "image_class": "product-visual-rimba",
+            "price_primary": "Rp420.000",
+            "price_secondary": "Rp720.000 / 100 ml",
+            "hero_kicker": "Aqua Universalis",
+            "summary": (
+                "Sensasi kabut pagi di hutan hujan Jawa Barat dengan keseimbangan floral hijau "
+                "dan kayu basah. Batch kecil disuling dan diracik bersama kolektif petani "
+                "vetiver di Garut."
+            ),
+            "description": (
+                "Rimba Embun memadukan jasmine sambac dari Cianjur, vetiver Bali, dan cedar atlas "
+                "untuk menghadirkan nuansa sejuk sehabis hujan. Formula ini diproses secara slow maceration "
+                "selama 21 hari untuk memastikan karakter aroma menyatu secara halus."
+            ),
+            "experience_points": [
+                "Batch artisan maksimal 250 botol setiap rilis sehingga kualitas terjaga.",
+                "Semua bahan baku memiliki sertifikasi analisis GC-MS dan COA terbaru.",
+                "Dikemas dalam botol kaca biru cobalt dengan tutup magnetik daur ulang.",
+            ],
+            "volume_options": [
+                {"size": "50 ml", "price": "Rp420.000"},
+                {"size": "100 ml", "price": "Rp720.000"},
+                {"size": "10 ml", "price": "Rp145.000"},
+            ],
+            "scent_pyramid": [
+                {"title": "Top Notes", "notes": ["Mandarin Bali", "Daun violet", "Pepper timur"]},
+                {"title": "Heart Notes", "notes": ["Jasmine sambac", "Teh melati", "Cyclamen"]},
+                {"title": "Base Notes", "notes": ["Vetiver Bali", "Cedar atlas", "Ambergris sintetis"]},
+            ],
+            "production_notes": {
+                "macration": "21 hari",
+                "bottle_batch": "250 botol",
+                "dispatch": "2-3 hari kerja",
+            },
+            "recommendations": [
+                {
+                    "name": "Pelangi Senja",
+                    "category": "Floral gourmand",
+                    "price": "Rp380.000",
+                    "slug": "pelangi-senja",
+                    "media_class": "parfum-tropis",
+                },
+                {
+                    "name": "Kidung Laut",
+                    "category": "Kolaborasi Sambatan",
+                    "price": "Mulai Rp250.000",
+                    "slug": "kidung-laut",
+                    "media_class": "community-lagoon",
+                },
+            ],
+            "featured_categories": [
+                {"label": "All", "slug": "all"},
+                {"label": "Men", "slug": "men"},
+                {"label": "Women", "slug": "women"},
+                {"label": "Unisex", "slug": "unisex"},
+            ],
+        },
+    },
+    "pelangi-senja": {
+        "catalog": {
+            "name": "Pelangi Senja",
+            "slug": "pelangi-senja",
+            "origin": "Studio Senja",
+            "brand_slug": "studio-senja",
+            "origin_type": "Brand Partner",
+            "category": "Signature Blend",
+            "notes": ["Ylang-ylang", "Patchouli Sulawesi", "Amber Praline"],
+            "perfumer": "Devi Larasati",
+            "price": "Rp380K",
+            "media_class": "parfum-tropis",
+            "tags": ["Baru", "Eksklusif"],
+        },
+        "detail": {
+            "name": "Pelangi Senja",
+            "tagline": "Eau de Parfum Eksklusif",
+            "brand": "Studio Senja",
+            "origin_city": "Yogyakarta, Indonesia",
+            "image_class": "product-visual-sunset",
+            "price_primary": "Rp380.000",
+            "price_secondary": "Rp640.000 / 100 ml",
+            "hero_kicker": "Chromatic Sunset",
+            "summary": (
+                "Perpaduan gourmand floral dengan aksen karamel asin yang menenangkan. Diracik "
+                "sebagai edisi kolaborasi bersama komunitas pembuat parfum indie."
+            ),
+            "description": (
+                "Pelangi Senja menonjolkan ylang-ylang dan magnolia yang dibalut karamel praline, "
+                "mewujudkan suasana senja tropis dengan langit bergradasi. Aromanya bergeser secara halus "
+                "dari floral creamy ke basis amber dan sandalwood."
+            ),
+            "experience_points": [
+                "Menggunakan gula kelapa organik sebagai bahan tincture praline.",
+                "Didistilasi mikro setiap bulan agar aroma selalu segar.",
+                "Termasuk booklet kisah proses kreatif bersama komunitas Senja Club.",
+            ],
+            "volume_options": [
+                {"size": "30 ml", "price": "Rp250.000"},
+                {"size": "60 ml", "price": "Rp380.000"},
+                {"size": "100 ml", "price": "Rp640.000"},
+            ],
+            "scent_pyramid": [
+                {"title": "Top Notes", "notes": ["Jeruk bali", "Daun shiso", "Pear Nashi"]},
+                {"title": "Heart Notes", "notes": ["Ylang-ylang", "Magnolia", "Karamel praline"]},
+                {"title": "Base Notes", "notes": ["Patchouli Sulawesi", "Sandalwood", "Tonka bean"]},
+            ],
+            "production_notes": {
+                "macration": "18 hari",
+                "bottle_batch": "180 botol",
+                "dispatch": "4 hari kerja",
+            },
+            "recommendations": [
+                {
+                    "name": "Rimba Embun",
+                    "category": "Parfum Artisan",
+                    "price": "Rp420.000",
+                    "slug": "rimba-embun",
+                    "media_class": "parfum-aurora",
+                },
+                {
+                    "name": "Kidung Laut",
+                    "category": "Kolaborasi Sambatan",
+                    "price": "Mulai Rp250.000",
+                    "slug": "kidung-laut",
+                    "media_class": "community-lagoon",
+                },
+            ],
+            "featured_categories": [
+                {"label": "All", "slug": "all"},
+                {"label": "Womens", "slug": "women"},
+                {"label": "Gourmand", "slug": "gourmand"},
+                {"label": "Komunitas", "slug": "community"},
+            ],
+        },
+    },
+    "kidung-laut": {
+        "catalog": {
+            "name": "Kidung Laut",
+            "slug": "kidung-laut",
+            "origin": "Rara Widyanti",
+            "origin_type": "Kreator Komunitas",
+            "category": "Kolaborasi Sambatan",
+            "notes": ["Sea salt accord", "Kelopak kenanga", "Oud Kalimantan"],
+            "perfumer": "Rara Widyanti",
+            "price": "Mulai Rp250K",
+            "media_class": "community-lagoon",
+            "sambatan": None,
+        },
+        "detail": {
+            "name": "Kidung Laut",
+            "tagline": "Sambatan Batch 03",
+            "brand": "Komunitas Nusantarum",
+            "origin_city": "Makassar, Indonesia",
+            "image_class": "product-visual-lagoon",
+            "price_primary": "Mulai Rp250.000",
+            "price_secondary": "Rp350.000 / 75 ml",
+            "hero_kicker": "Community Edition",
+            "summary": (
+                "Kolaborasi berbasis sambatan dengan karakter laut asin dan kelopak kenanga yang "
+                "diperhalus oud Kalimantan. Setiap slot sambatan membantu pemberdayaan nelayan rumput laut."
+            ),
+            "description": (
+                "Kidung Laut dirancang melalui lokakarya bersama anggota komunitas di Makassar. "
+                "Komposisinya memanfaatkan absolut kenanga Sulawesi dan hasil eksperimen accord laut alami. "
+                "Oud Kalimantan memberikan kedalaman resinous yang bertahan lama."
+            ),
+            "experience_points": [
+                "Sambatan batch 03 dengan total 180 slot untuk produksi Juni 2024.",
+                "Sebagian keuntungan dialokasikan untuk pelatihan nelayan rumput laut.",
+                "Setiap pesanan disertai jurnal cerita pembuatan aroma komunitas.",
+            ],
+            "volume_options": [
+                {"size": "Slot Sambatan", "price": "Rp250.000"},
+                {"size": "Pre-order 75 ml", "price": "Rp350.000"},
+                {"size": "Discovery Set 5 ml", "price": "Rp95.000"},
+            ],
+            "scent_pyramid": [
+                {"title": "Top Notes", "notes": ["Sea salt accord", "Bergamot", "Lime kaffir"]},
+                {"title": "Heart Notes", "notes": ["Kenanga Sulawesi", "Lotus", "Seaweed absolute"]},
+                {"title": "Base Notes", "notes": ["Oud Kalimantan", "Labdanum", "Driftwood"]},
+            ],
+            "production_notes": {
+                "macration": "28 hari",
+                "bottle_batch": "180 slot",
+                "dispatch": "Pengiriman kolektif Juli 2024",
+            },
+            "recommendations": [
+                {
+                    "name": "Rimba Embun",
+                    "category": "Parfum Artisan",
+                    "price": "Rp420.000",
+                    "slug": "rimba-embun",
+                    "media_class": "parfum-aurora",
+                },
+                {
+                    "name": "Pelangi Senja",
+                    "category": "Signature Blend",
+                    "price": "Rp380.000",
+                    "slug": "pelangi-senja",
+                    "media_class": "parfum-tropis",
+                },
+            ],
+            "featured_categories": [
+                {"label": "Community", "slug": "community"},
+                {"label": "Aquatic", "slug": "aquatic"},
+                {"label": "Kenanga", "slug": "ylang"},
+                {"label": "Sambatan", "slug": "sambatan"},
+            ],
+        },
+    },
+}
+
+
 @router.get("/marketplace", response_class=HTMLResponse)
 async def read_marketplace(request: Request) -> HTMLResponse:
     """Render the marketplace catalog preview page with curated data."""
@@ -776,43 +1008,7 @@ async def read_marketplace(request: Request) -> HTMLResponse:
             "slug": "parfum",
             "label": "Parfum",
             "description": "Rilisan parfum artisan dan kolaborasi komunitas dengan stok sambatan aktif.",
-            "products": [
-                {
-                    "name": "Rimba Embun",
-                    "origin": "Atar Nusantara",
-                    "brand_slug": "atar-nusantara",
-                    "origin_type": "Brand Partner",
-                    "category": "Parfum Artisan",
-                    "notes": ["Jasmine sambac", "Vetiver Bali", "Cedar Atlas"],
-                    "perfumer": "Ayu Prameswari",
-                    "price": "Rp420K",
-                    "media_class": "parfum-aurora",
-                    "tags": ["Bestseller", "Signature"],
-                },
-                {
-                    "name": "Pelangi Senja",
-                    "origin": "Studio Senja",
-                    "brand_slug": "studio-senja",
-                    "origin_type": "Brand Partner",
-                    "category": "Signature Blend",
-                    "notes": ["Ylang-ylang", "Patchouli Sulawesi", "Amber Praline"],
-                    "perfumer": "Devi Larasati",
-                    "price": "Rp380K",
-                    "media_class": "parfum-tropis",
-                    "tags": ["Baru", "Eksklusif"],
-                },
-                {
-                    "name": "Kidung Laut",
-                    "origin": "Rara Widyanti",
-                    "origin_type": "Kreator Komunitas",
-                    "category": "Kolaborasi Sambatan",
-                    "notes": ["Sea salt accord", "Kelopak kenanga", "Oud Kalimantan"],
-                    "perfumer": "Rara Widyanti",
-                    "price": "Mulai Rp250K",
-                    "media_class": "community-lagoon",
-                    "sambatan": None,
-                },
-            ],
+            "products": [MARKETPLACE_PRODUCTS[slug]["catalog"] for slug in ["rimba-embun", "pelangi-senja", "kidung-laut"]],
         },
         {
             "slug": "raw-material",
@@ -915,6 +1111,32 @@ async def read_marketplace(request: Request) -> HTMLResponse:
         "marketplace_catalog": marketplace_catalog,
     }
     return templates.TemplateResponse(request, "marketplace.html", context)
+
+
+@router.get("/marketplace/products/{product_slug}", response_class=HTMLResponse)
+async def read_marketplace_product(request: Request, product_slug: str) -> HTMLResponse:
+    """Render a detailed product spotlight page for curated marketplace items."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+
+    try:
+        product_data = MARKETPLACE_PRODUCTS[product_slug]["detail"]
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Produk tidak ditemukan") from exc
+
+    context = {
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": product_data["name"],
+        "product": product_data,
+        "breadcrumbs": [
+            {"label": "Beranda", "url": request.url_for("read_home")},
+            {"label": "Marketplace", "url": request.url_for("read_marketplace")},
+            {"label": product_data["name"], "url": None},
+        ],
+    }
+    return templates.TemplateResponse(request, "marketplace_product_detail.html", context)
 
 
 @router.get("/onboarding", response_class=HTMLResponse)
