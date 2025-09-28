@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/brand.css') }}" />
+{% endblock %}
+
+{% block content %}
+<article class="brand-page" aria-labelledby="brand-title">
+  <header class="brand-hero glass-card">
+    <div class="brand-hero__media" style="background-image: url('{{ brand.hero_image_url }}')" role="img" aria-label="Visual brand {{ brand.name }}"></div>
+    <div class="brand-hero__content">
+      <div class="brand-hero__branding">
+        {% if brand.logo_url %}
+        <img class="brand-logo" src="{{ brand.logo_url }}" alt="Logo {{ brand.name }}" loading="lazy" />
+        {% else %}
+        <div class="brand-logo brand-logo--placeholder" role="img" aria-label="Inisial brand {{ brand.name }}">
+          {{ brand.name[:2]|upper }}
+        </div>
+        {% endif %}
+        <form class="brand-logo-upload" aria-label="Form unggah logo brand" enctype="multipart/form-data">
+          <label class="brand-logo-upload__trigger">
+            <input type="file" name="logo" accept="image/*" />
+            <span>Unggah logo brand</span>
+          </label>
+          <p class="brand-logo-upload__hint">Format yang didukung: PNG, JPG, atau SVG maksimal 2MB.</p>
+        </form>
+      </div>
+      <span class="badge brand">Brand Partner</span>
+      <div class="brand-title-group">
+        <h1 id="brand-title">{{ brand.name }}</h1>
+        {% if brand.is_verified %}
+        <span class="badge verified" aria-label="Brand terverifikasi">&#10003; Verified Brand</span>
+        {% endif %}
+      </div>
+      <p class="brand-tagline">{{ brand.tagline }}</p>
+      <div class="brand-description">
+        <h2>Deskripsi Brand</h2>
+        <p>{{ brand.description }}</p>
+      </div>
+      <dl class="brand-meta">
+        <div>
+          <dt>Berbasis di</dt>
+          <dd>{{ brand.origin_city }}</dd>
+        </div>
+        <div>
+          <dt>Owner brand</dt>
+          <dd>
+            {% if brand.list_owners() %}
+            {% for owner in brand.list_owners() %}
+            <span class="chip chip-owner">{{ owner.full_name }}</span>
+            {% endfor %}
+            {% else %}
+            <span class="chip chip-muted">Belum ada owner aktif</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Tahun berdiri</dt>
+          <dd>Sejak {{ brand.established_year }}</dd>
+        </div>
+        {% if brand.aroma_focus %}
+        <div>
+          <dt>Fokus aroma</dt>
+          <dd>
+            {% for focus in brand.aroma_focus %}
+            <span class="chip">{{ focus }}</span>
+            {% endfor %}
+          </dd>
+        </div>
+        {% endif %}
+      </dl>
+      <div class="brand-cta">
+        <a class="button" href="/marketplace">Lihat katalog marketplace</a>
+        <a class="button button-secondary" href="/brands">Brand lainnya</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="brand-section" aria-labelledby="brand-story">
+    <div class="section-header">
+      <h2 id="brand-story">Cerita Brand</h2>
+      <p>Bagikan narasi yang membuat calon pelanggan memahami keunikan brand-mu.</p>
+    </div>
+    <div class="brand-story-list">
+      {% for point in brand.story_points %}
+      <div class="brand-story-item glass-panel">
+        <span class="story-index" aria-hidden="true">0{{ loop.index }}</span>
+        <p>{{ point }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="brand-section" aria-labelledby="brand-products">
+    <div class="section-header">
+      <h2 id="brand-products">Produk Unggulan</h2>
+      <p>Produk akan otomatis muncul di detail produk dan dapat dicari lewat katalog marketplace.</p>
+    </div>
+    <div class="brand-product-grid">
+      {% for product in brand.products %}
+      <article class="brand-product-card glass-panel">
+        <div class="brand-product-card__header">
+          <h3>{{ product.name }}</h3>
+          {% if product.is_sambatan %}
+          <span class="badge sambatan">Sambatan</span>
+          {% endif %}
+        </div>
+        <p class="brand-product-card__note">{{ product.hero_note }}</p>
+        <p class="brand-product-card__price">{{ product.price_label }}</p>
+        <p class="brand-product-card__availability">{{ product.availability }}</p>
+        <div class="brand-product-card__actions">
+          <a href="/marketplace" class="button button-ghost">Lihat di katalog</a>
+        </div>
+      </article>
+      {% else %}
+      <p>Belum ada produk terdaftar. Tambahkan produk untuk menampilkan etalase lengkap.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="brand-section brand-collaboration" aria-labelledby="brand-team">
+    <div class="section-header">
+      <h2 id="brand-team">Tim & Co-owner</h2>
+      <p>Brand owner bisa menandai kolaborator untuk membantu mengelola etalase.</p>
+    </div>
+    <div class="brand-team-grid">
+      <div class="team-column">
+        <h3>Aktif</h3>
+        <ul class="team-list">
+          {% for member in brand.list_active_members() %}
+          <li class="team-card glass-panel">
+            {% if member.avatar_url %}
+            <img src="{{ member.avatar_url }}" alt="{{ member.full_name }}" loading="lazy" />
+            {% endif %}
+            <div>
+              <p class="team-name">{{ member.full_name }}</p>
+              <p class="team-role">{{ member.role|replace('-', ' ')|title }}</p>
+              {% if member.expertise %}
+              <p class="team-expertise">{{ member.expertise }}</p>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="team-column">
+        <h3>Menunggu Persetujuan</h3>
+        {% if brand.list_pending_members() %}
+        <ul class="team-list">
+          {% for member in brand.list_pending_members() %}
+          <li class="team-card glass-panel team-card--pending">
+            {% if member.avatar_url %}
+            <img src="{{ member.avatar_url }}" alt="{{ member.full_name }}" loading="lazy" />
+            {% endif %}
+            <div>
+              <p class="team-name">{{ member.full_name }}</p>
+              <p class="team-role">{{ member.role|replace('-', ' ')|title }}</p>
+              <p class="team-expertise">{{ member.expertise or 'Menunggu konfirmasi peran' }}</p>
+              {% if member.invited_by %}
+              <p class="team-invited">Diundang oleh {{ member.invited_by }}</p>
+              {% endif %}
+            </div>
+            <div class="team-actions">
+              <button type="button" class="button button-small">Setujui</button>
+              <button type="button" class="button button-ghost button-small">Batalkan</button>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-state">Belum ada undangan co-owner yang menunggu persetujuan.</p>
+        {% endif %}
+        <form class="invite-form glass-panel" aria-label="Form undang co-owner">
+          <h4>Undang Co-owner</h4>
+          <p>Masukkan username komunitas untuk meminta persetujuan mereka sebagai co-owner.</p>
+          <label>
+            <span>Username</span>
+            <input type="text" placeholder="contoh: chandra-pratama" />
+          </label>
+          <label>
+            <span>Catatan</span>
+            <textarea rows="3" placeholder="Jelaskan peran atau kontribusi yang diharapkan"></textarea>
+          </label>
+          <button type="button" class="button button-secondary">Kirim Undangan</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="brand-section" aria-labelledby="brand-recognition">
+    <div class="section-header">
+      <h2 id="brand-recognition">Sorotan & Pengakuan</h2>
+      <p>Gunakan highlight untuk membangun kepercayaan dan bukti sosial.</p>
+    </div>
+    <div class="brand-highlight-grid">
+      {% for highlight in brand.highlights %}
+      <article class="highlight-card glass-panel">
+        <span class="highlight-timestamp">{{ highlight.timestamp }}</span>
+        <h3>{{ highlight.title }}</h3>
+        <p>{{ highlight.description }}</p>
+      </article>
+      {% else %}
+      <p>Tambahkan pencapaian brand untuk meningkatkan kredibilitas di mata pembeli.</p>
+      {% endfor %}
+    </div>
+  </section>
+</article>
+{% endblock %}
+

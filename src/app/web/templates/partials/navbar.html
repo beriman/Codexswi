@@ -17,6 +17,11 @@
       </a>
     </li>
     <li>
+      <a href="{{ url_for('list_brands') }}" class="{% if request.url.path.startswith('/brands') %}active{% endif %}">
+        Brand
+      </a>
+    </li>
+    <li>
       <a href="{{ url_for('read_onboarding') }}" class="{% if request.url.path.startswith('/onboarding') %}active{% endif %}">
         Onboarding
       </a>

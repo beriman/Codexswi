@@ -14,6 +14,7 @@ from app.api.routes import profile as profile_routes
 from app.api.routes import reports as reports_routes
 from app.api.routes import root as root_routes
 from app.api.routes import sambatan as sambatan_routes
+from app.api.routes import brands as brand_routes
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "static"
 
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
 
     # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)
+    app.include_router(brand_routes.router)
     app.include_router(reports_routes.router)
     app.include_router(onboarding_routes.router)
     app.include_router(sambatan_routes.router)

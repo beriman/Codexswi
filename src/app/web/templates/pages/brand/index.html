@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/brand.css') }}" />
+{% endblock %}
+
+{% block content %}
+<section class="brand-directory" aria-labelledby="brand-directory-title">
+  <div class="section-header">
+    <span class="badge brand">Brand</span>
+    <h1 id="brand-directory-title">Direktori Brand Sensasiwangi</h1>
+    <p>
+      Jelajahi brand komunitas dan partner Sensasiwangi. Setiap brand memiliki halaman khusus untuk
+      menampilkan cerita, tim, serta produk unggulan mereka.
+    </p>
+  </div>
+
+  <div class="brand-directory-grid">
+    {% for brand in brands %}
+    <article class="brand-directory-card glass-panel">
+      <div class="brand-directory-card__header">
+        {% if brand.logo_url %}
+        <img class="brand-directory-logo" src="{{ brand.logo_url }}" alt="Logo {{ brand.name }}" loading="lazy" />
+        {% else %}
+        <div class="brand-directory-logo brand-directory-logo--placeholder" aria-hidden="true">
+          {{ brand.name[:2]|upper }}
+        </div>
+        {% endif %}
+      </div>
+      <div class="brand-directory-card__meta">
+        <h2>{{ brand.name }}</h2>
+        <div class="brand-directory-meta-extra">
+          <p class="brand-directory-location">{{ brand.origin_city }}</p>
+          <p class="brand-directory-year">Sejak {{ brand.established_year }}</p>
+        </div>
+        <p class="brand-directory-tagline">{{ brand.tagline }}</p>
+        {% if brand.is_verified %}
+        <span class="badge verified">&#10003; Verified Brand</span>
+        {% endif %}
+      </div>
+      <p class="brand-directory-summary">{{ brand.description }}</p>
+      <div class="brand-directory-focus">
+        {% for focus in brand.aroma_focus[:3] %}
+        <span class="chip">{{ focus }}</span>
+        {% endfor %}
+      </div>
+      <a class="button button-secondary" href="/brands/{{ brand.slug }}">Kunjungi brand</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+

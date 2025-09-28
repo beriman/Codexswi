@@ -75,7 +75,11 @@
         <div class="product-content">
           <div class="product-meta">
             <span class="product-category">{{ product.origin_type }}</span>
+            {% if product.brand_slug %}
+            <a class="product-owner" href="/brands/{{ product.brand_slug }}">{{ product.origin }}</a>
+            {% else %}
             <span class="product-owner">{{ product.origin }}</span>
+            {% endif %}
           </div>
           <h3>{{ product.name }}</h3>
           {% if product.perfumer %}
