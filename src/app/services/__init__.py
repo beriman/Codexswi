@@ -3,6 +3,10 @@
 from .auth import AuthService, auth_service
 from .brands import BrandService, brand_service
 from .brand_dashboard import BrandOwnerDashboardService, brand_dashboard_service
+from .moderation_dashboard import (
+    ModerationDashboardService,
+    moderation_dashboard_service,
+)
 from .onboarding import OnboardingService, onboarding_service
 from .products import ProductService, product_service
 from .nusantarum_service import (
@@ -23,6 +27,8 @@ __all__ = [
     "brand_service",
     "BrandOwnerDashboardService",
     "brand_dashboard_service",
+    "ModerationDashboardService",
+    "moderation_dashboard_service",
     "OnboardingService",
     "onboarding_service",
     "ProductService",

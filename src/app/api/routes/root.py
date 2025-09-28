@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 
 from app.core.config import get_settings
 from app.services.brand_dashboard import brand_dashboard_service
+from app.services.moderation_dashboard import moderation_dashboard_service
 from app.services.products import product_service
 from app.services.sambatan import SambatanCampaign, sambatan_service
 
@@ -1029,3 +1030,21 @@ async def read_brand_owner_dashboard(request: Request) -> HTMLResponse:
         "snapshot": snapshot,
     }
     return templates.TemplateResponse("pages/dashboard/brand_owner.html", context)
+
+
+@router.get("/dashboard/moderation", response_class=HTMLResponse)
+async def read_moderation_dashboard(request: Request) -> HTMLResponse:
+    """Render the moderation, admin, and curator control center."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+    snapshot = moderation_dashboard_service.get_snapshot()
+
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Dashboard Moderasi",
+        "snapshot": snapshot,
+    }
+    return templates.TemplateResponse("pages/dashboard/moderation.html", context)
