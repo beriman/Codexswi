@@ -15,6 +15,7 @@ from app.api.routes import reports as reports_routes
 from app.api.routes import root as root_routes
 from app.api.routes import sambatan as sambatan_routes
 from app.api.routes import brands as brand_routes
+from app.api.routes import nusantarum as nusantarum_routes
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "static"
 
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(onboarding_routes.router)
     app.include_router(sambatan_routes.router)
     app.include_router(profile_routes.router)
+    app.include_router(nusantarum_routes.router)
     from app.api.routes import auth as auth_routes
 
     app.include_router(auth_routes.router)

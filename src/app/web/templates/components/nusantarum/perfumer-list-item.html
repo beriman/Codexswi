@@ -1,0 +1,24 @@
+<article class="nusantarum-list-card" tabindex="0">
+  <header class="nusantarum-meta">
+    <strong>{{ perfumer.display_name }}</strong>
+    <span>Karya aktif: {{ perfumer.active_perfume_count }}</span>
+    {% if perfumer.signature_scent %}
+    <span>Signature: {{ perfumer.signature_scent }}</span>
+    {% endif %}
+  </header>
+
+  <div class="nusantarum-meta">
+    {% if perfumer.highlight_perfume %}
+    <span>Sorotan parfum: {{ perfumer.highlight_perfume }}{% if perfumer.highlight_brand %} ({{ perfumer.highlight_brand }}){% endif %}</span>
+    {% endif %}
+    {% if perfumer.profile_url %}
+    <a href="{{ perfumer.profile_url }}">Profil Perfumer</a>
+    {% endif %}
+  </div>
+
+  {% if perfumer.last_synced_at %}
+  <footer class="nusantarum-meta">
+    <span class="sync-status">Sinkron {{ perfumer.last_synced_at.strftime('%d %b %Y') }}</span>
+  </footer>
+  {% endif %}
+</article>
