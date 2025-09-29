@@ -3,6 +3,11 @@
   gap: 2rem;
 }
 
+.nusantarum-controls {
+  display: grid;
+  gap: 1rem;
+}
+
 .nusantarum-header {
   display: flex;
   flex-direction: column;

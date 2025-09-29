@@ -159,7 +159,9 @@ def test_index_page_renders_with_perfume_list(fake_service: FakeNusantarumServic
     assert headers["content-type"].startswith("text/html")
     text = body.decode()
     assert "Hutan Senja" in text
-    assert "Pusat Kurasi Parfum Lokal Indonesia" in text
+    assert 'class="nusantarum-tabs"' in text
+    assert 'id="nusantarum-search-form"' in text
+    assert text.index('class="nusantarum-tabs"') < text.index('id="nusantarum-search-form"')
 
 
 def test_tab_endpoint_returns_partial(fake_service: FakeNusantarumService) -> None:
