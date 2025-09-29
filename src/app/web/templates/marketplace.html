@@ -87,56 +87,44 @@
         data-perfumer="{{ product.perfumer or '' }}"
       >
         {% if product.sambatan %}
-        <span class="product-badge product-badge-sambatan"
-          ><span class="badge-icon" aria-hidden="true">🤝</span> Sambatan</span
-        >
+        <span class="product-badge product-badge-sambatan">
+          {{ product.sambatan.slots_taken }}/{{ product.sambatan.total_slots }}
+        </span>
         {% endif %}
-        <div class="product-media {{ product.media_class }}"></div>
         <div class="product-content">
-          <div class="product-meta">
-            <span class="product-category">{{ product.origin_type }}</span>
+          <div class="product-media {{ product.media_class }}"></div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            {% set brand_markup -%}
+            <span class="product-brand-label">
+              {{ product.origin }}
+              {% if product.brand_verified %}
+              <span class="brand-verified-badge" role="img" aria-label="Brand terverifikasi">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path
+                    d="m6.5 10.5 5-5M4 8l2.5 2.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              {% endif %}
+            </span>
+            {%- endset %}
             {% if product.brand_slug %}
-            <a class="product-owner" href="/brands/{{ product.brand_slug }}">{{ product.origin }}</a>
+            <a class="product-brand" href="/brands/{{ product.brand_slug }}">
+              <small>{{ brand_markup | trim | safe }}</small>
+            </a>
             {% else %}
-            <span class="product-owner">{{ product.origin }}</span>
+            <small class="product-brand">{{ brand_markup | trim | safe }}</small>
+            {% endif %}
+            {% if product.price %}
+            <p class="product-price">{{ product.price }}</p>
             {% endif %}
           </div>
-          <h3>{{ product.name }}</h3>
-          {% if product.perfumer %}
-          <p class="product-perfumer">Diracik oleh {{ product.perfumer }}</p>
-          {% endif %}
-          {% if product.description %}
-          <p class="product-description">{{ product.description }}</p>
-          {% elif product.notes %}
-          <p class="product-description">{{ product.notes | join(', ') }}</p>
-          {% endif %}
-          <div class="product-footer">
-            <span class="price">{{ product.price }}</span>
-            {% if product.tags %}
-            <div class="product-tags">
-              {% for tag in product.tags %}
-              <span class="tag">{{ tag }}</span>
-              {% endfor %}
-            </div>
-            {% endif %}
-            {% if product.slug %}
-            <a class="button button-ghost product-detail-link" href="/marketplace/products/{{ product.slug }}"
-              >Lihat detail</a
-            >
-            {% endif %}
-          </div>
-          {% if product.sambatan %}
-          <div class="progress-indicator">
-            <span class="progress-label">{{ product.sambatan.slots_left }} slot tersisa</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="--progress: {{ product.sambatan.progress_percent }}%"></div>
-            </div>
-            <span class="progress-deadline">{{ product.sambatan.deadline }}</span>
-          </div>
-          {% endif %}
-          {% if product.availability %}
-          <p class="product-availability">{{ product.availability }}</p>
-          {% endif %}
         </div>
       </article>
       {% endfor %}
