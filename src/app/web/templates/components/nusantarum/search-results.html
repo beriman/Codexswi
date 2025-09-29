@@ -3,7 +3,7 @@
   <p>{{ error_message }}</p>
   {% elif results.perfumes or results.brands or results.perfumers %}
   <div>
-    <strong>Parfum</strong>
+    <strong>Perfume</strong>
     <ul>
       {% for item in results.perfumes %}
       <li>{{ item }}</li>
@@ -35,7 +35,5 @@
       {% endif %}
     </ul>
   </div>
-  {% else %}
-  <p>Masukkan kata kunci untuk menelusuri katalog.</p>
   {% endif %}
 </div>

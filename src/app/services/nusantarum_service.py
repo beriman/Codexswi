@@ -305,7 +305,7 @@ class NusantarumService:
         price_max: float | None = None,
         verified_only: bool = True,
     ) -> PagedResult:
-        filters: List[Tuple[str, Any]] = []
+        filters: List[Tuple[str, Any]] = [("marketplace_product_id", "not.is.null")]
         if verified_only:
             filters.append(("brand_is_verified", "eq.true"))
         if families:
@@ -359,7 +359,7 @@ class NusantarumService:
         page_size: int = 20,
         verified_only: bool = True,
     ) -> PagedResult:
-        filters: List[Tuple[str, Any]] = []
+        filters: List[Tuple[str, Any]] = [("is_linked_to_active_perfume", "eq.true")]
         if verified_only:
             filters.append(("is_verified", "eq.true"))
 
@@ -384,7 +384,10 @@ class NusantarumService:
         if not q:
             return {"perfumes": [], "brands": [], "perfumers": []}
 
-        filters = [("name", f"ilike.*{q}*")]
+        filters = [
+            ("name", f"ilike.*{q}*"),
+            ("marketplace_product_id", "not.is.null"),
+        ]
         perfume_results = await self._fetch_with_cache(
             "perfumes-search",
             filters,
@@ -395,7 +398,7 @@ class NusantarumService:
         )
         brand_results = await self._fetch_with_cache(
             "brands-search",
-            [("name", f"ilike.*{q}*")],
+            [("name", f"ilike.*{q}*"), ("is_verified", "eq.true")],
             1,
             limit,
             resource="nusantarum_brand_directory",
@@ -403,7 +406,11 @@ class NusantarumService:
         )
         perfumer_results = await self._fetch_with_cache(
             "perfumers-search",
-            [("display_name", f"ilike.*{q}*")],
+            [
+                ("display_name", f"ilike.*{q}*"),
+                ("is_verified", "eq.true"),
+                ("is_linked_to_active_perfume", "eq.true"),
+            ],
             1,
             limit,
             resource="nusantarum_perfumer_directory",

@@ -81,7 +81,7 @@ class FakeNusantarumService:
 
     async def search(self, query: str, limit: int = 5) -> Dict[str, List[str]]:
         return {
-            "perfumes": [f"{query.title()} Parfum"],
+            "perfumes": [f"{query.title()} Perfume"],
             "brands": [f"{query.title()} Brand"],
             "perfumers": [f"{query.title()} Perfumer"],
         }
@@ -159,7 +159,8 @@ def test_index_page_renders_with_perfume_list(fake_service: FakeNusantarumServic
     assert headers["content-type"].startswith("text/html")
     text = body.decode()
     assert "Hutan Senja" in text
-    assert "Pusat Kurasi Parfum Lokal Indonesia" in text
+    assert ">Perfume</button>" in text
+    assert "id=\"nusantarum-search-input\"" in text
 
 
 def test_tab_endpoint_returns_partial(fake_service: FakeNusantarumService) -> None:
@@ -175,7 +176,7 @@ def test_search_endpoint_returns_html(fake_service: FakeNusantarumService) -> No
     )
     assert status == 200
     assert headers["content-type"].startswith("text/html")
-    assert "Senja Parfum" in body.decode()
+    assert "Senja Perfume" in body.decode()
 
 
 def test_trigger_sync_records_source(fake_service: FakeNusantarumService) -> None:
