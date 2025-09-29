@@ -85,6 +85,11 @@
         data-name="{{ product.name }}"
         data-brand="{{ product.origin }}"
         data-perfumer="{{ product.perfumer or '' }}"
+        {% if product.slug %}
+        data-product-url="/marketplace/products/{{ product.slug }}"
+        tabindex="0"
+        role="link"
+        {% endif %}
       >
         {% if product.sambatan %}
         <span class="product-badge product-badge-sambatan">
@@ -211,6 +216,38 @@
         applySearchFilter();
       });
     }
+
+    const clickableCards = document.querySelectorAll('[data-product-card][data-product-url]');
+
+    clickableCards.forEach((card) => {
+      const destination = card.dataset.productUrl;
+
+      if (!destination) {
+        return;
+      }
+
+      card.addEventListener('click', (event) => {
+        const targetElement = event.target instanceof Element ? event.target : null;
+        const interactiveTarget = targetElement ? targetElement.closest('a, button') : null;
+
+        if (interactiveTarget) {
+          return;
+        }
+
+        window.location.href = destination;
+      });
+
+      card.addEventListener('keydown', (event) => {
+        if (event.target !== card) {
+          return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          window.location.href = destination;
+        }
+      });
+    });
   })();
 </script>
 {% endblock %}
