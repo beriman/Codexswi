@@ -326,7 +326,7 @@ class BrandService:
             langit.slug,
             name="Langit Sepia",
             slug="langit-sepia",
-            price_label="Mulai Rp420K",
+            price_label="Mulai Rp 420.000",
             hero_note="Tonka bean dan patchouli yang menghangatkan momen senja",
             availability="Batch Mei tersisa 18 botol",
         )
@@ -334,7 +334,7 @@ class BrandService:
             langit.slug,
             name="Hujan Pagi",
             slug="hujan-pagi",
-            price_label="Mulai Rp390K",
+            price_label="Mulai Rp 390.000",
             hero_note="Rain accord dengan vetiver basah khas Bandung",
             availability="Pre-order sambatan batch Juni",
             is_sambatan=True,
@@ -374,7 +374,7 @@ class BrandService:
             studio.slug,
             name="Pelangi Senja",
             slug="pelangi-senja",
-            price_label="Rp380K",
+            price_label="Rp 380.000",
             hero_note="Ylang-ylang dan amber praline dengan sentuhan patchouli",
             availability="Ready stock",
         )
@@ -382,7 +382,7 @@ class BrandService:
             studio.slug,
             name="Timbangan Digital 0.01g",
             slug="timbangan-digital-senja",
-            price_label="Rp420K",
+            price_label="Rp 420.000",
             hero_note="Akurasi tinggi untuk formula kecil",
             availability="Garansi 1 tahun",
         )
@@ -433,7 +433,7 @@ class BrandService:
             atar.slug,
             name="Rimba Embun",
             slug="rimba-embun",
-            price_label="Rp420K",
+            price_label="Rp 420.000",
             hero_note="Jasmine sambac dan cedar atlas yang seimbang",
             availability="Pre-order batch Juni",
         )
