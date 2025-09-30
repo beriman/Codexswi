@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
       <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css" />
-      <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}" />
+      <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}?{{ static_asset_query }}" />
       {% block head_extra %}{% endblock %}
       <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-9gCsk+S4iigFsMghvYDn8ApX2HFqRSbuuSSMzdg3NofM8JrIoYNewc19hXtF87dj" crossorigin="anonymous"></script>
   </head>
@@ -24,7 +24,7 @@
       </main>
       {% include 'partials/footer.html' %}
     </div>
-    <script src="{{ url_for('static', path='js/session.js') }}" defer></script>
+    <script src="{{ url_for('static', path='js/session.js') }}?{{ static_asset_query }}" defer></script>
     {% block body_scripts %}{% endblock %}
   </body>
 </html>
