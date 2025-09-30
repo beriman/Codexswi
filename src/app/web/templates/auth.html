@@ -5,115 +5,32 @@
 {% endblock %}
 
 {% block content %}
-<section class="auth-hero glass-surface">
-  <div>
-    <span class="badge">Akses Komunitas</span>
-    <h1>Masuk dan daftar ke Sensasiwangi.id</h1>
-    <p>
-      Lacak alur registrasi, login, dan logout dalam satu layar. Gunakan halaman ini untuk
-      validasi UX sebelum integrasi dengan Supabase atau penyedia auth lainnya.
-    </p>
-  </div>
-  <ul class="auth-perks">
-    {% for perk in perks %}
-    <li class="glass-card">
-      <h3>{{ perk.title }}</h3>
-      <p>{{ perk.description }}</p>
-    </li>
-    {% endfor %}
-  </ul>
-</section>
-
-<section class="auth-grid glass-surface" id="register">
-  <header class="section-header">
-    <div>
-      <h2>Workflow Autentikasi</h2>
-      <p>
-        Mulai dari pendaftaran, login, hingga logout dengan penyimpanan sesi dasar. Status sesi
-        terkini akan ditampilkan di panel samping.
-      </p>
-    </div>
-    <div class="status-chip" data-auth-status>
-      {% if session_user %}Sudah masuk sebagai {{ session_user.full_name }}{% else %}Belum masuk{% endif %}
-    </div>
-  </header>
-
-  <div class="auth-feedback" data-auth-feedback role="status" aria-live="polite"></div>
-
-  <div class="auth-columns">
-    <form id="auth-register-form" class="auth-form">
-      <fieldset>
-        <legend>1. Registrasi Akun Baru</legend>
+<section class="auth-page">
+  <div class="auth-login-section" id="login">
+    <div class="login-backdrop glass-surface">
+      <div class="auth-feedback" data-auth-feedback role="status" aria-live="polite"></div>
+      <form id="auth-login-form" class="auth-form login-form" aria-labelledby="login-title">
+        <header class="login-header">
+          <h2 id="login-title">Masuk</h2>
+          <p>Gunakan email dan password yang sama dengan akun Sensasiwangi.id Anda.</p>
+        </header>
         <label>
-          Nama Lengkap
-          <input type="text" name="full_name" minlength="3" maxlength="120" placeholder="Mis. Intan Dewi" required />
-        </label>
-        <label>
-          Email
-          <input type="email" name="email" placeholder="anda@contoh.com" required />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            minlength="8"
-            maxlength="128"
-            placeholder="Minimal 8 karakter dengan huruf & angka"
-            required
-          />
-        </label>
-      </fieldset>
-      <button type="submit" class="btn gradient-button">Daftar Sekarang</button>
-      <p class="form-note">Password disimpan menggunakan hashing SHA-256 untuk demonstrasi.</p>
-    </form>
-
-    <div id="login" class="anchor-target" aria-hidden="true"></div>
-    <form id="auth-login-form" class="auth-form" aria-labelledby="login-title">
-      <fieldset>
-        <legend id="login-title">2. Login</legend>
-        <label>
-          Email
+          Email atau username
           <input type="email" name="email" placeholder="anda@contoh.com" required />
         </label>
         <label>
           Password
           <input type="password" name="password" minlength="8" maxlength="128" placeholder="Password" required />
         </label>
-      </fieldset>
-      <button type="submit" class="btn btn-outline">Masuk</button>
-      <p class="form-note">Sesi login disimpan pada cookie terenkripsi selama 14 hari.</p>
-    </form>
-
-    <aside class="auth-session" id="login-status">
-      <h3>Status Sesi</h3>
-      {% if session_user %}
-      <dl>
-        <div>
-          <dt>Nama</dt>
-          <dd>{{ session_user.full_name }}</dd>
+        <div class="login-aux">
+          <a href="#" class="forgot-link">Lupa password?</a>
         </div>
-        <div>
-          <dt>Email</dt>
-          <dd>{{ session_user.email }}</dd>
-        </div>
-      </dl>
-      <button class="btn btn-ghost" type="button" data-action="logout" data-redirect="{{ url_for('read_auth') }}">
-        Keluar dari sesi
-      </button>
-      {% else %}
-      <p class="muted">Belum ada sesi aktif. Coba daftar atau login menggunakan formulir di samping.</p>
-      {% endif %}
-
-      <div class="session-hints">
-        <h4>Catatan QA</h4>
-        <ul>
-          <li>Registrasi dengan email yang sama akan menghasilkan error 409.</li>
-          <li>Password harus berisi kombinasi huruf dan angka.</li>
-          <li>Logout akan menghapus data sesi dari cookie dan memperbarui navbar.</li>
-        </ul>
-      </div>
-    </aside>
+        <button type="submit" class="btn btn-outline">Masuk</button>
+        <div class="login-divider" role="separator" aria-hidden="true">atau</div>
+        <a class="btn gradient-button register-button" href="{{ url_for('read_onboarding') }}">Daftar Akun Baru</a>
+        <p class="form-note">Sesi login disimpan pada cookie terenkripsi selama 14 hari.</p>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}
@@ -122,8 +39,6 @@
 <script>
   (() => {
     const feedbackEl = document.querySelector('[data-auth-feedback]');
-    const statusEl = document.querySelector('[data-auth-status]');
-    const registerForm = document.getElementById('auth-register-form');
     const loginForm = document.getElementById('auth-login-form');
 
     const setFeedback = (message, tone = 'info') => {
@@ -133,40 +48,10 @@
       feedbackEl.classList.toggle('visible', Boolean(message));
     };
 
-    const setStatus = (message) => {
-      if (statusEl) {
-        statusEl.textContent = message;
-      }
-    };
-
     const handleResponseError = async (response) => {
       const payload = await response.json().catch(() => ({}));
       setFeedback(payload.detail || 'Permintaan gagal diproses', 'danger');
     };
-
-    if (registerForm) {
-      registerForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const formData = new FormData(registerForm);
-        const payload = Object.fromEntries(formData.entries());
-
-        setFeedback('Memproses registrasi...');
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          await handleResponseError(response);
-          return;
-        }
-
-        const data = await response.json();
-        setFeedback(`Registrasi berhasil untuk ${data.full_name}. Silakan login.`, 'success');
-        registerForm.reset();
-      });
-    }
 
     if (loginForm) {
       loginForm.addEventListener('submit', async (event) => {
@@ -188,7 +73,6 @@
 
         const data = await response.json();
         setFeedback(`Login berhasil. Selamat datang, ${data.full_name}!`, 'success');
-        setStatus(`Sudah masuk sebagai ${data.full_name}`);
         window.setTimeout(() => {
           window.location.href = '{{ url_for('read_auth') }}';
         }, 600);
