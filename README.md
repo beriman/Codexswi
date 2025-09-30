@@ -42,6 +42,17 @@ files, dan registrasi router untuk halaman landing awal.
 3. Akses `http://localhost:8000` untuk melihat landing page awal bertema
 glassmorphism.
 
+4. Salin `.env.example` menjadi `.env` dan isi kredensial Supabase yang sudah
+   disediakan agar integrasi Nusantarum dapat berjalan:
+
+   ```bash
+   cp .env.example .env
+   # kemudian isi SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+   ```
+
+   Detail langkah sinkronisasi database dan deployment tersedia di
+   [`docs/vercel-supabase-deployment.md`](docs/vercel-supabase-deployment.md).
+
 ## Pengujian
 
 Gunakan `pytest` untuk menjalankan test dasar yang memverifikasi homepage SSR:
