@@ -1,43 +1,46 @@
 <footer class="footer glass-surface">
-  <div class="footer-brand">
-    <span class="logo">{{ app_name }}</span>
-    <p>Menghidupkan aroma Nusantara melalui kolaborasi komunitas parfum.</p>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <span class="logo">{{ app_name }}</span>
+      <p>Menghidupkan aroma Nusantara melalui kolaborasi komunitas parfum.</p>
+    </div>
+    <nav class="footer-nav" aria-label="Navigasi footer">
+      <div class="footer-group">
+        <h4>Navigasi</h4>
+        <ul>
+          <li><a href="{{ url_for('read_home') }}">Beranda</a></li>
+          <li><a href="{{ url_for('read_marketplace') }}">Marketplace</a></li>
+          <li><a href="{{ url_for('list_brands') }}">Brand Partner</a></li>
+          <li><a href="{{ url_for('read_onboarding') }}">Onboarding</a></li>
+          <li><a href="{{ url_for('read_uiux_tracker') }}">UI/UX Tracker</a></li>
+          <li><a href="{{ url_for('read_purchase_foundation') }}">Flow Pembelian</a></li>
+        </ul>
+      </div>
+      <div class="footer-group">
+        <h4>Dashboard</h4>
+        <ul>
+          <li><a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a></li>
+          <li><a href="{{ url_for('read_moderation_dashboard') }}">Dashboard Moderasi</a></li>
+        </ul>
+      </div>
+      <div class="footer-group">
+        <h4>Komunitas</h4>
+        <ul>
+          <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
+          <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
+          <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
+        </ul>
+      </div>
+    </nav>
   </div>
-  <div class="footer-links">
-    <div>
-      <h4>Navigasi</h4>
-      <ul>
-        <li><a href="{{ url_for('read_home') }}">Beranda</a></li>
-        <li><a href="{{ url_for('read_marketplace') }}">Marketplace</a></li>
-        <li><a href="{{ url_for('list_brands') }}">Brand Partner</a></li>
-        <li><a href="{{ url_for('read_onboarding') }}">Onboarding</a></li>
-        <li><a href="{{ url_for('read_uiux_tracker') }}">UI/UX Tracker</a></li>
-        <li><a href="{{ url_for('read_purchase_foundation') }}">Flow Pembelian</a></li>
-      </ul>
+  <div class="footer-bottom">
+    <div class="footer-meta">
+      <p class="footer-note">&copy; {{ app_name }}. Semua hak dilindungi.</p>
     </div>
-    <div>
-      <h4>Dashboard</h4>
-      <ul>
-        <li><a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a></li>
-        <li><a href="{{ url_for('read_moderation_dashboard') }}">Dashboard Moderasi</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Komunitas</h4>
-      <ul>
-        <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
-        <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
-        <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Ikuti Kami</h4>
-      <ul>
-        <li><a href="#instagram">Instagram</a></li>
-        <li><a href="#tiktok">TikTok</a></li>
-        <li><a href="#youtube">YouTube</a></li>
-      </ul>
-    </div>
+    <ul class="footer-social" aria-label="Media sosial">
+      <li><a href="#instagram">Instagram</a></li>
+      <li><a href="#tiktok">TikTok</a></li>
+      <li><a href="#youtube">YouTube</a></li>
+    </ul>
   </div>
-  <p class="footer-note">&copy; {{ app_name }}. Semua hak dilindungi.</p>
 </footer>
