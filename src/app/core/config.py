@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     # Session management
     session_secret: str = "development-session-secret-placeholder"
+    static_asset_version: str = "2024051901"
 
     @field_validator("session_secret")
     @classmethod
