@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}?{{ static_asset_query }}" />
 {% endblock %}
 
 {% block content %}
@@ -508,5 +508,5 @@
 
 {% block body_scripts %}
 {{ super() }}
-<script src="{{ url_for('static', path='js/dashboard-brand-owner.js') }}" defer></script>
+<script src="{{ url_for('static', path='js/dashboard-brand-owner.js') }}?{{ static_asset_query }}" defer></script>
 {% endblock %}
