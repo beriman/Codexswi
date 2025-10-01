@@ -6,7 +6,7 @@ import hashlib
 import re
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Dict, Optional
 
@@ -40,15 +40,16 @@ class PasswordPolicyError(AuthError):
 
 
 class AccountStatus(str, Enum):
-    """Minimal account status representation."""
+    """Account states stored in Supabase ``auth_accounts`` table."""
 
+    PENDING_VERIFICATION = "pending_verification"
     ACTIVE = "active"
     DISABLED = "disabled"
 
 
 @dataclass
 class AuthUser:
-    """Represents a registered user."""
+    """Represents an authenticated account."""
 
     id: str
     email: str
@@ -60,62 +61,254 @@ class AuthUser:
     last_login_at: Optional[datetime] = None
 
 
+@dataclass
+class AuthRegistration:
+    """Represents an onboarding registration awaiting verification."""
+
+    id: str
+    email: str
+    full_name: str
+    password_hash: str
+    verification_token: Optional[str]
+    verification_sent_at: Optional[datetime]
+    verification_expires_at: Optional[datetime]
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass
+class RegistrationResult:
+    """Outcome of a user registration attempt."""
+
+    account: AuthUser
+    registration: AuthRegistration
+
+
 def _hash_password(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-class AuthService:
-    """Minimal in-memory authentication workflow for demos and tests."""
+class AccountNotFound(AuthError):
+    """Raised when an account lookup fails."""
+
+    status_code = 404
+
+
+class VerificationError(AuthError):
+    """Base error for verification flow."""
+
+
+class VerificationTokenInvalid(VerificationError):
+    """Raised when the supplied verification token is unknown."""
+
+    status_code = 404
+
+
+class VerificationTokenExpired(VerificationError):
+    """Raised when the supplied verification token has expired."""
+
+    status_code = 410
+
+
+class SupabaseAuthRepository:
+    """In-memory repository simulating Supabase ``auth`` tables.
+
+    The tests exercise behaviour without a real Supabase instance, therefore the
+    repository keeps state in dictionaries while mirroring the schema from the
+    migration file.
+    """
 
     def __init__(self) -> None:
-        self._users_by_id: Dict[str, AuthUser] = {}
-        self._users_by_email: Dict[str, str] = {}
+        self._accounts_by_id: Dict[str, AuthUser] = {}
+        self._accounts_by_email: Dict[str, str] = {}
+        self._registrations_by_id: Dict[str, AuthRegistration] = {}
+        self._registrations_by_token: Dict[str, str] = {}
+        self._registrations_by_email: Dict[str, str] = {}
 
-    def register_user(self, *, email: str, full_name: str, password: str) -> AuthUser:
+    # ``auth_accounts`` helpers -------------------------------------------------
+    def upsert_account(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        status: AccountStatus,
+    ) -> AuthUser:
+        now = datetime.now(UTC)
+        existing_id = self._accounts_by_email.get(email)
+
+        if existing_id:
+            account = self._accounts_by_id[existing_id]
+            account.full_name = full_name
+            account.password_hash = password_hash
+            account.status = status
+            account.updated_at = now
+        else:
+            account_id = secrets.token_urlsafe(8)
+            account = AuthUser(
+                id=account_id,
+                email=email,
+                full_name=full_name,
+                password_hash=password_hash,
+                status=status,
+                created_at=now,
+                updated_at=now,
+            )
+            self._accounts_by_id[account_id] = account
+            self._accounts_by_email[email] = account_id
+        return account
+
+    def get_account_by_email(self, email: str) -> AuthUser:
+        try:
+            account_id = self._accounts_by_email[email]
+        except KeyError as exc:
+            raise AccountNotFound("Akun tidak ditemukan.") from exc
+        return self._accounts_by_id[account_id]
+
+    def set_account_status(self, account_id: str, status: AccountStatus) -> AuthUser:
+        account = self._accounts_by_id[account_id]
+        account.status = status
+        account.updated_at = datetime.now(UTC)
+        return account
+
+    def record_login(self, account_id: str, timestamp: datetime) -> AuthUser:
+        account = self._accounts_by_id[account_id]
+        account.last_login_at = timestamp
+        account.updated_at = timestamp
+        return account
+
+    # ``onboarding_registrations`` helpers -------------------------------------
+    def upsert_registration(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        token: str,
+        expires_at: datetime,
+    ) -> AuthRegistration:
+        now = datetime.now(UTC)
+        existing_id = self._registrations_by_email.get(email)
+
+        if existing_id:
+            registration = self._registrations_by_id[existing_id]
+            if registration.verification_token:
+                self._registrations_by_token.pop(registration.verification_token, None)
+            registration.full_name = full_name
+            registration.password_hash = password_hash
+            registration.verification_token = token
+            registration.verification_expires_at = expires_at
+            registration.verification_sent_at = now
+            registration.updated_at = now
+            registration.status = "registered"
+            self._registrations_by_token[token] = existing_id
+        else:
+            registration_id = secrets.token_urlsafe(8)
+            registration = AuthRegistration(
+                id=registration_id,
+                email=email,
+                full_name=full_name,
+                password_hash=password_hash,
+                verification_token=token,
+                verification_sent_at=now,
+                verification_expires_at=expires_at,
+                status="registered",
+                created_at=now,
+                updated_at=now,
+            )
+            self._registrations_by_id[registration_id] = registration
+            self._registrations_by_email[email] = registration_id
+            self._registrations_by_token[token] = registration_id
+        return registration
+
+    def get_registration_by_token(self, token: str) -> AuthRegistration:
+        try:
+            registration_id = self._registrations_by_token[token]
+        except KeyError as exc:
+            raise VerificationTokenInvalid("Token verifikasi tidak ditemukan.") from exc
+        return self._registrations_by_id[registration_id]
+
+    def mark_registration_verified(self, registration_id: str) -> AuthRegistration:
+        registration = self._registrations_by_id[registration_id]
+        registration.status = "email_verified"
+        registration.updated_at = datetime.now(UTC)
+        if registration.verification_token:
+            self._registrations_by_token.pop(registration.verification_token, None)
+        registration.verification_token = None
+        registration.verification_expires_at = registration.updated_at
+        return registration
+
+
+class AuthService:
+    """Authentication workflow backed by the Supabase repository."""
+
+    def __init__(self, repository: Optional[SupabaseAuthRepository] = None) -> None:
+        self._repository = repository or SupabaseAuthRepository()
+
+    def register_user(self, *, email: str, full_name: str, password: str) -> RegistrationResult:
         normalized_email = email.strip().lower()
         self._validate_email(normalized_email)
         self._validate_full_name(full_name)
         self._validate_password(password)
 
-        if normalized_email in self._users_by_email:
+        password_hash = _hash_password(password)
+
+        try:
+            existing_account = self._repository.get_account_by_email(normalized_email)
+        except AccountNotFound:
+            existing_account = None
+
+        if existing_account and existing_account.status is AccountStatus.ACTIVE:
             raise UserAlreadyExists("Email sudah terdaftar. Silakan login.")
 
-        user_id = secrets.token_urlsafe(8)
-        now = datetime.now(UTC)
-        user = AuthUser(
-            id=user_id,
+        verification_token = secrets.token_urlsafe(24)
+        verification_expires = datetime.now(UTC) + timedelta(hours=24)
+
+        account = self._repository.upsert_account(
             email=normalized_email,
             full_name=full_name.strip(),
-            password_hash=_hash_password(password),
-            status=AccountStatus.ACTIVE,
-            created_at=now,
-            updated_at=now,
+            password_hash=password_hash,
+            status=AccountStatus.PENDING_VERIFICATION,
         )
-        self._users_by_id[user_id] = user
-        self._users_by_email[normalized_email] = user_id
-        return user
+
+        registration = self._repository.upsert_registration(
+            email=normalized_email,
+            full_name=full_name.strip(),
+            password_hash=password_hash,
+            token=verification_token,
+            expires_at=verification_expires,
+        )
+
+        return RegistrationResult(account=account, registration=registration)
+
+    def verify_registration(self, *, token: str) -> AuthUser:
+        registration = self._repository.get_registration_by_token(token)
+        now = datetime.now(UTC)
+        if registration.verification_expires_at and registration.verification_expires_at < now:
+            raise VerificationTokenExpired("Token verifikasi sudah kedaluwarsa.")
+
+        account = self._repository.get_account_by_email(registration.email)
+        account = self._repository.set_account_status(account.id, AccountStatus.ACTIVE)
+        self._repository.mark_registration_verified(registration.id)
+        return account
 
     def authenticate(self, *, email: str, password: str) -> AuthUser:
         normalized_email = email.strip().lower()
-        user = self._get_user_by_email(normalized_email)
+        try:
+            user = self._repository.get_account_by_email(normalized_email)
+        except AccountNotFound as exc:
+            raise InvalidCredentials("Email atau password salah.") from exc
 
         if user.status is not AccountStatus.ACTIVE:
-            raise InvalidCredentials("Akun tidak aktif.")
+            raise InvalidCredentials("Akun belum aktif. Selesaikan verifikasi email terlebih dahulu.")
 
         if not secrets.compare_digest(user.password_hash, _hash_password(password)):
             raise InvalidCredentials("Email atau password salah.")
 
         now = datetime.now(UTC)
-        user.last_login_at = now
-        user.updated_at = now
+        self._repository.record_login(user.id, now)
         return user
-
-    def _get_user_by_email(self, email: str) -> AuthUser:
-        try:
-            user_id = self._users_by_email[email]
-        except KeyError as exc:
-            raise InvalidCredentials("Email atau password salah.") from exc
-        return self._users_by_id[user_id]
 
     def _validate_email(self, email: str) -> None:
         pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
