@@ -6,12 +6,23 @@
     <div>
       <h3 class="nusantarum-card__title">
         {{ perfumer.display_name }}
-        {% if getattr(perfumer, 'is_curated', False) %}
-        <span class="nusantarum-card__badge">Terverifikasi</span>
+        {% if perfumer.is_curated %}
+        <span class="nusantarum-card__badge" role="status">
+          <span aria-hidden="true" class="nusantarum-card__icon">★</span>
+          <span class="sr-only">Perfumer terkurasi Nusantarum</span>
+          Kurasi Nusantarum
+        </span>
         {% endif %}
       </h3>
       {% if perfumer.perfumer_profile_username %}
       <p class="nusantarum-card__meta">@{{ perfumer.perfumer_profile_username }}</p>
+      {% endif %}
+      {% if perfumer.city %}
+      <p class="nusantarum-card__meta">
+        <span aria-hidden="true" class="nusantarum-card__icon">📍</span>
+        <span class="sr-only">Kota:</span>
+        {{ perfumer.city }}
+      </p>
       {% endif %}
       {% if perfumer.signature_scent %}
       <p class="nusantarum-card__meta">Signature: {{ perfumer.signature_scent }}</p>
@@ -20,8 +31,27 @@
   </header>
 
   <div class="nusantarum-card__body">
+    {% if perfumer.bio_preview %}
+    <p class="nusantarum-card__description">{{ perfumer.bio_preview }}</p>
+    {% endif %}
     <div class="nusantarum-card__stats">
-      <span class="nusantarum-stat-pill">{{ perfumer.active_perfume_count }} parfum dirilis</span>
+      <span class="nusantarum-stat-pill">
+        <span aria-hidden="true" class="nusantarum-card__icon">🎨</span>
+        <span class="sr-only">Jumlah parfum dirilis:</span>
+        {{ perfumer.active_perfume_count }} parfum dirilis
+      </span>
+      <span class="nusantarum-stat-pill">
+        <span aria-hidden="true" class="nusantarum-card__icon">👥</span>
+        <span class="sr-only">Jumlah pengikut:</span>
+        {{ perfumer.followers_count }} pengikut
+      </span>
+      {% if perfumer.years_active is not none %}
+      <span class="nusantarum-stat-pill">
+        <span aria-hidden="true" class="nusantarum-card__icon">🕰️</span>
+        <span class="sr-only">Durasi aktif:</span>
+        {{ perfumer.years_active }} tahun aktif
+      </span>
+      {% endif %}
       {% if perfumer.highlight_perfume %}
       <span class="nusantarum-stat-pill">
         Sorotan: {{ perfumer.highlight_perfume }}{% if perfumer.highlight_brand %} · {{ perfumer.highlight_brand }}{% endif %}
