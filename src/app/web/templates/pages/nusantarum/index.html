@@ -32,39 +32,45 @@
   </header>
 
   <nav class="nusantarum-tabs" role="tablist">
-    <button
-      type="button"
+    <a
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'parfum' else 'false' }}"
       hx-get="/nusantarum/tab/parfum"
       hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-push-url="/nusantarum?tab=parfum"
+      href="/nusantarum?tab=parfum"
     >
       <span>Parfum</span>
       <span class="nusantarum-tab__count">{{ directory_totals.perfumes }}</span>
-    </button>
-    <button
-      type="button"
+    </a>
+    <a
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'brand' else 'false' }}"
       hx-get="/nusantarum/tab/brand"
       hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-push-url="/nusantarum?tab=brand"
+      href="/nusantarum?tab=brand"
     >
       <span>Brand</span>
       <span class="nusantarum-tab__count">{{ directory_totals.brands }}</span>
-    </button>
-    <button
-      type="button"
+    </a>
+    <a
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'perfumer' else 'false' }}"
       hx-get="/nusantarum/tab/perfumer"
       hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-push-url="/nusantarum?tab=perfumer"
+      href="/nusantarum?tab=perfumer"
     >
       <span>Perfumer</span>
       <span class="nusantarum-tab__count">{{ directory_totals.perfumers }}</span>
-    </button>
+    </a>
   </nav>
 
   <div class="nusantarum-controls">
@@ -98,8 +104,8 @@
       {% include 'components/nusantarum/filter-panel.html' %}
     </aside>
     <section id="nusantarum-tab-content" class="nusantarum-content" aria-live="polite" aria-busy="false">
-      {% with page=perfume_page, error_message=error_message, active_tab=active_tab %}
-      {% include 'components/nusantarum/perfume-list.html' %}
+      {% with page=tab_page, error_message=error_message, active_tab=active_tab %}
+      {% include tab_template %}
       {% endwith %}
     </section>
   </div>

@@ -93,8 +93,13 @@ async def nusantarum_index(
     verified: bool = Query(default=True),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
+    tab: str = Query(default="parfum"),
 ) -> HTMLResponse:
     templates = request.app.state.templates
+    tab_slug = tab.lower()
+    if tab_slug not in TAB_LOADERS:
+        raise HTTPException(status_code=404, detail="Tab tidak ditemukan")
+
     filters = {
         "families": families,
         "city": city,
@@ -103,57 +108,74 @@ async def nusantarum_index(
         "verified": verified,
     }
 
+    active_template, active_loader = TAB_LOADERS[tab_slug]
+
+    load_kwargs = {
+        "page": page,
+        "page_size": page_size,
+        "families": families,
+        "city": city,
+        "price_min": price_min,
+        "price_max": price_max,
+        "verified": verified,
+    }
+
     try:
-        (
-            perfume_page,
-            brand_snapshot,
-            perfumer_snapshot,
-            sync_status,
-        ) = await asyncio.gather(
-            _load_perfume_tab(
+        active_page = await active_loader(service, **load_kwargs)
+        error_message = None
+    except NusantarumConfigurationError as exc:
+        active_page = None
+        error_message = str(exc)
+
+    async def _load_total(slug: str, loader: Callable[..., Any]) -> tuple[str, int]:
+        if slug == tab_slug:
+            total = active_page.total if active_page else 0
+            return slug, total
+        try:
+            snapshot = await loader(
                 service,
-                page=page,
-                page_size=page_size,
+                page=1,
+                page_size=1,
                 families=families,
                 city=city,
                 price_min=price_min,
                 price_max=price_max,
                 verified=verified,
-            ),
-            service.list_brands(
-                page=1,
-                page_size=1,
-                city=city,
-                verified_only=verified,
-            ),
-            service.list_perfumers(
-                page=1,
-                page_size=1,
-                verified_only=verified,
-            ),
-            service.get_sync_status(),
-        )
-        error_message = None
-    except NusantarumConfigurationError as exc:
-        perfume_page = None
-        brand_snapshot = None
-        perfumer_snapshot = None
-        sync_status = []
-        error_message = str(exc)
+            )
+            return slug, snapshot.total
+        except NusantarumConfigurationError:
+            return slug, 0
 
-    directory_totals = {
-        "perfumes": perfume_page.total if perfume_page else 0,
-        "brands": brand_snapshot.total if brand_snapshot else 0,
-        "perfumers": perfumer_snapshot.total if perfumer_snapshot else 0,
+    totals_results = await asyncio.gather(
+        *[
+            _load_total(slug, loader)
+            for slug, (_, loader) in TAB_LOADERS.items()
+        ],
+        return_exceptions=False,
+    )
+
+    slug_to_total_key = {
+        "parfum": "perfumes",
+        "brand": "brands",
+        "perfumer": "perfumers",
     }
+    directory_totals = {value: 0 for value in slug_to_total_key.values()}
+    for slug, total in totals_results:
+        directory_totals[slug_to_total_key[slug]] = total
+
+    try:
+        sync_status = await service.get_sync_status()
+    except NusantarumConfigurationError:
+        sync_status = []
 
     context = {
         "title": "Nusantarum Directory",
         "filters": filters,
-        "perfume_page": perfume_page,
+        "tab_page": active_page,
+        "tab_template": active_template,
         "sync_status": sync_status,
         "error_message": error_message,
-        "active_tab": "parfum",
+        "active_tab": tab_slug,
         "directory_totals": directory_totals,
     }
     return templates.TemplateResponse(request, "pages/nusantarum/index.html", context)

@@ -161,6 +161,7 @@ def test_index_page_renders_with_perfume_list(fake_service: FakeNusantarumServic
     assert "Hutan Senja" in text
     assert 'class="nusantarum-tabs"' in text
     assert 'id="nusantarum-search-form"' in text
+    assert 'hx-push-url="/nusantarum?tab=parfum"' in text
     assert text.index('class="nusantarum-tabs"') < text.index('id="nusantarum-search-form"')
 
 
@@ -195,3 +196,23 @@ def test_index_handles_configuration_error() -> None:
     assert status == 200
     assert "Supabase credentials" in body.decode()
     app.dependency_overrides.clear()
+
+
+def test_index_brand_tab_query_parameter(fake_service: FakeNusantarumService) -> None:
+    status, headers, body = asyncio.run(
+        _send_request("GET", "/nusantarum", query_string="tab=brand")
+    )
+    assert status == 200
+    assert headers["content-type"].startswith("text/html")
+    text = body.decode()
+    assert "Langit Senja" in text
+    assert 'hx-push-url="/nusantarum?tab=brand"' in text
+    assert 'name="tab" value="brand"' in text
+    assert '"tab": "brand"' in text
+
+
+def test_index_invalid_tab_returns_404(fake_service: FakeNusantarumService) -> None:
+    status, _, _ = asyncio.run(
+        _send_request("GET", "/nusantarum", query_string="tab=unknown")
+    )
+    assert status == 404
