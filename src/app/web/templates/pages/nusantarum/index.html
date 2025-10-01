@@ -104,7 +104,7 @@
       {% include 'components/nusantarum/filter-panel.html' %}
     </aside>
     <section id="nusantarum-tab-content" class="nusantarum-content" aria-live="polite" aria-busy="false">
-      {% with page=tab_page, error_message=error_message, active_tab=active_tab %}
+      {% with page=tab_page, error_message=error_message, active_tab=active_tab, sort=sort, direction=direction %}
       {% include tab_template %}
       {% endwith %}
     </section>

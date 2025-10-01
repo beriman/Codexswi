@@ -299,6 +299,51 @@ class NusantarumService:
         )
         return self._gateway
 
+    @staticmethod
+    def normalize_perfume_sort(
+        sort: str | None,
+        direction: str | None,
+    ) -> tuple[str, str, str]:
+        """Validate perfume sort inputs and return normalized values.
+
+        Parameters
+        ----------
+        sort:
+            Requested sort key from the client. Supports ``synced_at`` (default),
+            ``name``, ``brand``, and ``updated_at``.
+        direction:
+            Requested direction which can be ``asc`` or ``desc``.
+
+        Returns
+        -------
+        tuple[str, str, str]
+            A tuple of ``(normalized_sort, normalized_direction, order_clause)``
+            ready to be passed to PostgREST.
+        """
+
+        valid_sorts: Dict[str, tuple[str, str, bool]] = {
+            "synced_at": ("synced_at", "desc", True),
+            "name": ("name", "asc", False),
+            "brand": ("brand_name", "asc", False),
+            "updated_at": ("updated_at", "desc", True),
+        }
+
+        requested_sort = (sort or "").lower()
+        column, default_direction, nulls_last = valid_sorts.get(
+            requested_sort, valid_sorts["synced_at"]
+        )
+        normalized_sort = requested_sort if requested_sort in valid_sorts else "synced_at"
+
+        normalized_direction = (direction or "").lower()
+        if normalized_direction not in {"asc", "desc"}:
+            normalized_direction = default_direction
+
+        order_clause = f"{column}.{normalized_direction}"
+        if nulls_last:
+            order_clause = f"{order_clause},nullslast"
+
+        return normalized_sort, normalized_direction, order_clause
+
     async def list_perfumes(
         self,
         *,
@@ -309,6 +354,8 @@ class NusantarumService:
         price_min: float | None = None,
         price_max: float | None = None,
         verified_only: bool = True,
+        sort: str | None = None,
+        direction: str | None = None,
     ) -> PagedResult:
         filters: List[Tuple[str, Any]] = []
         if verified_only:
@@ -322,12 +369,14 @@ class NusantarumService:
         if price_max is not None:
             filters.append(("marketplace_price", f"lte.{price_max}"))
 
+        _, _, order_clause = self.normalize_perfume_sort(sort, direction)
+
         payload = await self._fetch_with_cache(
             "perfumes",
             filters,
             page,
             page_size,
-            order="synced_at.desc,nullslast",
+            order=order_clause,
         )
         items = [self._build_perfume(item) for item in payload.items]
         return PagedResult(items=items, total=payload.total, page=page, page_size=page_size)

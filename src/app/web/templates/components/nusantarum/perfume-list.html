@@ -1,3 +1,13 @@
+{% set current_sort = sort if sort else 'synced_at' %}
+{% if current_sort != 'synced_at' and not direction %}
+  {% if current_sort in ['name', 'brand'] %}
+    {% set current_direction = 'asc' %}
+  {% else %}
+    {% set current_direction = 'desc' %}
+  {% endif %}
+{% else %}
+  {% set current_direction = direction if direction else 'desc' %}
+{% endif %}
 {% if error_message %}
 <div class="nusantarum-empty">
   <p>{{ error_message }}</p>
@@ -9,10 +19,97 @@
       <caption class="sr-only">Daftar parfum Nusantarum</caption>
       <thead>
         <tr>
-          <th scope="col">Nama Parfum</th>
-          <th scope="col">Brand</th>
+          {% set name_is_active = current_sort == 'name' %}
+          {% set name_next_direction = 'desc' if name_is_active and current_direction == 'asc' else 'asc' %}
+          <th
+            scope="col"
+            {% if name_is_active %}
+            aria-sort="{{ 'ascending' if current_direction == 'asc' else 'descending' }}"
+            {% endif %}
+          >
+            <button
+              type="button"
+              class="nusantarum-table__sort"
+              hx-get="/nusantarum/tab/{{ active_tab }}"
+              hx-target="#nusantarum-tab-content"
+              hx-include="#nusantarum-filter-form"
+              hx-vals='{"page": 1, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}", "sort": "name", "direction": "{{ name_next_direction }}"}'
+              hx-push-url="/nusantarum?tab={{ active_tab }}&page=1&page_size={{ page.page_size }}&sort=name&direction={{ name_next_direction }}"
+            >
+              <span>Nama Parfum</span>
+              <span aria-hidden="true" class="nusantarum-table__sort-indicator">
+                {% if name_is_active %}
+                  {% if current_direction == 'asc' %}↑{% else %}↓{% endif %}
+                {% else %}
+                  ⇅
+                {% endif %}
+              </span>
+              <span class="sr-only">
+                Urutkan {{ 'menurun' if name_next_direction == 'desc' else 'menaik' }} berdasarkan nama parfum
+              </span>
+            </button>
+          </th>
+          {% set brand_is_active = current_sort == 'brand' %}
+          {% set brand_next_direction = 'desc' if brand_is_active and current_direction == 'asc' else 'asc' %}
+          <th
+            scope="col"
+            {% if brand_is_active %}
+            aria-sort="{{ 'ascending' if current_direction == 'asc' else 'descending' }}"
+            {% endif %}
+          >
+            <button
+              type="button"
+              class="nusantarum-table__sort"
+              hx-get="/nusantarum/tab/{{ active_tab }}"
+              hx-target="#nusantarum-tab-content"
+              hx-include="#nusantarum-filter-form"
+              hx-vals='{"page": 1, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}", "sort": "brand", "direction": "{{ brand_next_direction }}"}'
+              hx-push-url="/nusantarum?tab={{ active_tab }}&page=1&page_size={{ page.page_size }}&sort=brand&direction={{ brand_next_direction }}"
+            >
+              <span>Brand</span>
+              <span aria-hidden="true" class="nusantarum-table__sort-indicator">
+                {% if brand_is_active %}
+                  {% if current_direction == 'asc' %}↑{% else %}↓{% endif %}
+                {% else %}
+                  ⇅
+                {% endif %}
+              </span>
+              <span class="sr-only">
+                Urutkan {{ 'menurun' if brand_next_direction == 'desc' else 'menaik' }} berdasarkan nama brand
+              </span>
+            </button>
+          </th>
           <th scope="col">Profil Aroma</th>
-          <th scope="col">Tahun Rilis</th>
+          {% set release_is_active = current_sort == 'updated_at' %}
+          {% set release_next_direction = 'asc' if release_is_active and current_direction == 'desc' else 'desc' %}
+          <th
+            scope="col"
+            {% if release_is_active %}
+            aria-sort="{{ 'ascending' if current_direction == 'asc' else 'descending' }}"
+            {% endif %}
+          >
+            <button
+              type="button"
+              class="nusantarum-table__sort"
+              hx-get="/nusantarum/tab/{{ active_tab }}"
+              hx-target="#nusantarum-tab-content"
+              hx-include="#nusantarum-filter-form"
+              hx-vals='{"page": 1, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}", "sort": "updated_at", "direction": "{{ release_next_direction }}"}'
+              hx-push-url="/nusantarum?tab={{ active_tab }}&page=1&page_size={{ page.page_size }}&sort=updated_at&direction={{ release_next_direction }}"
+            >
+              <span>Tahun Rilis</span>
+              <span aria-hidden="true" class="nusantarum-table__sort-indicator">
+                {% if release_is_active %}
+                  {% if current_direction == 'asc' %}↑{% else %}↓{% endif %}
+                {% else %}
+                  ⇅
+                {% endif %}
+              </span>
+              <span class="sr-only">
+                Urutkan {{ 'menaik' if release_next_direction == 'asc' else 'menurun' }} berdasarkan tahun rilis
+              </span>
+            </button>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -80,14 +177,16 @@
   </div>
   {% endif %}
   <div class="nusantarum-pagination">
+    {% set prev_page = page.page - 1 if page.page > 1 else 1 %}
+    {% set next_page = page.page + 1 if page.page < page.pages else page.pages %}
     <button
       type="button"
       class="nusantarum-pagination__button"
       hx-get="/nusantarum/tab/{{ active_tab }}"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
-      hx-vals='{"page": {{ page.page - 1 if page.page > 1 else 1 }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"}'
-      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ page.page - 1 if page.page > 1 else 1 }}&page_size={{ page.page_size }}"
+      hx-vals='{"page": {{ prev_page }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"{% if current_sort != 'synced_at' %}, "sort": "{{ current_sort }}", "direction": "{{ current_direction }}"{% endif %}}'
+      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ prev_page }}&page_size={{ page.page_size }}{% if current_sort != 'synced_at' %}&sort={{ current_sort }}&direction={{ current_direction }}{% endif %}"
       {% if page.page <= 1 %}disabled{% endif %}
     >Sebelumnya</button>
     <span class="nusantarum-pagination__status">Halaman {{ page.page }} dari {{ page.pages }}</span>
@@ -97,8 +196,8 @@
       hx-get="/nusantarum/tab/{{ active_tab }}"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
-      hx-vals='{"page": {{ page.page + 1 if page.page < page.pages else page.pages }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"}'
-      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ page.page + 1 if page.page < page.pages else page.pages }}&page_size={{ page.page_size }}"
+      hx-vals='{"page": {{ next_page }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"{% if current_sort != 'synced_at' %}, "sort": "{{ current_sort }}", "direction": "{{ current_direction }}"{% endif %}}'
+      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ next_page }}&page_size={{ page.page_size }}{% if current_sort != 'synced_at' %}&sort={{ current_sort }}&direction={{ current_direction }}{% endif %}"
       {% if page.page >= page.pages %}disabled{% endif %}
     >Berikutnya</button>
   </div>
