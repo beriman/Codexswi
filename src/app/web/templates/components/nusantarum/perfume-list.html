@@ -86,7 +86,8 @@
       hx-get="/nusantarum/tab/{{ active_tab }}"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
-      hx-vals='{"page": {{ page.page - 1 }}, "page_size": {{ page.page_size }}}'
+      hx-vals='{"page": {{ page.page - 1 if page.page > 1 else 1 }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"}'
+      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ page.page - 1 if page.page > 1 else 1 }}&page_size={{ page.page_size }}"
       {% if page.page <= 1 %}disabled{% endif %}
     >Sebelumnya</button>
     <span class="nusantarum-pagination__status">Halaman {{ page.page }} dari {{ page.pages }}</span>
@@ -96,7 +97,8 @@
       hx-get="/nusantarum/tab/{{ active_tab }}"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
-      hx-vals='{"page": {{ page.page + 1 }}, "page_size": {{ page.page_size }}}'
+      hx-vals='{"page": {{ page.page + 1 if page.page < page.pages else page.pages }}, "page_size": {{ page.page_size }}, "tab": "{{ active_tab }}"}'
+      hx-push-url="/nusantarum?tab={{ active_tab }}&page={{ page.page + 1 if page.page < page.pages else page.pages }}&page_size={{ page.page_size }}"
       {% if page.page >= page.pages %}disabled{% endif %}
     >Berikutnya</button>
   </div>
