@@ -3,38 +3,41 @@
   <p>{{ error_message }}</p>
 </div>
 {% elif page %}
-<div class="nusantarum-list" role="list">
   {% if page.items %}
-  {% for perfumer in page.items %}
-  {% with perfumer=perfumer %}
-  {% include 'components/nusantarum/perfumer-list-item.html' %}
-  {% endwith %}
-  {% endfor %}
+  <div class="nusantarum-card-grid" role="list">
+    {% for perfumer in page.items %}
+    {% with perfumer=perfumer %}
+    {% include 'components/nusantarum/perfumer-list-item.html' %}
+    {% endwith %}
+    {% endfor %}
+  </div>
   {% else %}
   <div class="nusantarum-empty">
-    <p>Perfumer aktif belum tersedia untuk filter saat ini.</p>
+    <h3>Belum ada perfumer yang cocok</h3>
+    <p>Gunakan kata kunci umum atau reset filter untuk melihat daftar lengkap.</p>
   </div>
   {% endif %}
-</div>
-<div class="nusantarum-pagination">
-  <button
-    type="button"
-    hx-get="/nusantarum/tab/{{ active_tab }}"
-    hx-target="#nusantarum-tab-content"
-    hx-include="#nusantarum-filter-form"
-    hx-vals='{"page": {{ page.page - 1 }}, "page_size": {{ page.page_size }}}'
-    {% if page.page <= 1 %}disabled{% endif %}
-  >Sebelumnya</button>
-  <span>Halaman {{ page.page }} dari {{ page.pages }}</span>
-  <button
-    type="button"
-    hx-get="/nusantarum/tab/{{ active_tab }}"
-    hx-target="#nusantarum-tab-content"
-    hx-include="#nusantarum-filter-form"
-    hx-vals='{"page": {{ page.page + 1 }}, "page_size": {{ page.page_size }}}'
-    {% if page.page >= page.pages %}disabled{% endif %}
-  >Berikutnya</button>
-</div>
+  <div class="nusantarum-pagination">
+    <button
+      type="button"
+      class="nusantarum-pagination__button"
+      hx-get="/nusantarum/tab/{{ active_tab }}"
+      hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-vals='{"page": {{ page.page - 1 }}, "page_size": {{ page.page_size }}}'
+      {% if page.page <= 1 %}disabled{% endif %}
+    >Sebelumnya</button>
+    <span class="nusantarum-pagination__status">Halaman {{ page.page }} dari {{ page.pages }}</span>
+    <button
+      type="button"
+      class="nusantarum-pagination__button"
+      hx-get="/nusantarum/tab/{{ active_tab }}"
+      hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-vals='{"page": {{ page.page + 1 }}, "page_size": {{ page.page_size }}}'
+      {% if page.page >= page.pages %}disabled{% endif %}
+    >Berikutnya</button>
+  </div>
 {% else %}
 <div class="nusantarum-empty">
   <p>Direktori perfumer belum dapat dimuat.</p>

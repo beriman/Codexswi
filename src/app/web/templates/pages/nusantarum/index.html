@@ -6,6 +6,31 @@
 
 {% block content %}
 <section class="nusantarum-page">
+  <header class="nusantarum-hero">
+    <div class="nusantarum-hero__copy">
+      <p class="nusantarum-hero__eyebrow">Ensiklopedia Aroma Lokal</p>
+      <h1>Nusantarum</h1>
+      <p>
+        Kurasi eksklusif perfumer, brand, dan parfum Nusantara yang telah melalui seleksi manual tim SensasiWangi.
+        Jelajahi cerita di balik aroma, temukan rilis terbaru, dan ikuti kreator yang mempopulerkan wangi khas Indonesia.
+      </p>
+    </div>
+    <dl class="nusantarum-hero__stats" aria-label="Statistik katalog Nusantarum">
+      <div>
+        <dt>Parfum Terkurasi</dt>
+        <dd>{{ directory_totals.perfumes }}</dd>
+      </div>
+      <div>
+        <dt>Brand Lokal</dt>
+        <dd>{{ directory_totals.brands }}</dd>
+      </div>
+      <div>
+        <dt>Perfumer</dt>
+        <dd>{{ directory_totals.perfumers }}</dd>
+      </div>
+    </dl>
+  </header>
+
   <nav class="nusantarum-tabs" role="tablist">
     <button
       type="button"
@@ -14,7 +39,10 @@
       aria-selected="{{ 'true' if active_tab == 'parfum' else 'false' }}"
       hx-get="/nusantarum/tab/parfum"
       hx-target="#nusantarum-tab-content"
-    >Parfum</button>
+    >
+      <span>Parfum</span>
+      <span class="nusantarum-tab__count">{{ directory_totals.perfumes }}</span>
+    </button>
     <button
       type="button"
       class="nusantarum-tab"
@@ -22,7 +50,10 @@
       aria-selected="{{ 'true' if active_tab == 'brand' else 'false' }}"
       hx-get="/nusantarum/tab/brand"
       hx-target="#nusantarum-tab-content"
-    >Brand</button>
+    >
+      <span>Brand</span>
+      <span class="nusantarum-tab__count">{{ directory_totals.brands }}</span>
+    </button>
     <button
       type="button"
       class="nusantarum-tab"
@@ -30,7 +61,10 @@
       aria-selected="{{ 'true' if active_tab == 'perfumer' else 'false' }}"
       hx-get="/nusantarum/tab/perfumer"
       hx-target="#nusantarum-tab-content"
-    >Perfumer</button>
+    >
+      <span>Perfumer</span>
+      <span class="nusantarum-tab__count">{{ directory_totals.perfumers }}</span>
+    </button>
   </nav>
 
   <div class="nusantarum-controls">
@@ -60,11 +94,43 @@
   </div>
 
   <div class="nusantarum-body">
-    <section id="nusantarum-tab-content" aria-live="polite" aria-busy="false">
+    <aside class="nusantarum-sidebar" aria-label="Filter katalog Nusantarum">
+      {% include 'components/nusantarum/filter-panel.html' %}
+    </aside>
+    <section id="nusantarum-tab-content" class="nusantarum-content" aria-live="polite" aria-busy="false">
       {% with page=perfume_page, error_message=error_message, active_tab=active_tab %}
       {% include 'components/nusantarum/perfume-list.html' %}
       {% endwith %}
     </section>
   </div>
 </section>
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }}
+<script>
+  (function () {
+    const searchInput = document.getElementById('nusantarum-search-input');
+    if (!searchInput) {
+      return;
+    }
+
+    document.addEventListener('keydown', function (event) {
+      const isTyping = event.target && (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable);
+      if (event.key === '/' && !event.defaultPrevented && !isTyping) {
+        event.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+
+      if (event.key === 'Escape' && document.activeElement === searchInput) {
+        if (searchInput.value) {
+          searchInput.value = '';
+          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        searchInput.blur();
+      }
+    });
+  })();
+</script>
 {% endblock %}
