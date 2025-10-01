@@ -3,38 +3,103 @@
   <p>{{ error_message }}</p>
 </div>
 {% elif page %}
-<div class="nusantarum-list" role="list">
   {% if page.items %}
-  {% for perfume in page.items %}
-  {% with perfume=perfume %}
-  {% include 'components/nusantarum/perfume-list-item.html' %}
-  {% endwith %}
-  {% endfor %}
+  <div class="nusantarum-table-wrapper">
+    <table class="nusantarum-table">
+      <caption class="sr-only">Daftar parfum Nusantarum</caption>
+      <thead>
+        <tr>
+          <th scope="col">Nama Parfum</th>
+          <th scope="col">Brand</th>
+          <th scope="col">Profil Aroma</th>
+          <th scope="col">Tahun Rilis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for perfume in page.items %}
+        <tr>
+          <th scope="row" data-label="Nama Parfum">
+            <a class="nusantarum-link" href="/products/{{ perfume.id }}">{{ perfume.name }}</a>
+            {% if perfume.hero_note %}
+            <p class="nusantarum-table__description">{{ perfume.hero_note }}</p>
+            {% elif perfume.description %}
+            <p class="nusantarum-table__description">
+              {{ perfume.description[:160] }}{% if perfume.description|length > 160 %}…{% endif %}
+            </p>
+            {% endif %}
+          </th>
+          <td data-label="Brand">
+            {% if perfume.brand_profile_url %}
+            <a class="nusantarum-link" href="{{ perfume.brand_profile_url }}">{{ perfume.brand_name }}</a>
+            {% else %}
+            {{ perfume.brand_name }}
+            {% endif %}
+            {% if perfume.perfumer_name %}
+            <p class="nusantarum-table__meta">
+              oleh
+              {% if perfume.perfumer_profile_url %}
+              <a class="nusantarum-link" href="{{ perfume.perfumer_profile_url }}">{{ perfume.perfumer_name }}</a>
+              {% else %}
+              {{ perfume.perfumer_name }}
+              {% endif %}
+            </p>
+            {% endif %}
+          </td>
+          <td data-label="Profil Aroma">
+            <div class="nusantarum-aroma-group">
+              {% if perfume.aroma_families %}
+              {% for family in perfume.aroma_families %}
+              <span class="nusantarum-badge">{{ family }}</span>
+              {% endfor %}
+              {% else %}
+              <span class="nusantarum-table__meta">Belum diklasifikasikan</span>
+              {% endif %}
+            </div>
+          </td>
+          <td data-label="Tahun Rilis">
+            {% if perfume.updated_at %}
+            {{ perfume.updated_at.year }}
+            {% else %}
+            <span class="nusantarum-table__meta">-</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
   <div class="nusantarum-empty">
-    <p>Belum ada parfum yang memenuhi filter ini. Coba pilihan aroma atau kota lainnya.</p>
+    <h3>Tidak ada parfum yang cocok</h3>
+    <p>Coba bersihkan filter aroma atau ubah kata kunci pencarian Anda.</p>
+    <ul class="nusantarum-empty__suggestions">
+      <li>Telusuri kategori aroma lain seperti <strong>Woody</strong> atau <strong>Fresh</strong>.</li>
+      <li>Hapus filter kota untuk melihat seluruh Nusantara.</li>
+      <li>Gunakan pencarian umum seperti "kopi", "melati", atau "rempah".</li>
+    </ul>
   </div>
   {% endif %}
-</div>
-<div class="nusantarum-pagination">
-  <button
-    type="button"
-    hx-get="/nusantarum/tab/{{ active_tab }}"
-    hx-target="#nusantarum-tab-content"
-    hx-include="#nusantarum-filter-form"
-    hx-vals='{"page": {{ page.page - 1 }}, "page_size": {{ page.page_size }}}'
-    {% if page.page <= 1 %}disabled{% endif %}
-  >Sebelumnya</button>
-  <span>Halaman {{ page.page }} dari {{ page.pages }}</span>
-  <button
-    type="button"
-    hx-get="/nusantarum/tab/{{ active_tab }}"
-    hx-target="#nusantarum-tab-content"
-    hx-include="#nusantarum-filter-form"
-    hx-vals='{"page": {{ page.page + 1 }}, "page_size": {{ page.page_size }}}'
-    {% if page.page >= page.pages %}disabled{% endif %}
-  >Berikutnya</button>
-</div>
+  <div class="nusantarum-pagination">
+    <button
+      type="button"
+      class="nusantarum-pagination__button"
+      hx-get="/nusantarum/tab/{{ active_tab }}"
+      hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-vals='{"page": {{ page.page - 1 }}, "page_size": {{ page.page_size }}}'
+      {% if page.page <= 1 %}disabled{% endif %}
+    >Sebelumnya</button>
+    <span class="nusantarum-pagination__status">Halaman {{ page.page }} dari {{ page.pages }}</span>
+    <button
+      type="button"
+      class="nusantarum-pagination__button"
+      hx-get="/nusantarum/tab/{{ active_tab }}"
+      hx-target="#nusantarum-tab-content"
+      hx-include="#nusantarum-filter-form"
+      hx-vals='{"page": {{ page.page + 1 }}, "page_size": {{ page.page_size }}}'
+      {% if page.page >= page.pages %}disabled{% endif %}
+    >Berikutnya</button>
+  </div>
 {% else %}
 <div class="nusantarum-empty">
   <p>Direktori belum dapat dimuat.</p>

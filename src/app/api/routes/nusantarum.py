@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Callable, Dict, List, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -103,22 +104,48 @@ async def nusantarum_index(
     }
 
     try:
-        perfume_page = await _load_perfume_tab(
-            service,
-            page=page,
-            page_size=page_size,
-            families=families,
-            city=city,
-            price_min=price_min,
-            price_max=price_max,
-            verified=verified,
+        (
+            perfume_page,
+            brand_snapshot,
+            perfumer_snapshot,
+            sync_status,
+        ) = await asyncio.gather(
+            _load_perfume_tab(
+                service,
+                page=page,
+                page_size=page_size,
+                families=families,
+                city=city,
+                price_min=price_min,
+                price_max=price_max,
+                verified=verified,
+            ),
+            service.list_brands(
+                page=1,
+                page_size=1,
+                city=city,
+                verified_only=verified,
+            ),
+            service.list_perfumers(
+                page=1,
+                page_size=1,
+                verified_only=verified,
+            ),
+            service.get_sync_status(),
         )
-        sync_status = await service.get_sync_status()
         error_message = None
     except NusantarumConfigurationError as exc:
         perfume_page = None
+        brand_snapshot = None
+        perfumer_snapshot = None
         sync_status = []
         error_message = str(exc)
+
+    directory_totals = {
+        "perfumes": perfume_page.total if perfume_page else 0,
+        "brands": brand_snapshot.total if brand_snapshot else 0,
+        "perfumers": perfumer_snapshot.total if perfumer_snapshot else 0,
+    }
 
     context = {
         "title": "Nusantarum Directory",
@@ -127,6 +154,7 @@ async def nusantarum_index(
         "sync_status": sync_status,
         "error_message": error_message,
         "active_tab": "parfum",
+        "directory_totals": directory_totals,
     }
     return templates.TemplateResponse(request, "pages/nusantarum/index.html", context)
 

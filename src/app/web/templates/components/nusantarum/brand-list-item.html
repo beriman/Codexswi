@@ -1,17 +1,37 @@
-<article class="nusantarum-list-card" tabindex="0">
-  <header class="nusantarum-meta">
-    <strong>{{ brand.name }}</strong>
-    <span>{{ brand.origin_city or 'Lokasi belum tersedia' }}</span>
-    <span>Parfum Aktif: {{ brand.active_perfume_count }}</span>
-    {% if brand.profile_url %}
-    <a href="{{ brand.profile_url }}">Profil Brand</a>
-    {% endif %}
+<article class="nusantarum-card" role="listitem">
+  <header class="nusantarum-card__header">
+    <div class="nusantarum-card__avatar" aria-hidden="true">
+      <span>{{ brand.name[:1] | upper }}</span>
+    </div>
+    <div>
+      <h3 class="nusantarum-card__title">
+        {{ brand.name }}
+        {% if brand.nusantarum_status and brand.nusantarum_status|lower in ['aktif', 'terverifikasi'] %}
+        <span class="nusantarum-card__badge">Terverifikasi</span>
+        {% endif %}
+      </h3>
+      {% if brand.brand_profile_username %}
+      <p class="nusantarum-card__meta">@{{ brand.brand_profile_username }}</p>
+      {% endif %}
+      <p class="nusantarum-card__meta">{{ brand.origin_city or 'Lokasi belum tersedia' }}</p>
+    </div>
   </header>
 
-  <footer class="nusantarum-meta">
-    <span class="sync-status">{{ brand.nusantarum_status or 'aktif' }}</span>
-    {% if brand.last_perfume_synced_at %}
-    <span>Sinkron {{ brand.last_perfume_synced_at.strftime('%d %b %Y') }}</span>
+  <div class="nusantarum-card__body">
+    <p class="nusantarum-card__description">
+      <strong>{{ brand.active_perfume_count }}</strong> parfum aktif dalam katalog Nusantarum.
+    </p>
+    <div class="nusantarum-card__stats">
+      <span class="nusantarum-stat-pill">Direktori {{ brand.nusantarum_status or 'aktif' }}</span>
+      {% if brand.last_perfume_synced_at %}
+      <span class="nusantarum-card__meta">Sinkron {{ brand.last_perfume_synced_at.strftime('%d %b %Y') }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <footer class="nusantarum-card__footer">
+    {% if brand.profile_url %}
+    <a class="nusantarum-link" href="{{ brand.profile_url }}">View Brand</a>
     {% endif %}
   </footer>
 </article>

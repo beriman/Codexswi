@@ -1,41 +1,59 @@
 <div class="nusantarum-search-results" role="status" aria-live="polite">
   {% if error_message %}
-  <p>{{ error_message }}</p>
+  <p class="nusantarum-search-results__message">{{ error_message }}</p>
   {% elif results.perfumes or results.brands or results.perfumers %}
-  <div>
-    <strong>Parfum</strong>
+  <div class="nusantarum-search-results__group">
+    <h3>Parfum</h3>
     <ul>
+      {% if results.perfumes %}
       {% for item in results.perfumes %}
-      <li>{{ item }}</li>
+      <li>
+        <span class="nusantarum-search-results__pill">{{ item }}</span>
+      </li>
       {% endfor %}
-      {% if not results.perfumes %}
-      <li>Tidak ada hasil.</li>
+      {% else %}
+      <li class="nusantarum-search-results__message">Tidak ada parfum yang cocok.</li>
       {% endif %}
     </ul>
   </div>
-  <div>
-    <strong>Brand</strong>
+  <div class="nusantarum-search-results__group">
+    <h3>Brand</h3>
     <ul>
+      {% if results.brands %}
       {% for item in results.brands %}
-      <li>{{ item }}</li>
+      <li>
+        <span class="nusantarum-search-results__pill">{{ item }}</span>
+      </li>
       {% endfor %}
-      {% if not results.brands %}
-      <li>Tidak ada hasil.</li>
+      {% else %}
+      <li class="nusantarum-search-results__message">Belum ada brand yang relevan.</li>
       {% endif %}
     </ul>
   </div>
-  <div>
-    <strong>Perfumer</strong>
+  <div class="nusantarum-search-results__group">
+    <h3>Perfumer</h3>
     <ul>
+      {% if results.perfumers %}
       {% for item in results.perfumers %}
-      <li>{{ item }}</li>
+      <li>
+        <span class="nusantarum-search-results__pill">{{ item }}</span>
+      </li>
       {% endfor %}
-      {% if not results.perfumers %}
-      <li>Tidak ada hasil.</li>
+      {% else %}
+      <li class="nusantarum-search-results__message">Perfumer belum ditemukan.</li>
       {% endif %}
     </ul>
   </div>
   {% else %}
-  <p>Masukkan kata kunci untuk menelusuri katalog.</p>
+  {% set suggestions = ['kopi tubruk', 'melati bali', 'wangi kayu cendana'] %}
+  <div class="nusantarum-search-results__placeholder">
+    <p>Masukkan kata kunci untuk menelusuri katalog Nusantarum.</p>
+    <p class="nusantarum-search-results__message">Contoh pencarian populer:</p>
+    <ul>
+      {% for item in suggestions %}
+      <li><span class="nusantarum-search-results__pill">{{ item }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
   {% endif %}
 </div>
