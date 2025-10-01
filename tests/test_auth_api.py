@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 
 from app.api.routes.auth import get_auth_service
 from app.main import app
-from app.services.auth import AuthService
+from app.services.auth import AccountStatus, AuthService
 
 
 async def _send_request(
@@ -100,7 +100,22 @@ def test_register_login_logout_flow():
         assert status == 201
         payload = json.loads(body.decode())
         assert payload["email"] == "tester@example.com"
+        assert payload["status"] == AccountStatus.PENDING_VERIFICATION.value
+        assert payload["verification_token"]
+        verification_token = payload["verification_token"]
         jar.update(new_cookies)
+
+        status, headers, body, new_cookies = asyncio.run(
+            _send_request(
+                "POST",
+                "/api/auth/verify",
+                json_body={"token": verification_token},
+                cookies=jar,
+            )
+        )
+        assert status == 200
+        payload = json.loads(body.decode())
+        assert payload["status"] == AccountStatus.ACTIVE.value
 
         status, headers, body, new_cookies = asyncio.run(
             _send_request(
@@ -113,6 +128,7 @@ def test_register_login_logout_flow():
         assert status == 200
         payload = json.loads(body.decode())
         assert payload["message"] == "Login berhasil"
+        assert payload["status"] == AccountStatus.ACTIVE.value
         jar.update(new_cookies)
         assert jar.get("session")
 
@@ -123,6 +139,7 @@ def test_register_login_logout_flow():
         payload = json.loads(body.decode())
         assert payload["is_authenticated"] is True
         assert payload["user"]["email"] == "tester@example.com"
+        assert payload["user"]["status"] == AccountStatus.ACTIVE.value
 
         status, headers, body, new_cookies = asyncio.run(
             _send_request("POST", "/api/auth/logout", cookies=jar)
