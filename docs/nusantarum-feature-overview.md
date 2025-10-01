@@ -1,89 +1,232 @@
-# Nusantarum - Ensiklopedia Aroma SensasiWangi.id
+# Nusantarum – Ensiklopedia Aroma SensasiWangi.id
 
-## Ringkasan Fitur
-Nusantarum adalah ensiklopedia aroma yang dikurasi secara khusus untuk mengangkat perfumer dan brand parfum lokal Indonesia. Halaman `/nusantarum` menjadi etalase publik yang menghadirkan profil perfumer, brand, dan katalog parfum dalam satu pengalaman pencarian terpadu. Semua data yang tampil telah melewati proses kurasi manual oleh tim SensasiWangi sehingga pengguna dapat mengidentifikasi pembuat parfum autentik dan membedakan mereka dari penjual biasa.
+Dokumen ini mendeskripsikan fitur Nusantarum secara menyeluruh—mulai dari tujuan produk, arsitektur UI, alur data, hingga kebutuhan teknis dan operasional. Dokumentasi disusun agar dapat dijadikan referensi tunggal untuk tim produk, desain, dan engineering ketika membangun atau memelihara halaman `/nusantarum`.
 
-Fitur ini melayani dua sasaran utama:
-- **Pengguna umum** yang ingin menemukan referensi parfum lokal tepercaya.
-- **Perajin/brand** yang ingin mendapatkan legitimasi melalui badge "Terverifikasi" setelah lolos kurasi.
+---
 
-## Struktur Halaman `/nusantarum`
-### Header dan Hero
-- Halaman menggunakan `AppHeader` global sebagai navigasi utama.
-- Tepat di bawah header terdapat judul besar **"Nusantarum"** dan subjudul yang menjelaskan perannya sebagai ensiklopedia aroma lokal.
-- Seluruh tampilan mengadopsi estetika **glassmorphism**: panel berlapis `bg-card/60`, `backdrop-blur-lg`, serta `border border-white/20` untuk membangun nuansa premium dan transparan.
+## 1. Tujuan Produk dan Nilai Utama
 
-### Bilah Pencarian Global
-- Terletak di bagian atas konten, di bawah judul utama.
-- Menggunakan input tunggal yang mengeksekusi pencarian lintas-tab secara real-time. Ketika pengguna mengetik kata kunci, daftar pada tab yang sedang aktif langsung terfilter.
-- Fungsi pencarian memanfaatkan query gabungan yang mencakup koleksi perfumer, brand, dan parfum sehingga pengguna dapat menavigasi ensiklopedia tanpa berpindah tab terlebih dahulu.
+- **Elevasi komunitas parfum lokal** – Menjadi etalase utama untuk menampilkan perfumer dan brand lokal yang terkurasi.
+- **Kemudahan penemuan** – Menyediakan satu pengalaman pencarian lintas entitas (perfumer, brand, parfum) sehingga pengguna tidak perlu berpindah halaman.
+- **Legitimasi bagi kreator** – Memberikan badge "Terverifikasi" sebagai bentuk pengakuan setelah melewati proses kurasi manual.
+- **Kredibilitas platform** – Memastikan hanya profil autentik yang muncul sehingga reputasi SensasiWangi terjaga.
 
-### Tabs Navigasi
-- Menggunakan komponen `Tabs` dari ShadCN dengan tiga opsi: **Perfumers**, **Brands**, dan **Parfums**.
-- Tab aktif memiliki gaya gradien khusus (`bg-accent-gradient`) yang menonjol di atas panel glassmorphism.
-- Komponen tab ditempatkan persis di bawah bilah pencarian sehingga alur eksplorasi menjadi lurus dari pencarian ke konten.
+### 1.1 Sasaran Pengguna
 
-## Konten per Tab
-### Tab "Perfumers"
-- Menampilkan grid responsif berisi `PerfumerCard` untuk seluruh profil bertipe *Perfumer*.
-- Setiap kartu memuat:
-  - Avatar perfumer di sisi kiri.
-  - Nama lengkap, `@username`, dan bio singkat (dipotong otomatis bila melebihi batas karakter).
-  - Statistik ringkas seperti jumlah pengikut atau karya yang dipublikasikan.
-  - **Badge "Terverifikasi"** dengan ikon `BadgeCheck` bila `isCurated: true`. Badge ini menjadi indikator utama bahwa perfumer sudah lolos kurasi Nusantarum.
-  - Tombol **"View Profile"** yang membawa pengguna ke halaman detail `/profile/[slug]` untuk mempelajari kisah serta katalog lengkap perfumer.
-- Grid menyesuaikan kolom berdasarkan lebar layar: satu kolom di mobile, dua hingga tiga kolom di tablet/desktop.
+| Segment | Kebutuhan | Nilai yang Diberikan |
+| --- | --- | --- |
+| Pengunjung umum | Menemukan referensi parfum lokal tepercaya | Pencarian terpadu, filter terstruktur, akses cepat ke profil & produk |
+| Perfumer & brand | Mendapatkan pengakuan serta visibilitas | Badge kurasi, tautan ke profil lengkap, statistik eksposur |
+| Tim internal SensasiWangi | Mengelola proses kurasi | Dashboard admin, status kurasi, audit log |
 
-### Tab "Brands"
-- Struktur identik dengan tab perfumer, menggunakan `PerfumerCard` (atau varian brand) bergaya glassmorphism.
-- Item yang ditampilkan adalah semua profil bertipe *Brand*.
-- Setiap kartu memuat logo brand, nama, `@username`, ringkasan visi brand, dan statistik (misalnya jumlah parfum di katalog).
-- Badge verifikasi juga tampil otomatis untuk brand yang telah disetujui kurator.
-- Tombol **"View Profile"** menaut ke `/profile/[slug]` milik brand.
+### 1.2 Indikator Keberhasilan
 
-### Tab "Parfums"
-- Disajikan dalam komponen `Table` yang dapat diurutkan.
-- Kolom yang tersedia:
-  - **Nama Parfum**: berbentuk tautan menuju halaman detail `/products/[id]`.
-  - **Brand**: menampilkan nama brand pembuat parfum.
-  - **Profil Aroma**: deretan `Badge` bertema glassmorphism yang menandai keluarga aroma, seperti "Floral", "Woody", atau "Citrus".
-- Pengguna dapat melakukan sortasi berdasarkan nama parfum maupun brand untuk mempercepat penemuan produk.
+- Meningkatnya jumlah profil terkurasi (perfumer/brand) dari waktu ke waktu.
+- Peningkatan rasio klik ke profil (`View Profile`) dan produk dari halaman `/nusantarum`.
+- Tingkat konversi pengajuan kurasi menjadi persetujuan yang terdokumentasi.
+- Feedback pengguna yang menunjukkan kepercayaan terhadap kurasi Nusantarum.
 
-## Sistem Kurasi Nusantarum
-### 1. Pengajuan dari Halaman Profil
-- Di halaman profil (`/profile/[slug]`), pemilik akun bertipe *Perfumer* atau *Brand* yang belum terverifikasi melihat tombol **"Ajukan Kurasi"**.
-- Tombol hanya muncul ketika profil dilihat oleh pemiliknya sendiri dan `isCurated` bernilai `false`.
+---
 
-### 2. Dialog Pengajuan (`CurationDialog`)
-- Menekan "Ajukan Kurasi" membuka `CurationDialog`.
-- Dialog meminta pemilik brand/perfumer menulis pernyataan kurasi yang menjelaskan filosofi, proses kreatif, dan bahan yang digunakan sebagai bukti autentisitas.
+## 2. Struktur Halaman `/nusantarum`
 
-### 3. Peninjauan Manual & Persetujuan
-- Permohonan diteruskan ke panel admin (backend Nusantarum) yang dikelola kurator manusia.
-- Kurator memeriksa data pendukung dan menandai pengajuan sebagai disetujui bila memenuhi kriteria autentisitas.
+### 2.1 Header & Hero Section
 
-### 4. Publikasi Badge
-- Ketika pengajuan disetujui, field `isCurated` pada profil diperbarui menjadi `true`.
-- Lencana "Terverifikasi" secara otomatis muncul di kartu Nusantarum dan di halaman profil pengguna tersebut.
-- Badge ini adalah bagian dari sistem gamifikasi platform dan menjadi simbol prestise tinggi.
+- Menggunakan `AppHeader` global sebagai navigasi utama beserta CTA login/daftar.
+- Hero memuat judul utama **"Nusantarum"** dan subjudul satu kalimat yang menegaskan peran sebagai ensiklopedia aroma lokal.
+- Background menerapkan estetika **glassmorphism**: kombinasi `bg-card/60`, `backdrop-blur-lg`, `border border-white/20`, dan `shadow-glow` untuk menegaskan kesan premium.
+- Menyediakan teks penjelas singkat (2–3 kalimat) mengenai manfaat halaman, serta angka ringkas (misal jumlah perfumer terkurasi) apabila data tersedia.
 
-## Integrasi Antar-Fitur
-- **Halaman Profil**: Nusantarum berfungsi sebagai pintu masuk menuju profil detail. Semua tombol "View Profile" mengarahkan ke halaman profil untuk melanjutkan interaksi (misal mengikuti atau melihat produk terkait).
-- **Halaman Produk**: Tabel "Parfums" menaut langsung ke detail produk, memberikan jalur cepat bagi pengguna untuk membaca catatan aroma atau melakukan pembelian.
-- **Panel Admin**: Menjadi pusat keputusan kurasi; seluruh alur pengajuan dari pengguna ditinjau dan diputuskan di sini sebelum badge diberikan.
-- **Sistem Lencana**: Badge "Nusantarum Verified" tersinkron ke seluruh ekosistem SensasiWangi, memastikan status kredibilitas terlihat di setiap tempat pengguna muncul.
+### 2.2 Bilah Pencarian Global
 
-## Perspektif Teknis & Alur Data
-- **Pencarian Global**: Menggunakan satu state pencarian yang diteruskan ke query masing-masing tab. Implementasi dapat berupa store global (misal Zustand/Redux) atau context yang memicu fetch ulang data aktif.
-- **Tabs ShadCN**: Tab terhubung ke kontainer konten yang merender komponen grid atau tabel sesuai pilihan. Transisi antar tab mempertahankan kata kunci pencarian agar pengalaman konsisten.
-- **Komponen `PerfumerCard`**: Mengambil data profil termasuk status kurasi. Kartu memformat bio, menampilkan avatar (fallback jika kosong), dan menyediakan CTA ke profil.
-- **Tabel Parfum**: Menyusun data parfum dengan kemampuan sort (client-side atau server-side) dan memformat profil aroma menjadi badge.
-- **Kondisi Tombol Kurasi**: Validasi di halaman profil memeriksa identitas pengguna yang login, tipe profil, serta status kurasi sebelum merender tombol "Ajukan Kurasi".
-- **Dialog Kurasi**: Menyimpan statement pengguna ke backend (misal melalui Supabase/REST). Data diteruskan ke panel admin untuk peninjauan.
-- **Sinkronisasi Badge**: Setelah admin menyetujui, status `isCurated` diperbarui. UI otomatis merefleksikan perubahan melalui fetch ulang data atau subscription real-time.
+- Ditempatkan tepat di bawah hero, dengan label placeholder "Cari perfumer, brand, atau parfum…".
+- Input tunggal yang memicu pencarian lintas entitas secara real-time (debounce ±300ms untuk performa).
+- Menyimpan kata kunci pada state global (React context/Zustand) agar konsisten ketika pengguna berpindah tab.
+- Mendukung keyboard shortcut `/` untuk fokus ke kolom pencarian dan `Esc` untuk menghapus input.
 
-## Dampak Pengalaman Pengguna
-- Pengguna umum merasakan eksplorasi yang intuitif berkat pencarian terpadu dan tampilan tab yang konsisten.
-- Perajin merasa dihargai karena ada jalur resmi untuk memperoleh pengakuan, dan badge verifikasi meningkatkan visibilitas mereka.
-- Komunitas mendapatkan referensi kurasi yang dapat dipercaya, memperkuat ekosistem parfum lokal Indonesia.
+### 2.3 Tabs Navigasi
+
+- Menggunakan komponen `Tabs` ShadCN dengan opsi: **Perfumers**, **Brands**, **Parfums**.
+- Tab aktif memperoleh gaya gradien `bg-accent-gradient` dan border terang agar kontras dengan panel glassmorphism.
+- State tab tersimpan di query string `?tab=perfumers|brands|parfums` sehingga shareable dan mudah diuji QA.
+- Setiap tab memuat ringkasan jumlah item yang lolos filter (misal badge kecil "24" di sebelah label tab).
+
+---
+
+## 3. Konten Per Tab
+
+### 3.1 Tab **Perfumers**
+
+- Menampilkan grid responsif dari komponen `PerfumerCard`.
+- Layout responsif:
+  - 1 kolom pada `<640px` (mobile),
+  - 2 kolom pada `640–1024px`,
+  - 3 kolom pada `>1024px`.
+- Isi kartu mencakup:
+  - Avatar perfumer (fallback inisial bila kosong).
+  - Nama lengkap, `@username`, dan kota asal jika tersedia.
+  - Bio singkat maksimal 120 karakter dengan ellipsis otomatis.
+  - Statistik: jumlah parfum yang dirilis, jumlah follower, dan tahun aktif.
+  - Badge `BadgeCheck` bertuliskan **"Terverifikasi"** apabila `isCurated: true`.
+  - Tombol `View Profile` (variant `ghost`) yang menaut ke `/profile/[slug]`.
+- Empty state: ilustrasi ringan + teks "Belum ada perfumer yang cocok dengan pencarian Anda" + tautan ajakan untuk menjelajah semua perfumer.
+
+### 3.2 Tab **Brands**
+
+- Menggunakan komponen kartu dengan struktur serupa, namun label menggambarkan identitas brand.
+- Field utama: logo, nama brand, `@username`, tagline singkat, jumlah parfum yang tersedia, dan status kurasi.
+- Jika brand memiliki web eksternal, tampilkan ikon tautan di kartu (membuka tab baru).
+- Memastikan kartu menampilkan `PerfumerCard` versi `type="brand"` agar styling konsisten namun copywriting menyesuaikan (misal CTA `View Brand`).
+
+### 3.3 Tab **Parfums**
+
+- Ditampilkan dalam komponen `DataTable` dengan fitur sort dan pagination.
+- Kolom default:
+  1. **Nama Parfum** (link ke `/products/[id]`).
+  2. **Brand** (link sekunder ke `/profile/[brandSlug]`).
+  3. **Profil Aroma** (kumpulan `Badge` kecil: "Floral", "Woody", dll).
+  4. **Tahun Rilis** (opsional, sort ascending/descending).
+- Mendukung pencarian global dan filter tambahan:
+  - Filter dropdown "Kategori Aroma".
+  - Toggle "Tersedia di marketplace" bila informasi stock diintegrasikan.
+- Empty state menampilkan rekomendasi pencarian populer.
+
+---
+
+## 4. Sistem Kurasi Nusantarum
+
+### 4.1 Pengajuan Kurasi
+
+- Di halaman profil (`/profile/[slug]`), pemilik akun bertipe *Perfumer* atau *Brand* menekan tombol **"Ajukan Kurasi"**.
+- Tombol dirender hanya jika:
+  - Pengguna yang sedang login adalah pemilik profil,
+  - `isCurated === false`,
+  - Profil memenuhi syarat minimum (misal: minimal 1 produk terdaftar, informasi profil lengkap).
+- Klik tombol memicu `CurationDialog`.
+
+### 4.2 Dialog `CurationDialog`
+
+- Formulir berisi:
+  - Textarea "Cerita & Filosofi" (wajib minimal 200 karakter).
+  - Upload bukti (opsional) seperti sertifikat atau foto workshop.
+  - Checkbox persetujuan syarat & ketentuan.
+- Setelah submit, data disimpan ke tabel `curation_requests` dengan status awal `pending` dan timestamp.
+- Pengguna menerima snackbar konfirmasi serta email otomatis (via Supabase Function) mengenai estimasi waktu kurasi.
+
+### 4.3 Peninjauan Manual
+
+- Kurator mengakses panel admin untuk meninjau daftar `pending`.
+- Aksi yang tersedia: `approve`, `reject`, `request_revision`.
+- Keputusan memicu notifikasi email ke pemilik profil dan pencatatan audit log (ID kurator, catatan keputusan).
+
+### 4.4 Publikasi Badge & Sinkronisasi
+
+- Jika disetujui, sistem:
+  1. Mengubah `profiles.isCurated` menjadi `true`.
+  2. Menambahkan entri ke `badge_awards` dengan tipe `nusantarum_verified`.
+  3. Mengirim webhook ke sistem eksternal (bila ada) untuk sinkron status.
+- UI `/nusantarum` otomatis menampilkan badge melalui refetch data atau subscription real-time Supabase.
+- Penolakan/revisi ditampilkan di profil pemilik dengan status dan catatan kurator.
+
+---
+
+## 5. Integrasi dengan Fitur Lain
+
+- **Halaman Profil** – CTA `View Profile` dari tab perfumer & brand mengarah ke profil untuk aksi lanjut (follow, lihat katalog produk, hubungi).
+- **Halaman Produk** – Baris pada tabel parfum menuju halaman detail produk (`/products/[id]`), memperkuat funnel eksplorasi ke pembelian.
+- **Panel Admin** – Menjadi pusat pengelolaan kurasi, memanfaatkan data `curation_requests` dan `profiles`.
+- **Sistem Lencana** – Badge "Nusantarum Verified" dipakai di seluruh halaman (profil, kartu rekomendasi, hasil pencarian global) untuk menjaga konsistensi identitas.
+- **Analitik** – Event tracking (misal via Segment/GA) untuk `search`, `view_profile_click`, `curation_submit`, `tab_switch` guna mengukur penggunaan.
+
+---
+
+## 6. Perspektif Teknis & Alur Data
+
+### 6.1 Arsitektur Frontend
+
+- Framework utama: Next.js (App Router) dengan Tailwind dan komponen ShadCN.
+- State global menggunakan Zustand untuk menyimpan kata kunci pencarian, tab aktif, dan preferensi tampilan.
+- Data di-fetch melalui Supabase client atau endpoint REST internal dengan pagination (limit 12 untuk kartu, 25 untuk tabel).
+- Implementasi pencarian memakai parameter query `search` yang dikirim ke Supabase `ilike` filter di kolom nama, username, dan deskripsi.
+
+### 6.2 Model Data (Supabase)
+
+```
+profiles (
+  id UUID PK,
+  slug TEXT UNIQUE,
+  type ENUM('perfumer','brand'),
+  display_name TEXT,
+  username TEXT,
+  bio TEXT,
+  city TEXT,
+  avatar_url TEXT,
+  is_curated BOOLEAN,
+  stats JSONB -- { followers: number, perfumes: number }
+)
+
+products (
+  id UUID PK,
+  name TEXT,
+  brand_id UUID FK -> profiles.id,
+  aroma_profiles TEXT[]
+)
+
+curation_requests (
+  id UUID PK,
+  profile_id UUID FK -> profiles.id,
+  status ENUM('pending','approved','rejected','revision'),
+  statement TEXT,
+  attachments JSONB,
+  reviewer_id UUID,
+  reviewed_at TIMESTAMP
+)
+```
+
+### 6.3 Alur Data Pencarian
+
+1. Pengguna mengetik di bilah pencarian → state global `searchQuery` diperbarui.
+2. Hook `useDebouncedValue` men-trigger `useQuery` untuk tab aktif.
+3. Query Supabase mem-filter berdasarkan kata kunci dan menerapkan pagination.
+4. Hasil disimpan di cache React Query untuk reuse ketika tab berpindah.
+5. Saat pengguna ganti tab, data diambil dari cache atau difetch ulang jika parameter berubah.
+
+### 6.4 Performa & Aksesibilitas
+
+- Lazy load gambar avatar/logo dengan `next/image` dan blur placeholder.
+- Gunakan skeleton loader untuk kartu & tabel selama menunggu data.
+- Kontras warna badge diverifikasi memenuhi rasio aksesibilitas WCAG (≥ 4.5:1).
+- Navigasi keyboard: tab order logis, fokus jelas, tab list mengikuti `role="tablist"`.
+
+---
+
+## 7. Edge Case & Error Handling
+
+- **Data Kosong** – Tampilkan empty state yang edukatif dengan CTA untuk menghapus filter.
+- **Koneksi Gagal** – Munculkan `Alert` pada area konten dengan opsi retry.
+- **Profil Tanpa Avatar** – Gunakan fallback inisial agar tampilan tetap konsisten.
+- **Perfumer/Brand Nonaktif** – Jika status `isActive` false, jangan tampilkan di `/nusantarum` meski lolos kurasi.
+- **Pengajuan Duplikat** – Validasi agar hanya satu `curation_requests` berstatus `pending` per profil.
+- **Pencarian Tanpa Hasil** – Simpan histori pencarian pengguna untuk menawarkan rekomendasi lain.
+
+---
+
+## 8. Rencana Pengembangan Bertahap
+
+| Tahap | Fokus | Deliverables |
+| --- | --- | --- |
+| V1 (MVP) | Peluncuran ensiklopedia dasar | Tabs, pencarian lintas entitas, badge verifikasi pasif |
+| V2 | Kurasi interaktif | Form `CurationDialog`, integrasi admin panel, notifikasi email |
+| V3 | Personalisasi | Rekomendasi berdasarkan histori, filter tambahan aroma, analytics dashboard |
+| V4 | Komunitas | Ulasan user, kolaborasi perfumer-brand, program ambassador |
+
+---
+
+## 9. Dampak Pengalaman Pengguna
+
+- **Pengguna umum**: Eksplorasi intuitif dan tepercaya karena kurasi manual serta badge verifikasi yang jelas.
+- **Perfumer/brand**: Jalur resmi memperoleh pengakuan meningkatkan legitimasi dan visibilitas di ekosistem SensasiWangi.
+- **Tim SensasiWangi**: Mendapat proses kurasi yang terdokumentasi, memudahkan pemantauan kualitas dan evaluasi program.
+
+Dokumen ini harus diperbarui secara berkala seiring evolusi fitur Nusantarum, termasuk penambahan metrik baru, iterasi desain, ataupun integrasi teknologi terbaru.
 
