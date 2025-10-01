@@ -5,9 +5,19 @@
   hx-target="#nusantarum-tab-content"
   hx-trigger="change delay:250ms"
   hx-include="#nusantarum-filter-form"
-  hx-push-url="/nusantarum?tab={{ active_tab }}"
+  hx-push-url="/nusantarum?tab={{ active_tab }}{% if active_tab == 'parfum' and sort and sort != 'synced_at' %}&sort={{ sort }}{% if direction %}&direction={{ direction }}{% endif %}{% endif %}"
 >
   <input type="hidden" name="tab" value="{{ active_tab }}" />
+  <input
+    type="hidden"
+    name="sort"
+    value="{{ sort if active_tab == 'parfum' and sort and sort != 'synced_at' else '' }}"
+  />
+  <input
+    type="hidden"
+    name="direction"
+    value="{{ direction if active_tab == 'parfum' and sort and sort != 'synced_at' else '' }}"
+  />
   <h2>Filter Nusantarum</h2>
   <p class="text-muted">Sesuaikan direktori berdasarkan aroma, lokasi brand, dan status verifikasi.</p>
 

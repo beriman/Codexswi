@@ -33,6 +33,8 @@ async def _load_perfume_tab(
     price_min: float | None,
     price_max: float | None,
     verified: bool,
+    sort: str | None,
+    direction: str | None,
 ):
     return await service.list_perfumes(
         page=page,
@@ -42,6 +44,8 @@ async def _load_perfume_tab(
         price_min=price_min,
         price_max=price_max,
         verified_only=verified,
+        sort=sort,
+        direction=direction,
     )
 
 
@@ -55,8 +59,11 @@ async def _load_brand_tab(
     price_min: float | None,
     price_max: float | None,
     verified: bool,
+    sort: str | None,
+    direction: str | None,
 ):
     del families, price_min, price_max
+    del sort, direction
     return await service.list_brands(page=page, page_size=page_size, city=city, verified_only=verified)
 
 
@@ -70,8 +77,11 @@ async def _load_perfumer_tab(
     price_min: float | None,
     price_max: float | None,
     verified: bool,
+    sort: str | None,
+    direction: str | None,
 ):
     del families, city, price_min, price_max
+    del sort, direction
     return await service.list_perfumers(page=page, page_size=page_size, verified_only=verified)
 
 
@@ -94,6 +104,8 @@ async def nusantarum_index(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
     tab: str = Query(default="parfum"),
+    sort: str | None = Query(default=None),
+    direction: str | None = Query(default=None),
 ) -> HTMLResponse:
     templates = request.app.state.templates
     tab_slug = tab.lower()
@@ -110,6 +122,11 @@ async def nusantarum_index(
 
     active_template, active_loader = TAB_LOADERS[tab_slug]
 
+    normalized_sort = None
+    normalized_direction = None
+    if tab_slug == "parfum":
+        normalized_sort, normalized_direction, _ = NusantarumService.normalize_perfume_sort(sort, direction)
+
     load_kwargs = {
         "page": page,
         "page_size": page_size,
@@ -118,6 +135,8 @@ async def nusantarum_index(
         "price_min": price_min,
         "price_max": price_max,
         "verified": verified,
+        "sort": normalized_sort if tab_slug == "parfum" else None,
+        "direction": normalized_direction if tab_slug == "parfum" else None,
     }
 
     try:
@@ -141,6 +160,8 @@ async def nusantarum_index(
                 price_min=price_min,
                 price_max=price_max,
                 verified=verified,
+                sort=normalized_sort if slug == "parfum" else None,
+                direction=normalized_direction if slug == "parfum" else None,
             )
             return slug, snapshot.total
         except NusantarumConfigurationError:
@@ -177,6 +198,8 @@ async def nusantarum_index(
         "error_message": error_message,
         "active_tab": tab_slug,
         "directory_totals": directory_totals,
+        "sort": normalized_sort if tab_slug == "parfum" else None,
+        "direction": normalized_direction if tab_slug == "parfum" else None,
     }
     return templates.TemplateResponse(request, "pages/nusantarum/index.html", context)
 
@@ -193,6 +216,8 @@ async def nusantarum_tab(
     verified: bool = Query(default=True),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
+    sort: str | None = Query(default=None),
+    direction: str | None = Query(default=None),
 ) -> HTMLResponse:
     slug = slug.lower()
     if slug not in TAB_LOADERS:
@@ -200,6 +225,11 @@ async def nusantarum_tab(
 
     template_name, loader = TAB_LOADERS[slug]
     templates = request.app.state.templates
+
+    normalized_sort = None
+    normalized_direction = None
+    if slug == "parfum":
+        normalized_sort, normalized_direction, _ = NusantarumService.normalize_perfume_sort(sort, direction)
 
     try:
         page_data = await loader(
@@ -211,6 +241,8 @@ async def nusantarum_tab(
             price_min=price_min,
             price_max=price_max,
             verified=verified,
+            sort=normalized_sort if slug == "parfum" else None,
+            direction=normalized_direction if slug == "parfum" else None,
         )
         error_message = None
     except NusantarumConfigurationError as exc:
@@ -228,6 +260,8 @@ async def nusantarum_tab(
             "verified": verified,
         },
         "active_tab": slug,
+        "sort": normalized_sort if slug == "parfum" else None,
+        "direction": normalized_direction if slug == "parfum" else None,
     }
     return templates.TemplateResponse(request, template_name, context)
 
