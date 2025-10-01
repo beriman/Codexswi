@@ -61,14 +61,15 @@
             Kirimkan update komunitas via email
           </label>
         </fieldset>
-        <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Token</button>
+        <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Tautan</button>
       </form>
 
       <form id="verification-form" data-step="verify" class="onboarding-form" aria-disabled="true">
         <fieldset>
           <legend>2. Verifikasi Email</legend>
           <p class="form-help">
-            Masukkan token verifikasi yang dikirim ke email Anda. Token berlaku selama <span id="verification-countdown">--</span>.
+            Buka email yang kami kirimkan dan klik tautan verifikasi akun Anda.
+            Jika diperlukan pengujian manual, token juga dapat dimasukkan di bawah ini (opsional). Token berlaku selama <span id="verification-countdown">--</span>.
           </p>
           <label>
             Token Verifikasi
@@ -77,7 +78,7 @@
         </fieldset>
         <div class="form-actions">
           <button type="submit" class="btn btn-outline" disabled>Verifikasi Email</button>
-          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Token</button>
+          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Tautan</button>
         </div>
         <p class="debug-token" data-debug-token hidden></p>
       </form>
@@ -260,9 +261,9 @@
     updateProgress(data.progress);
     syncForms();
     refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
     debugTokenEl.hidden = !state.verificationToken;
-    setFeedback("Registrasi berhasil. Token verifikasi telah dikirim.", "success");
+    setFeedback("Registrasi berhasil. Tautan verifikasi telah dikirim ke email Anda.", "success");
     await fetchEvents();
   }
 
@@ -311,10 +312,10 @@
     state.verificationToken = data.verification_token;
     updateProgress(data.progress);
     refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
     debugTokenEl.hidden = !state.verificationToken;
     verificationForm.reset();
-    setFeedback("Token baru dikirim. Cek email Anda.", "success");
+    setFeedback("Tautan verifikasi baru dikirim. Cek email Anda.", "success");
     await fetchEvents();
   }
 

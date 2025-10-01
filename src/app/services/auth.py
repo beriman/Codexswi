@@ -10,6 +10,8 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Dict, Optional
 
+from app.services.email import send_verification_email
+
 
 class AuthError(Exception):
     """Base class for authentication related errors."""
@@ -280,9 +282,11 @@ class AuthService:
             expires_at=verification_expires,
         )
 
+        send_verification_email(account.email, verification_token)
+
         return RegistrationResult(account=account, registration=registration)
 
-    def verify_registration(self, *, token: str) -> AuthUser:
+    def verify_email(self, *, token: str) -> AuthUser:
         registration = self._repository.get_registration_by_token(token)
         now = datetime.now(UTC)
         if registration.verification_expires_at and registration.verification_expires_at < now:
@@ -292,6 +296,9 @@ class AuthService:
         account = self._repository.set_account_status(account.id, AccountStatus.ACTIVE)
         self._repository.mark_registration_verified(registration.id)
         return account
+
+    def verify_registration(self, *, token: str) -> AuthUser:
+        return self.verify_email(token=token)
 
     def authenticate(self, *, email: str, password: str) -> AuthUser:
         normalized_email = email.strip().lower()

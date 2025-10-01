@@ -1,5 +1,6 @@
 import asyncio
 import json
+from datetime import UTC, datetime, timedelta
 from http.cookies import SimpleCookie
 from typing import Dict, Tuple
 
@@ -79,6 +80,17 @@ async def _send_request(
     return status, response_headers, body, new_cookies
 
 
+def _get_registration(service: AuthService, email: str):
+    repository = service._repository
+    registration_id = repository._registrations_by_email[email]
+    return repository._registrations_by_id[registration_id]
+
+
+def _get_verification_token(service: AuthService, email: str) -> str:
+    registration = _get_registration(service, email)
+    return registration.verification_token or ""
+
+
 def test_register_login_logout_flow():
     service = AuthService()
     app.dependency_overrides[get_auth_service] = lambda: service
@@ -101,8 +113,9 @@ def test_register_login_logout_flow():
         payload = json.loads(body.decode())
         assert payload["email"] == "tester@example.com"
         assert payload["status"] == AccountStatus.PENDING_VERIFICATION.value
-        assert payload["verification_token"]
-        verification_token = payload["verification_token"]
+        assert "verification_token" not in payload
+        verification_token = _get_verification_token(service, "tester@example.com")
+        assert verification_token
         jar.update(new_cookies)
 
         status, headers, body, new_cookies = asyncio.run(
@@ -152,5 +165,74 @@ def test_register_login_logout_flow():
         )
         payload = json.loads(body.decode())
         assert payload["is_authenticated"] is False
+    finally:
+        app.dependency_overrides.pop(get_auth_service, None)
+
+
+
+def test_verify_with_invalid_token_returns_not_found():
+    service = AuthService()
+    app.dependency_overrides[get_auth_service] = lambda: service
+
+    try:
+        status, _, body, _ = asyncio.run(
+            _send_request(
+                "POST",
+                "/api/auth/register",
+                json_body={
+                    "full_name": "Tester Sukses",
+                    "email": "tester-invalid@example.com",
+                    "password": "Password123",
+                },
+            )
+        )
+        assert status == 201
+
+        status, _, body, _ = asyncio.run(
+            _send_request(
+                "POST",
+                "/api/auth/verify",
+                json_body={"token": "tidak-valid"},
+            )
+        )
+        assert status == 404
+        payload = json.loads(body.decode())
+        assert "detail" in payload
+    finally:
+        app.dependency_overrides.pop(get_auth_service, None)
+
+
+
+def test_verify_with_expired_token_returns_gone():
+    service = AuthService()
+    app.dependency_overrides[get_auth_service] = lambda: service
+
+    try:
+        status, _, body, _ = asyncio.run(
+            _send_request(
+                "POST",
+                "/api/auth/register",
+                json_body={
+                    "full_name": "Tester Kedaluwarsa",
+                    "email": "tester-expired@example.com",
+                    "password": "Password123",
+                },
+            )
+        )
+        assert status == 201
+        registration = _get_registration(service, "tester-expired@example.com")
+        registration.verification_expires_at = datetime.now(UTC) - timedelta(minutes=1)
+
+        token = registration.verification_token
+        status, _, body, _ = asyncio.run(
+            _send_request(
+                "POST",
+                "/api/auth/verify",
+                json_body={"token": token},
+            )
+        )
+        assert status == 410
+        payload = json.loads(body.decode())
+        assert "detail" in payload
     finally:
         app.dependency_overrides.pop(get_auth_service, None)
