@@ -137,8 +137,13 @@ class PerfumerListItem:
     id: str
     display_name: str
     slug: str
+    city: Optional[str]
+    bio_preview: Optional[str]
     signature_scent: Optional[str]
     active_perfume_count: int
+    followers_count: int
+    years_active: Optional[int]
+    is_curated: bool
     perfumer_profile_username: Optional[str]
     highlight_perfume: Optional[str]
     highlight_brand: Optional[str]
@@ -527,12 +532,36 @@ class NusantarumService:
 
     @staticmethod
     def _build_perfumer(row: Dict[str, Any]) -> PerfumerListItem:
+        city = row.get("city") or row.get("origin_city") or row.get("base_city")
+        bio_source = row.get("bio") or row.get("biography")
+        bio_preview = _truncate_text(bio_source)
+        followers_raw = (
+            row.get("followers_count")
+            or row.get("follower_count")
+            or row.get("followers")
+            or 0
+        )
+        years_active_raw = row.get("years_active") or row.get("active_years")
+        try:
+            years_active = int(years_active_raw) if years_active_raw is not None else None
+        except (TypeError, ValueError):
+            years_active = None
+        try:
+            followers_count = int(followers_raw)
+        except (TypeError, ValueError):
+            followers_count = 0
+
         return PerfumerListItem(
             id=str(row.get("id")),
             display_name=row.get("display_name", ""),
             slug=row.get("slug", ""),
+            city=city,
+            bio_preview=bio_preview,
             signature_scent=row.get("signature_scent"),
             active_perfume_count=int(row.get("active_perfume_count") or 0),
+            followers_count=followers_count,
+            years_active=years_active,
+            is_curated=bool(row.get("is_curated") or row.get("curated")),
             perfumer_profile_username=row.get("perfumer_profile_username"),
             highlight_perfume=row.get("highlight_perfume"),
             highlight_brand=row.get("highlight_brand"),
@@ -551,6 +580,16 @@ def _parse_datetime(value: Any) -> Optional[datetime]:
         except ValueError:
             return None
     return None
+
+
+def _truncate_text(value: Any, *, limit: int = 140) -> Optional[str]:
+    if not value:
+        return None
+    text = str(value).strip()
+    if len(text) <= limit:
+        return text or None
+    truncated = text[: limit - 1].rstrip()
+    return f"{truncated}…"
 
 
 nusantarum_service = NusantarumService()
