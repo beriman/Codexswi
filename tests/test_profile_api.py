@@ -187,3 +187,28 @@ def test_profile_update_submission_updates_gateway(
 
     view = asyncio.run(profile_service.get_profile("amelia-damayanti", viewer_id="user_amelia"))
     assert view.profile.bio == "Perfumer independen & mentor komunitas."
+
+
+def test_profile_update_submission_without_changes_skips_write(
+    profile_service: ProfileService, fake_profile_gateway: FakeSupabaseProfileGateway
+) -> None:
+    initial_view = asyncio.run(
+        profile_service.get_profile("amelia-damayanti", viewer_id="user_amelia")
+    )
+
+    status, body = request(
+        "PATCH",
+        "/profile/amelia-damayanti?viewer=user_amelia",
+        headers={"hx-request": "true"},
+        data={
+            "full_name": initial_view.profile.full_name,
+            "bio": initial_view.profile.bio,
+            "location": initial_view.profile.location or "",
+            "preferred_aroma": initial_view.profile.preferred_aroma or "",
+            "avatar_url": initial_view.profile.avatar_url or "",
+        },
+    )
+
+    assert status == 200
+    assert "Tidak ada perubahan" in body
+    assert fake_profile_gateway.profile_updates == []

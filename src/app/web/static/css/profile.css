@@ -276,6 +276,12 @@
   border: 1px solid rgba(34, 197, 94, 0.35);
 }
 
+.profile-edit__feedback--info {
+  background: rgba(148, 163, 184, 0.12);
+  color: rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
 .profile-edit__form {
   display: flex;
   flex-direction: column;

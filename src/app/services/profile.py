@@ -689,7 +689,7 @@ class ProfileService:
 
     async def update_profile(
         self, profile_identifier: str, *, viewer_id: str, payload: ProfileUpdate
-    ) -> ProfileView:
+    ) -> tuple[ProfileView, bool]:
         profile_data = await self._resolve_profile_data(profile_identifier)
         viewer_data = await self._resolve_profile_data(viewer_id)
 
@@ -697,10 +697,33 @@ class ProfileService:
             raise ProfileError("Tidak memiliki akses untuk memperbarui profil ini.")
 
         update_payload = payload.to_payload()
-        if update_payload:
-            await self._gateway.update_profile(profile_data["id"], update_payload)
+        if not update_payload:
+            profile_view = await self.get_profile(
+                profile_data["id"], viewer_id=viewer_data["id"]
+            )
+            return profile_view, False
 
-        return await self.get_profile(profile_data["id"], viewer_id=viewer_data["id"])
+        def _normalize(value: Any) -> Any:
+            if value is None:
+                return None
+            if isinstance(value, str):
+                trimmed = value.strip()
+                return trimmed or None
+            return value
+
+        changes = {
+            key: value
+            for key, value in update_payload.items()
+            if _normalize(profile_data.get(key)) != _normalize(value)
+        }
+
+        if changes:
+            await self._gateway.update_profile(profile_data["id"], changes)
+
+        profile_view = await self.get_profile(
+            profile_data["id"], viewer_id=viewer_data["id"]
+        )
+        return profile_view, bool(changes)
 
     async def list_followers(self, profile_identifier: str) -> List[ProfileRecord]:
         profile_data = await self._resolve_profile_data(profile_identifier)

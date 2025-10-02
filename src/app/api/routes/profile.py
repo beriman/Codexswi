@@ -250,7 +250,9 @@ async def update_profile(
     )
 
     try:
-        profile_view = await service.update_profile(username, viewer_id=viewer_id, payload=payload)
+        profile_view, changes_applied = await service.update_profile(
+            username, viewer_id=viewer_id, payload=payload
+        )
     except ProfileError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
@@ -261,7 +263,14 @@ async def update_profile(
             "profile_view": profile_view,
             "profile": profile_view.profile,
             "viewer_query": _viewer_query_param(profile_view.viewer.id),
-            "feedback": {"status": "success", "message": "Profil berhasil diperbarui."},
+            "feedback": {
+                "status": "success" if changes_applied else "info",
+                "message": (
+                    "Profil berhasil diperbarui."
+                    if changes_applied
+                    else "Tidak ada perubahan yang disimpan."
+                ),
+            },
         }
         return templates.TemplateResponse(
             request,
