@@ -61,14 +61,15 @@
             Kirimkan update komunitas via email
           </label>
         </fieldset>
-        <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Token</button>
+        <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Tautan</button>
       </form>
 
       <form id="verification-form" data-step="verify" class="onboarding-form" aria-disabled="true">
         <fieldset>
           <legend>2. Verifikasi Email</legend>
           <p class="form-help">
-            Masukkan token verifikasi yang dikirim ke email Anda. Token berlaku selama <span id="verification-countdown">--</span>.
+            Buka email yang kami kirimkan dan klik tautan verifikasi akun Anda.
+            Jika diperlukan pengujian manual, token juga dapat dimasukkan di bawah ini (opsional). Token berlaku selama <span id="verification-countdown">--</span>.
           </p>
           <label>
             Token Verifikasi
@@ -77,7 +78,7 @@
         </fieldset>
         <div class="form-actions">
           <button type="submit" class="btn btn-outline" disabled>Verifikasi Email</button>
-          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Token</button>
+          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Tautan</button>
         </div>
         <p class="debug-token" data-debug-token hidden></p>
       </form>
@@ -108,20 +109,7 @@
     </div>
   </div>
 
-  <aside class="onboarding-sidebar glass-surface">
-    <h2>Log Aktivitas</h2>
-    <p>Pantau setiap event yang terjadi selama onboarding. Data ini juga tersimpan oleh backend untuk audit.</p>
-    <ul id="onboarding-events" class="event-log"></ul>
-
-    <div class="qa-notes">
-      <h3>Checklist QA Mini</h3>
-      <ul>
-        <li>Token kedaluwarsa otomatis dalam 15 menit.</li>
-        <li>Batasi percobaan verifikasi maksimal 3 kali.</li>
-        <li>Profil baru hanya dapat dikirim setelah email tervalidasi.</li>
-      </ul>
-    </div>
-  </aside>
+  
 </section>
 
 <script>
@@ -136,7 +124,6 @@
   const progressFill = document.querySelector("[data-progress-fill]");
   const statusLabel = document.querySelector("[data-status-label]");
   const stepElements = document.querySelectorAll("[data-progress-step]");
-  const eventList = document.getElementById("onboarding-events");
 
   const registrationForm = document.getElementById("registration-form");
   const verificationForm = document.getElementById("verification-form");
@@ -211,28 +198,6 @@
     state.countdownTimer = setInterval(tick, 1000);
   }
 
-  function renderEvents(events) {
-    eventList.innerHTML = "";
-    events.forEach((event) => {
-      const item = document.createElement("li");
-      const time = new Date(event.timestamp).toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      item.innerHTML = `<span class="event-time">${time}</span><span class="event-name">${event.event}</span>`;
-      eventList.appendChild(item);
-    });
-  }
-
-  async function fetchEvents() {
-    if (!state.onboardingId) return;
-    const response = await fetch(`/api/onboarding/events/${state.onboardingId}`);
-    if (!response.ok) return;
-    const data = await response.json();
-    renderEvents(data.events);
-  }
-
   async function handleRegister(event) {
     event.preventDefault();
     const formData = new FormData(registrationForm);
@@ -260,10 +225,9 @@
     updateProgress(data.progress);
     syncForms();
     refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
     debugTokenEl.hidden = !state.verificationToken;
-    setFeedback("Registrasi berhasil. Token verifikasi telah dikirim.", "success");
-    await fetchEvents();
+    setFeedback("Registrasi berhasil. Tautan verifikasi telah dikirim ke email Anda.", "success");
   }
 
   async function handleVerification(event) {
@@ -283,7 +247,6 @@
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       setFeedback(data.detail || "Token tidak valid", "danger");
-      await fetchEvents();
       return;
     }
 
@@ -292,7 +255,6 @@
     refreshCountdown(data.progress.verification.expires_at);
     verificationForm.reset();
     setFeedback("Email berhasil diverifikasi.", "success");
-    await fetchEvents();
   }
 
   async function handleResend() {
@@ -311,11 +273,10 @@
     state.verificationToken = data.verification_token;
     updateProgress(data.progress);
     refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi: ${state.verificationToken}`;
+    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
     debugTokenEl.hidden = !state.verificationToken;
     verificationForm.reset();
-    setFeedback("Token baru dikirim. Cek email Anda.", "success");
-    await fetchEvents();
+    setFeedback("Tautan verifikasi baru dikirim. Cek email Anda.", "success");
   }
 
   async function handleProfile(event) {
@@ -347,7 +308,6 @@
     syncForms();
     setFeedback("Profil berhasil disimpan. Onboarding selesai!", "success");
     profileForm.reset();
-    await fetchEvents();
   }
 
   registrationForm.addEventListener("submit", handleRegister);

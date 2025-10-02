@@ -39,7 +39,6 @@ class RegisterResponse(BaseModel):
     email: str
     full_name: str
     status: AccountStatus
-    verification_token: str
     verification_expires_at: datetime
     message: str
 
@@ -89,9 +88,8 @@ def _handle_registration_result(result: RegistrationResult) -> RegisterResponse:
         email=account.email,
         full_name=account.full_name,
         status=account.status,
-        verification_token=registration.verification_token or "",
         verification_expires_at=expires_at,
-        message="Registrasi berhasil. Periksa email Anda untuk verifikasi.",
+        message="Registrasi berhasil. Cek email Anda untuk tautan verifikasi.",
     )
 
 
@@ -114,7 +112,7 @@ def verify_user(
     payload: VerificationRequest, service: AuthService = Depends(get_auth_service)
 ) -> VerificationResponse:
     try:
-        user = service.verify_registration(token=payload.token)
+        user = service.verify_email(token=payload.token)
     except AuthError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
