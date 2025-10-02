@@ -1,6 +1,11 @@
 <div id="profile-follow-button" class="profile-follow">
   {% if profile_view.viewer.is_owner %}
-    <a href="#" class="profile-follow__edit" aria-label="Edit profil">Edit Profil</a>
+    {% set edit_url = request.url_for('profile_edit', username=profile.username) %}
+    <a
+      href="{{ edit_url }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+      class="profile-follow__edit"
+      aria-label="Edit profil {{ profile.full_name }}"
+    >Edit Profil</a>
   {% elif profile_view.viewer.is_following %}
     {% set unfollow_url = request.url_for('profile_unfollow', username=profile.username) %}
     <form

@@ -27,6 +27,27 @@ class ProfileNotFound(ProfileError):
     status_code = 404
 
 
+@dataclass(frozen=True)
+class ProfileUpdate:
+    """Payload for profile mutation submitted from the edit form."""
+
+    full_name: str
+    bio: Optional[str] = None
+    preferred_aroma: Optional[str] = None
+    avatar_url: Optional[str] = None
+    location: Optional[str] = None
+
+    def to_payload(self) -> Dict[str, Any]:
+        data = {
+            "full_name": self.full_name,
+            "bio": self.bio,
+            "preferred_aroma": self.preferred_aroma,
+            "avatar_url": self.avatar_url,
+            "location": self.location,
+        }
+        return data
+
+
 class ProfileGateway(Protocol):
     """Abstraction for profile persistence backed by Supabase."""
 
@@ -58,6 +79,9 @@ class ProfileGateway(Protocol):
         ...
 
     async def delete_follow(self, *, follower_id: str, following_id: str) -> None:
+        ...
+
+    async def update_profile(self, profile_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         ...
 
 
@@ -318,6 +342,18 @@ class SupabaseProfileGateway(ProfileGateway):
         if response.status_code not in (200, 204):  # pragma: no cover - httpx raises elsewhere
             response.raise_for_status()
 
+    async def update_profile(self, profile_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        headers = {"Prefer": "return=representation", **self._headers}
+        params = {"id": f"eq.{profile_id}"}
+        response = await self._client.patch(
+            "/user_profiles", params=params, json=payload, headers=headers
+        )
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, list):
+            return data[0] if data else {}
+        return data
+
 
 class InMemoryProfileGateway(ProfileGateway):
     """In-memory implementation used for local development and tests."""
@@ -385,6 +421,17 @@ class InMemoryProfileGateway(ProfileGateway):
     async def delete_follow(self, *, follower_id: str, following_id: str) -> None:
         self._followers.setdefault(following_id, set()).discard(follower_id)
         self._following.setdefault(follower_id, set()).discard(following_id)
+
+    async def update_profile(self, profile_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        profile = self._profiles.get(profile_id)
+        if not profile:
+            raise ProfileNotFound("Profil tidak ditemukan.")
+
+        username = profile.get("username")
+        profile.update(payload)
+        if username:
+            self._profiles_by_username[username] = profile
+        return dict(profile)
 
     async def reset_relationships(self) -> None:
         for profile_id, snapshot in self._initial_relationships.items():
@@ -639,6 +686,44 @@ class ProfileService:
             await self._gateway.delete_follow(follower_id=follower["id"], following_id=target["id"])
 
         return await self.get_profile(target["id"], viewer_id=follower["id"])
+
+    async def update_profile(
+        self, profile_identifier: str, *, viewer_id: str, payload: ProfileUpdate
+    ) -> tuple[ProfileView, bool]:
+        profile_data = await self._resolve_profile_data(profile_identifier)
+        viewer_data = await self._resolve_profile_data(viewer_id)
+
+        if profile_data["id"] != viewer_data["id"]:
+            raise ProfileError("Tidak memiliki akses untuk memperbarui profil ini.")
+
+        update_payload = payload.to_payload()
+        if not update_payload:
+            profile_view = await self.get_profile(
+                profile_data["id"], viewer_id=viewer_data["id"]
+            )
+            return profile_view, False
+
+        def _normalize(value: Any) -> Any:
+            if value is None:
+                return None
+            if isinstance(value, str):
+                trimmed = value.strip()
+                return trimmed or None
+            return value
+
+        changes = {
+            key: value
+            for key, value in update_payload.items()
+            if _normalize(profile_data.get(key)) != _normalize(value)
+        }
+
+        if changes:
+            await self._gateway.update_profile(profile_data["id"], changes)
+
+        profile_view = await self.get_profile(
+            profile_data["id"], viewer_id=viewer_data["id"]
+        )
+        return profile_view, bool(changes)
 
     async def list_followers(self, profile_identifier: str) -> List[ProfileRecord]:
         profile_data = await self._resolve_profile_data(profile_identifier)

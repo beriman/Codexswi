@@ -1,5 +1,6 @@
 import asyncio
-from urllib.parse import urlsplit
+from typing import Any, Dict
+from urllib.parse import urlencode, urlsplit
 
 import pytest
 
@@ -9,7 +10,12 @@ from app.services.profile import ProfileService
 from tests.conftest import FakeSupabaseProfileGateway
 
 
-async def _request(method: str, raw_path: str, headers: dict[str, str] | None = None) -> tuple[int, str]:
+async def _request(
+    method: str,
+    raw_path: str,
+    headers: dict[str, str] | None = None,
+    body: bytes | None = None,
+) -> tuple[int, str]:
     parsed = urlsplit(raw_path)
     scope = {
         "type": "http",
@@ -31,8 +37,15 @@ async def _request(method: str, raw_path: str, headers: dict[str, str] | None = 
 
     messages: list[dict] = []
 
+    body_bytes = body or b""
+    body_sent = False
+
     async def receive() -> dict:
-        return {"type": "http.request", "body": b"", "more_body": False}
+        nonlocal body_sent
+        if body_sent:
+            return {"type": "http.request", "body": b"", "more_body": False}
+        body_sent = True
+        return {"type": "http.request", "body": body_bytes, "more_body": False}
 
     async def send(message: dict) -> None:
         messages.append(message)
@@ -50,8 +63,18 @@ async def _request(method: str, raw_path: str, headers: dict[str, str] | None = 
     return status, body.decode()
 
 
-def request(method: str, raw_path: str, headers: dict[str, str] | None = None) -> tuple[int, str]:
-    return asyncio.run(_request(method, raw_path, headers))
+def request(
+    method: str,
+    raw_path: str,
+    headers: dict[str, str] | None = None,
+    data: Dict[str, Any] | None = None,
+) -> tuple[int, str]:
+    encoded_body: bytes | None = None
+    prepared_headers = dict(headers or {})
+    if data is not None:
+        encoded_body = urlencode(data, doseq=True).encode()
+        prepared_headers.setdefault("content-type", "application/x-www-form-urlencoded")
+    return asyncio.run(_request(method, raw_path, prepared_headers, encoded_body))
 
 
 @pytest.fixture
@@ -120,3 +143,72 @@ def test_followers_modal_lists_profiles(profile_service: ProfileService) -> None
 
     assert status == 200
     assert "Bintang Waskita" in body
+
+
+def test_profile_edit_page_requires_owner(profile_service: ProfileService) -> None:
+    status, body = request(
+        "GET",
+        "/profile/amelia-damayanti/edit?viewer=user_bintang",
+    )
+
+    assert status == 403
+    assert "pemilik" in body
+
+
+def test_profile_edit_page_renders_form(profile_service: ProfileService) -> None:
+    status, body = request("GET", "/profile/amelia-damayanti/edit?viewer=user_amelia")
+
+    assert status == 200
+    assert "Perbarui Profil" in body
+    assert "name=\"full_name\"" in body
+
+
+def test_profile_update_submission_updates_gateway(
+    profile_service: ProfileService, fake_profile_gateway: FakeSupabaseProfileGateway
+) -> None:
+    status, body = request(
+        "PATCH",
+        "/profile/amelia-damayanti?viewer=user_amelia",
+        headers={"hx-request": "true"},
+        data={
+            "full_name": "Amelia Damayanti",
+            "bio": "Perfumer independen & mentor komunitas.",
+            "location": "Bandung, Indonesia",
+            "preferred_aroma": "Rempah hangat",
+            "avatar_url": "https://example.com/avatar.jpg",
+        },
+    )
+
+    assert status == 200
+    assert "Profil berhasil diperbarui" in body
+    assert any(
+        update.get("user_amelia") for update in fake_profile_gateway.profile_updates
+    ), "Update payload should be recorded"
+
+    view = asyncio.run(profile_service.get_profile("amelia-damayanti", viewer_id="user_amelia"))
+    assert view.profile.bio == "Perfumer independen & mentor komunitas."
+
+
+def test_profile_update_submission_without_changes_skips_write(
+    profile_service: ProfileService, fake_profile_gateway: FakeSupabaseProfileGateway
+) -> None:
+    initial_view = asyncio.run(
+        profile_service.get_profile("amelia-damayanti", viewer_id="user_amelia")
+    )
+
+    status, body = request(
+        "PATCH",
+        "/profile/amelia-damayanti?viewer=user_amelia",
+        headers={"hx-request": "true"},
+        data={
+            "full_name": initial_view.profile.full_name,
+            "bio": initial_view.profile.bio,
+            "location": initial_view.profile.location or "",
+            "preferred_aroma": initial_view.profile.preferred_aroma or "",
+            "avatar_url": initial_view.profile.avatar_url or "",
+        },
+    )
+
+    assert status == 200
+    assert "Tidak ada perubahan" in body
+    assert fake_profile_gateway.profile_updates == []
