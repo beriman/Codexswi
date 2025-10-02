@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/profile.css') }}?{{ static_asset_query }}" />
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script>
+    (function () {
+      function updateCounter(field) {
+        const selector = field.dataset.counterTarget;
+        if (!selector) {
+          return;
+        }
+        const target = document.querySelector(selector);
+        if (!target) {
+          return;
+        }
+        const maxLength = field.getAttribute("maxlength");
+        const current = field.value.length;
+        const label = maxLength ? `${current}/${maxLength} karakter` : `${current} karakter`;
+        target.textContent = label;
+      }
+
+      function primeCounters(root) {
+        if (!root || typeof root.querySelectorAll !== "function") {
+          return;
+        }
+        root.querySelectorAll("[data-counter-target]").forEach(function (field) {
+          updateCounter(field);
+        });
+      }
+
+      document.addEventListener("input", function (event) {
+        const field = event.target.closest("[data-counter-target]");
+        if (!field) {
+          return;
+        }
+        updateCounter(field);
+      });
+
+      primeCounters(document);
+
+      document.addEventListener("htmx:afterSwap", function (event) {
+        primeCounters(event.target);
+      });
+    })();
+  </script>
+{% endblock %}
+
+{% block content %}
+  <section class="profile-edit-page">
+    <div class="profile-edit-page__shell">
+      <a
+        class="profile-edit-page__back"
+        href="{{ request.url_for('profile_detail', username=profile.username) }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+      >
+        ← Kembali ke profil
+      </a>
+      <div id="profile-edit-panel">
+        {% include 'components/profile/edit_form.html' %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

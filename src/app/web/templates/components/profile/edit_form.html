@@ -1,0 +1,91 @@
+<section class="profile-edit glass-panel" aria-labelledby="profile-edit-title">
+  <header class="profile-edit__header">
+    <div class="profile-edit__avatar">
+      <img src="{{ profile.avatar_url or '' }}" alt="Avatar {{ profile.full_name }}" />
+    </div>
+    <div class="profile-edit__intro">
+      <h1 id="profile-edit-title">Perbarui Profil</h1>
+      <p>Sesuaikan informasi yang tampil di halaman profil publikmu.</p>
+    </div>
+  </header>
+  {% if feedback %}
+    <div
+      class="profile-edit__feedback profile-edit__feedback--{{ feedback.status }}"
+      role="status"
+      aria-live="polite"
+    >
+      {{ feedback.message }}
+    </div>
+  {% endif %}
+  <form
+    id="profile-edit-form"
+    class="profile-edit__form"
+    action="{{ request.url_for('profile_update', username=profile.username) }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+    method="post"
+    hx-patch="{{ request.url_for('profile_update', username=profile.username) }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+    hx-target="#profile-edit-panel"
+    hx-swap="outerHTML"
+  >
+    <div class="profile-edit__field">
+      <label for="profile-full-name">Nama lengkap <span aria-hidden="true">*</span></label>
+      <input
+        id="profile-full-name"
+        name="full_name"
+        type="text"
+        required
+        value="{{ profile.full_name }}"
+        autocomplete="name"
+      />
+    </div>
+    <div class="profile-edit__field">
+      <label for="profile-bio">Bio singkat</label>
+      <textarea
+        id="profile-bio"
+        name="bio"
+        rows="4"
+        maxlength="280"
+        data-counter-target="#profile-bio-counter"
+      >{{ profile.bio }}</textarea>
+      <small id="profile-bio-counter" class="profile-edit__counter" aria-live="polite"></small>
+    </div>
+    <div class="profile-edit__grid">
+      <div class="profile-edit__field">
+        <label for="profile-location">Lokasi</label>
+        <input
+          id="profile-location"
+          name="location"
+          type="text"
+          value="{{ profile.location or '' }}"
+          autocomplete="address-level2"
+        />
+      </div>
+      <div class="profile-edit__field">
+        <label for="profile-aroma">Preferensi aroma</label>
+        <input
+          id="profile-aroma"
+          name="preferred_aroma"
+          type="text"
+          value="{{ profile.preferred_aroma or '' }}"
+        />
+      </div>
+    </div>
+    <div class="profile-edit__field">
+      <label for="profile-avatar">URL avatar</label>
+      <input
+        id="profile-avatar"
+        name="avatar_url"
+        type="url"
+        inputmode="url"
+        value="{{ profile.avatar_url or '' }}"
+        placeholder="https://"
+      />
+    </div>
+    <div class="profile-edit__actions">
+      <button type="submit" class="profile-edit__submit">Simpan perubahan</button>
+      <a
+        class="profile-edit__cancel"
+        href="{{ request.url_for('profile_detail', username=profile.username) }}{% if viewer_query %}?{{ viewer_query }}{% endif %}"
+      >Batal</a>
+    </div>
+  </form>
+</section>
