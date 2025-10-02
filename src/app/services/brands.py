@@ -5,7 +5,7 @@ from __future__ import annotations
 import secrets
 import unicodedata
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 
 class BrandError(Exception):
@@ -163,6 +163,82 @@ class BrandService:
     # ------------------------------------------------------------------
     # Mutating operations
     # ------------------------------------------------------------------
+    def _normalise_brand_attributes(
+        self,
+        *,
+        name: str,
+        slug: Optional[str],
+        tagline: str,
+        summary: str,
+        origin_city: str,
+        established_year: int | str,
+        hero_image_url: str,
+        logo_url: Optional[str] = None,
+        aroma_focus: Optional[Iterable[str]] = None,
+        story_points: Optional[Iterable[str]] = None,
+        is_verified: bool = False,
+    ) -> Dict[str, Any]:
+        name_value = name.strip()
+        if not name_value:
+            raise BrandError("Nama brand wajib diisi.")
+
+        slug_value = _slugify(slug.strip() if slug else name_value)
+        if not slug_value:
+            raise BrandError("Slug brand tidak valid.")
+
+        tagline_value = tagline.strip()
+        if not tagline_value:
+            raise BrandError("Tagline brand wajib diisi.")
+
+        summary_value = summary.strip()
+        if not summary_value:
+            raise BrandError("Ringkasan brand wajib diisi.")
+
+        origin_value = origin_city.strip()
+        if not origin_value:
+            raise BrandError("Kota asal brand wajib diisi.")
+
+        try:
+            year_value = int(established_year)
+        except (TypeError, ValueError) as exc:
+            raise BrandError("Tahun berdiri brand tidak valid.") from exc
+
+        if year_value <= 0:
+            raise BrandError("Tahun berdiri brand tidak valid.")
+
+        hero_value = hero_image_url.strip()
+        if not hero_value:
+            raise BrandError("URL hero image brand wajib diisi.")
+
+        def _clean_collection(items: Optional[Iterable[str]]) -> List[str]:
+            if not items:
+                return []
+            cleaned = []
+            for item in items:
+                text = (item or "").strip()
+                if text:
+                    cleaned.append(text)
+            return cleaned
+
+        aroma_value = _clean_collection(aroma_focus)
+        story_value = _clean_collection(story_points)
+
+        logo_value = (logo_url or "").strip() or None
+
+        return {
+            "name": name_value,
+            "slug": slug_value,
+            "tagline": tagline_value,
+            "summary": summary_value,
+            "origin_city": origin_value,
+            "established_year": year_value,
+            "hero_image_url": hero_value,
+            "logo_url": logo_value,
+            "aroma_focus": aroma_value,
+            "story_points": story_value,
+            "is_verified": bool(is_verified),
+        }
+
     def create_brand(
         self,
         *,
@@ -171,6 +247,7 @@ class BrandService:
         owner_username: str,
         owner_avatar: Optional[str],
         name: str,
+        slug: Optional[str] = None,
         tagline: str,
         summary: str,
         origin_city: str,
@@ -181,24 +258,38 @@ class BrandService:
         story_points: Optional[List[str]] = None,
         is_verified: bool = False,
     ) -> Brand:
-        slug = _slugify(name)
-        if slug in self._brands_by_slug:
+        attributes = self._normalise_brand_attributes(
+            name=name,
+            slug=slug,
+            tagline=tagline,
+            summary=summary,
+            origin_city=origin_city,
+            established_year=established_year,
+            hero_image_url=hero_image_url,
+            logo_url=logo_url,
+            aroma_focus=aroma_focus,
+            story_points=story_points,
+            is_verified=is_verified,
+        )
+
+        slug_value = attributes["slug"]
+        if slug_value in self._brands_by_slug:
             raise BrandAlreadyExists("Nama brand sudah digunakan pada etalase lain.")
 
         brand_id = secrets.token_urlsafe(8)
         brand = Brand(
             id=brand_id,
-            name=name.strip(),
-            slug=slug,
-            tagline=tagline.strip(),
-            summary=summary.strip(),
-            origin_city=origin_city.strip(),
-            established_year=established_year,
-            hero_image_url=hero_image_url,
-            logo_url=logo_url,
-            aroma_focus=aroma_focus or [],
-            story_points=story_points or [],
-            is_verified=is_verified,
+            name=attributes["name"],
+            slug=attributes["slug"],
+            tagline=attributes["tagline"],
+            summary=attributes["summary"],
+            origin_city=attributes["origin_city"],
+            established_year=attributes["established_year"],
+            hero_image_url=attributes["hero_image_url"],
+            logo_url=attributes["logo_url"],
+            aroma_focus=attributes["aroma_focus"],
+            story_points=attributes["story_points"],
+            is_verified=attributes["is_verified"],
         )
         owner_member = BrandMember(
             profile_id=owner_profile_id,
@@ -212,6 +303,121 @@ class BrandService:
         brand.members.append(owner_member)
         self._register_brand(brand)
         return brand
+
+    def update_brand(
+        self,
+        brand_slug: str,
+        *,
+        name: str,
+        slug: Optional[str],
+        tagline: str,
+        summary: str,
+        origin_city: str,
+        established_year: int | str,
+        hero_image_url: str,
+        logo_url: Optional[str] = None,
+        aroma_focus: Optional[Iterable[str]] = None,
+        story_points: Optional[Iterable[str]] = None,
+        is_verified: bool = False,
+    ) -> Brand:
+        brand = self.get_brand(brand_slug)
+        attributes = self._normalise_brand_attributes(
+            name=name,
+            slug=slug if slug is not None else brand.slug,
+            tagline=tagline,
+            summary=summary,
+            origin_city=origin_city,
+            established_year=established_year,
+            hero_image_url=hero_image_url,
+            logo_url=logo_url,
+            aroma_focus=aroma_focus,
+            story_points=story_points,
+            is_verified=is_verified,
+        )
+
+        new_slug = attributes["slug"]
+        if new_slug != brand.slug and new_slug in self._brands_by_slug:
+            raise BrandAlreadyExists("Slug brand sudah digunakan oleh etalase lain.")
+
+        if new_slug != brand.slug:
+            self._brands_by_slug.pop(brand.slug, None)
+            brand.slug = new_slug
+            self._brands_by_slug[brand.slug] = brand
+
+        brand.name = attributes["name"]
+        brand.tagline = attributes["tagline"]
+        brand.summary = attributes["summary"]
+        brand.origin_city = attributes["origin_city"]
+        brand.established_year = attributes["established_year"]
+        brand.hero_image_url = attributes["hero_image_url"]
+        brand.logo_url = attributes["logo_url"]
+        brand.aroma_focus = attributes["aroma_focus"]
+        brand.story_points = attributes["story_points"]
+        brand.is_verified = attributes["is_verified"]
+
+        # Ensure id index remains in sync
+        self._brands[brand.id] = brand
+        self._brands_by_slug[brand.slug] = brand
+        return brand
+
+    def update_members(
+        self,
+        brand_slug: str,
+        *,
+        members: Iterable[Dict[str, Any]],
+    ) -> List[BrandMember]:
+        brand = self.get_brand(brand_slug)
+
+        normalized: List[BrandMember] = []
+        seen_ids: set[str] = set()
+        active_owner_exists = False
+
+        for payload in members:
+            profile_id = (payload.get("profile_id") or "").strip()
+            full_name = (payload.get("full_name") or "").strip()
+            username = (payload.get("username") or "").strip()
+            role = (payload.get("role") or "co-owner").strip() or "co-owner"
+            status = (payload.get("status") or "pending").strip() or "pending"
+            avatar_url = (payload.get("avatar_url") or "").strip() or None
+            expertise = (payload.get("expertise") or "").strip() or None
+            invited_by = (payload.get("invited_by") or "").strip() or None
+
+            if not full_name:
+                raise BrandError("Nama member brand wajib diisi.")
+            if not username:
+                raise BrandError("Username member brand wajib diisi.")
+
+            if not profile_id:
+                profile_id = secrets.token_urlsafe(6)
+
+            if profile_id in seen_ids:
+                raise BrandError("Duplikasi member dengan profile ID yang sama terdeteksi.")
+            seen_ids.add(profile_id)
+
+            member = BrandMember(
+                profile_id=profile_id,
+                full_name=full_name,
+                username=username,
+                role=role,
+                status=status,
+                avatar_url=avatar_url,
+                expertise=expertise,
+                invited_by=invited_by,
+            )
+
+            if member.role == "owner" and member.status == "active":
+                active_owner_exists = True
+
+            normalized.append(member)
+
+        if not normalized:
+            raise BrandError("Minimal satu member brand wajib tersedia.")
+
+        if not active_owner_exists:
+            raise BrandError("Setidaknya satu owner aktif diperlukan untuk brand.")
+
+        brand.members = normalized
+        return normalized
 
     def update_logo(self, brand_slug: str, *, logo_url: Optional[str]) -> Brand:
         """Assign or replace the public logo for a brand."""
