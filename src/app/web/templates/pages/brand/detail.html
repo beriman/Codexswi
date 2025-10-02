@@ -70,8 +70,9 @@
         {% endif %}
       </dl>
       <div class="brand-cta">
-        <a class="button" href="/marketplace">Lihat katalog marketplace</a>
-        <a class="button button-secondary" href="/brands">Brand lainnya</a>
+        <a class="button" href="{{ request.url_for('edit_brand', slug=brand.slug) }}">Kelola brand</a>
+        <a class="button button-secondary" href="/marketplace">Lihat katalog marketplace</a>
+        <a class="button button-ghost" href="/brands">Brand lainnya</a>
       </div>
     </div>
   </header>

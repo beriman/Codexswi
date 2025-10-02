@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', path='css/brand.css') }}?{{ static_asset_query }}" />
+{% endblock %}
+
+{% block content %}
+  <section class="brand-form-page">
+    <div class="brand-form-shell glass-card">
+      <header class="brand-form-header">
+        <div class="brand-form-header__top">
+          <a class="brand-form-back" href="{{ url_for('list_brands') }}">← Kembali ke direktori brand</a>
+          <span class="brand-form-chip">Brand Partner Studio</span>
+        </div>
+        <h1>{{ 'Edit Brand' if is_edit else 'Buat Brand Baru' }}</h1>
+        <p>
+          Susun identitas brand, narasi utama, visual hero, hingga kolaborator yang aktif mengelola etalase kamu.
+          Lengkapi informasi berikut agar halaman publik brand terasa hangat dan profesional.
+        </p>
+        <ol class="brand-form-progress" role="list">
+          <li class="brand-form-progress__item brand-form-progress__item--active">Identitas</li>
+          <li class="brand-form-progress__item">Narasi</li>
+          <li class="brand-form-progress__item">Kolaborator</li>
+          <li class="brand-form-progress__item">Publikasi</li>
+        </ol>
+      </header>
+
+      {% if errors %}
+        <div class="brand-form-errors" role="alert">
+          <h2>Perlu diperbaiki sebelum lanjut</h2>
+          <ul>
+            {% for field, messages in errors.items() %}
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <form id="brand-form" class="brand-form" method="post" action="{{ form_action }}" novalidate>
+        <div class="brand-form-layout">
+          <div class="brand-form-main">
+            <fieldset class="brand-form-section">
+              <legend>Identitas Brand</legend>
+              <div class="brand-form-grid">
+                <label class="brand-form-field">
+                  <span>Nama brand</span>
+                  <input type="text" name="name" value="{{ form_state.name }}" placeholder="Misal: Langit Senja" required data-brand-name />
+                </label>
+                <label class="brand-form-field">
+                  <span>Slug (tautan)</span>
+                  <input type="text" name="slug" value="{{ form_state.slug }}" placeholder="contoh: langit-senja" required data-brand-slug aria-describedby="brand-slug-help" />
+                  <small id="brand-slug-help" class="brand-form-hint">Slug akan tampil pada URL /brands/slug. Gunakan huruf kecil dan tanda hubung.</small>
+                </label>
+                <label class="brand-form-field">
+                  <span>Tagline singkat</span>
+                  <input type="text" name="tagline" value="{{ form_state.tagline }}" maxlength="140" placeholder="Kalimat singkat yang mewakili brand" required data-counter-target="#tagline-counter" />
+                  <small id="tagline-counter" class="brand-form-hint"></small>
+                </label>
+                <label class="brand-form-field">
+                  <span>Kota asal</span>
+                  <input type="text" name="origin_city" value="{{ form_state.origin_city }}" placeholder="Misal: Bandung, Indonesia" required />
+                </label>
+                <label class="brand-form-field">
+                  <span>Tahun berdiri</span>
+                  <input type="number" name="established_year" value="{{ form_state.established_year }}" min="1900" max="2100" placeholder="YYYY" required />
+                </label>
+                <label class="brand-form-field">
+                  <span>URL hero image</span>
+                  <input type="url" name="hero_image_url" value="{{ form_state.hero_image_url }}" placeholder="https://" required />
+                  <small class="brand-form-hint">Pilih gambar horizontal terbaik untuk banner halaman brand.</small>
+                </label>
+                <label class="brand-form-field">
+                  <span>URL logo brand</span>
+                  <input type="url" name="logo_url" value="{{ form_state.logo_url }}" placeholder="https://" data-logo-field />
+                </label>
+                <label class="brand-form-field brand-form-checkbox">
+                  <input type="checkbox" name="is_verified" value="1" {% if form_state.is_verified %}checked{% endif %} />
+                  <span>Tandai brand sebagai terverifikasi</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="brand-form-section">
+              <legend>Narasi &amp; Karakter</legend>
+              <div class="brand-form-grid">
+                <label class="brand-form-field brand-form-full">
+                  <span>Ringkasan brand</span>
+                  <textarea name="summary" rows="4" placeholder="Ceritakan misi utama dan keunikan brand" required data-counter-target="#summary-counter">{{ form_state.summary }}</textarea>
+                  <small id="summary-counter" class="brand-form-hint"></small>
+                </label>
+                <label class="brand-form-field brand-form-full">
+                  <span>Fokus aroma (pisahkan dengan koma atau baris baru)</span>
+                  <textarea name="aroma_focus" rows="3" placeholder="Contoh: Rempah hangat, Floral tropis">{{ form_state.aroma_focus }}</textarea>
+                </label>
+                <label class="brand-form-field brand-form-full">
+                  <span>Story points (satu poin per baris)</span>
+                  <textarea name="story_points" rows="4" placeholder="Bagikan highlight perjalanan brand">{{ form_state.story_points }}</textarea>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="brand-form-section" id="brand-members">
+              <legend>Tim &amp; Kolaborator</legend>
+              <p class="brand-form-intro">Tambahkan owner aktif dan co-owner brand. Baris pertama dianjurkan untuk owner utama.</p>
+              <div class="brand-member-list" data-member-list>
+                {% for member in form_state.members %}
+                  {% set index = loop.index0 %}
+                  <fieldset class="brand-member-card" data-member-row data-member-index="{{ index }}">
+                    <legend>Anggota #{{ loop.index }}</legend>
+                    <button type="button" class="brand-member-remove button button-ghost button-small" data-remove-member aria-label="Hapus anggota #{{ loop.index }}">Hapus</button>
+                    <div class="brand-member-grid">
+                      <label>
+                        <span>Nama lengkap</span>
+                        <input type="text" name="members-{{ index }}-full_name" data-field-name="full_name" value="{{ member.full_name }}" placeholder="Misal: Sinta Prameswari" />
+                      </label>
+                      <label>
+                        <span>Username</span>
+                        <input type="text" name="members-{{ index }}-username" data-field-name="username" value="{{ member.username }}" placeholder="contoh: sinta-prameswari" />
+                      </label>
+                      <label>
+                        <span>Role</span>
+                        <select name="members-{{ index }}-role" data-field-name="role">
+                          <option value="owner" {% if member.role == 'owner' %}selected{% endif %}>Owner</option>
+                          <option value="co-owner" {% if member.role == 'co-owner' %}selected{% endif %}>Co-owner</option>
+                          <option value="team" {% if member.role == 'team' %}selected{% endif %}>Tim</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Status</span>
+                        <select name="members-{{ index }}-status" data-field-name="status">
+                          <option value="active" {% if member.status == 'active' %}selected{% endif %}>Aktif</option>
+                          <option value="pending" {% if member.status == 'pending' %}selected{% endif %}>Pending</option>
+                          <option value="inactive" {% if member.status == 'inactive' %}selected{% endif %}>Non-aktif</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Profile ID</span>
+                        <input type="text" name="members-{{ index }}-profile_id" data-field-name="profile_id" value="{{ member.profile_id }}" placeholder="Otomatis jika dikosongkan" />
+                      </label>
+                      <label>
+                        <span>Avatar URL</span>
+                        <input type="url" name="members-{{ index }}-avatar_url" data-field-name="avatar_url" value="{{ member.avatar_url }}" placeholder="https://" />
+                      </label>
+                      <label>
+                        <span>Keahlian / catatan</span>
+                        <input type="text" name="members-{{ index }}-expertise" data-field-name="expertise" value="{{ member.expertise }}" placeholder="Misal: Kurator komunitas" />
+                      </label>
+                      <label>
+                        <span>Diundang oleh</span>
+                        <input type="text" name="members-{{ index }}-invited_by" data-field-name="invited_by" value="{{ member.invited_by }}" placeholder="Nama pengundang" />
+                      </label>
+                    </div>
+                  </fieldset>
+                {% endfor %}
+              </div>
+              <div class="brand-member-actions">
+                <button type="button" class="button button-secondary" data-add-member>Undang kolaborator</button>
+                <p class="brand-form-hint">Kolaborator baru otomatis berstatus pending hingga disetujui.</p>
+              </div>
+            </fieldset>
+          </div>
+
+          <aside class="brand-form-sidebar">
+            <section class="brand-form-card brand-form-card--actions">
+              <h3>Quick actions</h3>
+              <p>Gunakan tombol berikut untuk mengisi bagian penting tanpa menggulir terlalu jauh.</p>
+              <div class="brand-form-sidebar-actions">
+                <button type="button" class="button button-secondary" data-focus-logo>Unggah logo</button>
+                <button type="button" class="button button-secondary" data-jump-members>Kelola co-owner</button>
+                {% if brand %}
+                  <a class="button button-ghost" href="{{ url_for('read_brand', slug=brand.slug) }}">Lihat halaman brand</a>
+                {% endif %}
+              </div>
+            </section>
+            <section class="brand-form-card brand-form-card--tips">
+              <h3>Tips pengisian</h3>
+              <ul>
+                <li>Gunakan tagline maksimal 140 karakter agar tetap mudah diingat.</li>
+                <li>Story points membantu calon kolaborator mengenal perjalanan brand.</li>
+                <li>Pastikan ada minimal satu owner aktif untuk menjaga kredibilitas.</li>
+              </ul>
+            </section>
+          </aside>
+        </div>
+
+        <footer class="brand-form-actions">
+          <button type="submit" class="button">Simpan perubahan</button>
+          <a class="button button-ghost" href="{{ url_for('list_brands') }}">Batal</a>
+        </footer>
+      </form>
+    </div>
+  </section>
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script>
+    (function () {
+      const form = document.getElementById("brand-form");
+      if (!form) {
+        return;
+      }
+
+      function normaliseSlug(value) {
+        return value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[^\w\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      const nameField = form.querySelector("[data-brand-name]");
+      const slugField = form.querySelector("[data-brand-slug]");
+      const slugHint = document.getElementById("brand-slug-help");
+      const slugHintDefault = slugHint ? slugHint.textContent : "";
+      let slugTouched = slugField && slugField.value.trim().length > 0;
+
+      if (slugField) {
+        slugField.addEventListener("input", function () {
+          slugTouched = slugField.value.trim().length > 0;
+          slugField.classList.remove("input-error");
+          if (slugHint) {
+            slugHint.textContent = slugHintDefault;
+          }
+        });
+      }
+
+      if (nameField && slugField) {
+        nameField.addEventListener("input", function () {
+          if (slugTouched) {
+            return;
+          }
+          slugField.value = normaliseSlug(nameField.value);
+        });
+      }
+
+      form.addEventListener("submit", function (event) {
+        if (!slugField) {
+          return;
+        }
+        const slugValue = slugField.value.trim();
+        const isValid = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugValue);
+        if (!isValid) {
+          event.preventDefault();
+          slugField.classList.add("input-error");
+          slugField.focus();
+          if (slugHint) {
+            slugHint.textContent = "Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung.";
+          }
+        }
+      });
+
+      function updateCounter(field) {
+        const selector = field.dataset.counterTarget;
+        if (!selector) {
+          return;
+        }
+        const target = document.querySelector(selector);
+        if (!target) {
+          return;
+        }
+        const maxLength = field.getAttribute("maxlength");
+        const current = field.value.length;
+        const label = maxLength ? `${current}/${maxLength} karakter` : `${current} karakter`;
+        target.textContent = label;
+      }
+
+      form.querySelectorAll("[data-counter-target]").forEach(function (field) {
+        updateCounter(field);
+      });
+
+      form.addEventListener("input", function (event) {
+        const field = event.target.closest("[data-counter-target]");
+        if (!field) {
+          return;
+        }
+        updateCounter(field);
+      });
+
+      const memberList = form.querySelector("[data-member-list]");
+      const addMemberButton = form.querySelector("[data-add-member]");
+      const template = document.getElementById("brand-member-template");
+
+      function renumberMembers() {
+        if (!memberList) {
+          return;
+        }
+        memberList.querySelectorAll("[data-member-row]").forEach(function (row, index) {
+          row.setAttribute("data-member-index", String(index));
+          const legend = row.querySelector("legend");
+          if (legend) {
+            legend.textContent = `Anggota #${index + 1}`;
+          }
+          row.querySelectorAll("[data-field-name]").forEach(function (element) {
+            const fieldName = element.getAttribute("data-field-name");
+            if (!fieldName) {
+              return;
+            }
+            element.setAttribute("name", `members-${index}-${fieldName}`);
+          });
+        });
+      }
+
+      function toggleMemberRemovers() {
+        if (!memberList) {
+          return;
+        }
+        const rows = memberList.querySelectorAll("[data-member-row]");
+        rows.forEach(function (row, index) {
+          const removeButton = row.querySelector("[data-remove-member]");
+          if (!removeButton) {
+            return;
+          }
+          const shouldDisable = rows.length === 1 || index === 0;
+          removeButton.disabled = shouldDisable;
+          removeButton.classList.toggle("brand-member-remove--hidden", shouldDisable);
+        });
+      }
+
+      function initialiseMembers() {
+        renumberMembers();
+        toggleMemberRemovers();
+      }
+
+      if (memberList) {
+        initialiseMembers();
+      }
+
+      if (addMemberButton && memberList && template) {
+        addMemberButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          const fragment = template.content.cloneNode(true);
+          memberList.appendChild(fragment);
+          renumberMembers();
+          toggleMemberRemovers();
+          const newestRow = memberList.querySelector("[data-member-row]:last-of-type");
+          if (newestRow) {
+            newestRow.scrollIntoView({ behavior: "smooth", block: "center" });
+            const firstInput = newestRow.querySelector("input, select, textarea");
+            if (firstInput) {
+              firstInput.focus();
+            }
+          }
+        });
+      }
+
+      form.addEventListener("click", function (event) {
+        const target = event.target.closest("[data-remove-member]");
+        if (!target || !memberList) {
+          return;
+        }
+        event.preventDefault();
+        const row = target.closest("[data-member-row]");
+        if (!row) {
+          return;
+        }
+        const rows = memberList.querySelectorAll("[data-member-row]");
+        if (rows.length === 1) {
+          return;
+        }
+        row.remove();
+        renumberMembers();
+        toggleMemberRemovers();
+      });
+
+      const focusLogoButton = form.querySelector("[data-focus-logo]");
+      const logoField = form.querySelector("[data-logo-field]");
+      if (focusLogoButton && logoField) {
+        focusLogoButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          logoField.focus({ preventScroll: false });
+          logoField.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+
+      const jumpMembersButton = form.querySelector("[data-jump-members]");
+      if (jumpMembersButton && memberList) {
+        jumpMembersButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          memberList.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    })();
+  </script>
+
+  <template id="brand-member-template">
+    <fieldset class="brand-member-card" data-member-row>
+      <legend>Anggota baru</legend>
+      <button type="button" class="brand-member-remove button button-ghost button-small" data-remove-member aria-label="Hapus anggota">Hapus</button>
+      <div class="brand-member-grid">
+        <label>
+          <span>Nama lengkap</span>
+          <input type="text" data-field-name="full_name" placeholder="Misal: Bima Santosa" />
+        </label>
+        <label>
+          <span>Username</span>
+          <input type="text" data-field-name="username" placeholder="contoh: bima-santosa" />
+        </label>
+        <label>
+          <span>Role</span>
+          <select data-field-name="role">
+            <option value="owner">Owner</option>
+            <option value="co-owner" selected>Co-owner</option>
+            <option value="team">Tim</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select data-field-name="status">
+            <option value="active">Aktif</option>
+            <option value="pending" selected>Pending</option>
+            <option value="inactive">Non-aktif</option>
+          </select>
+        </label>
+        <label>
+          <span>Profile ID</span>
+          <input type="text" data-field-name="profile_id" placeholder="Otomatis jika kosong" />
+        </label>
+        <label>
+          <span>Avatar URL</span>
+          <input type="url" data-field-name="avatar_url" placeholder="https://" />
+        </label>
+        <label>
+          <span>Keahlian / catatan</span>
+          <input type="text" data-field-name="expertise" placeholder="Misal: Strategi brand" />
+        </label>
+        <label>
+          <span>Diundang oleh</span>
+          <input type="text" data-field-name="invited_by" placeholder="Nama pengundang" />
+        </label>
+      </div>
+    </fieldset>
+  </template>
+{% endblock %}
