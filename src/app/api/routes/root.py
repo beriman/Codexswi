@@ -3,7 +3,7 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.core.config import get_settings
 from app.services.brand_dashboard import brand_dashboard_service
@@ -745,17 +745,12 @@ def _serialize_campaign_for_ui(campaign: SambatanCampaign, *, now: datetime | No
     }
 
 
-@router.get("/", response_class=HTMLResponse)
-async def read_home(request: Request) -> HTMLResponse:
-    """Render the marketplace landing page placeholder."""
+@router.get("/")
+async def read_home(request: Request) -> RedirectResponse:
+    """Redirect the home page to the marketplace catalog."""
 
-    settings = get_settings()
-    templates = request.app.state.templates
-    context = {
-        "app_name": settings.app_name,
-        "environment": settings.environment,
-    }
-    return templates.TemplateResponse(request, "index.html", context)
+    marketplace_url = request.url_for("read_marketplace")
+    return RedirectResponse(url=marketplace_url)
 
 
 MARKETPLACE_PRODUCTS = {

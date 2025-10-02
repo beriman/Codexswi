@@ -27,20 +27,24 @@ def test_homepage_returns_success():
 
         await app(scope, receive, send)
 
-        status = next(
+        start_message = next(
             (
-                message["status"]
+                message
                 for message in messages
                 if message["type"] == "http.response.start"
             ),
             None,
         )
-        body = b"".join(
-            message["body"] for message in messages if message["type"] == "http.response.body"
-        )
 
-        assert status == 200
-        assert b"Sensasiwangi" in body
+        assert start_message is not None
+        status = start_message["status"]
+        headers = {
+            key.decode("latin-1"): value.decode("latin-1")
+            for key, value in start_message.get("headers", [])
+        }
+
+        assert status in {302, 307}
+        assert headers.get("location") == "http://testserver/marketplace"
 
     asyncio.run(_run())
 
