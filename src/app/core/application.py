@@ -29,7 +29,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         InMemorySessionMiddleware,
-        max_age=60 * 60 * 24 * 14,
+        max_age=60 * 60 * 24 * 30,
         same_site="lax",
     )
 

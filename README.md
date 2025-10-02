@@ -21,7 +21,9 @@ src/app/
 ```
 
 `create_app` pada `src/app/core/application.py` menyiapkan middleware, static
-files, dan registrasi router untuk halaman landing awal.
+files, dan registrasi router untuk halaman landing awal. Middleware sesi
+in-memory menjaga cookie login terenkripsi aktif hingga 30 hari untuk
+memudahkan pengguna yang jarang logout manual.
 
 ## Menjalankan Secara Lokal
 

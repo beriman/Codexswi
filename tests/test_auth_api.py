@@ -142,6 +142,8 @@ def test_register_login_logout_flow():
         payload = json.loads(body.decode())
         assert payload["message"] == "Login berhasil"
         assert payload["status"] == AccountStatus.ACTIVE.value
+        assert "set-cookie" in headers
+        assert "max-age=2592000" in headers["set-cookie"].lower()
         jar.update(new_cookies)
         assert jar.get("session")
 

@@ -61,7 +61,7 @@ class InMemorySessionMiddleware(BaseHTTPMiddleware):
         app,
         *,
         cookie_name: str = "session",
-        max_age: int = 60 * 60 * 24 * 14,
+        max_age: int = 60 * 60 * 24 * 30,
         same_site: str = "lax",
         https_only: bool = False,
     ) -> None:
