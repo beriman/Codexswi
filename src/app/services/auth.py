@@ -86,6 +86,31 @@ class RegistrationResult:
     account: AuthUser
     registration: AuthRegistration
 
+    # Convenience accessors -------------------------------------------------
+    @property
+    def id(self) -> str:
+        """Proxy to the underlying account identifier."""
+
+        return self.account.id
+
+    @property
+    def email(self) -> str:
+        """Expose the registered email like an ``AuthUser`` instance."""
+
+        return self.account.email
+
+    @property
+    def full_name(self) -> str:
+        return self.account.full_name
+
+    @property
+    def status(self) -> AccountStatus:
+        return self.account.status
+
+    @property
+    def password_hash(self) -> str:
+        return self.account.password_hash
+
 
 def _hash_password(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -261,7 +286,7 @@ class AuthService:
         except AccountNotFound:
             existing_account = None
 
-        if existing_account and existing_account.status is AccountStatus.ACTIVE:
+        if existing_account:
             raise UserAlreadyExists("Email sudah terdaftar. Silakan login.")
 
         verification_token = secrets.token_urlsafe(24)
@@ -307,7 +332,7 @@ class AuthService:
         except AccountNotFound as exc:
             raise InvalidCredentials("Email atau password salah.") from exc
 
-        if user.status is not AccountStatus.ACTIVE:
+        if user.status is AccountStatus.DISABLED:
             raise InvalidCredentials("Akun belum aktif. Selesaikan verifikasi email terlebih dahulu.")
 
         if not secrets.compare_digest(user.password_hash, _hash_password(password)):
