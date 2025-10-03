@@ -26,9 +26,9 @@
       </div>
     </dl>
     <div class="hero-actions">
-      <button type="button" class="btn gradient-button">Tambah Moderator</button>
-      <button type="button" class="btn btn-outline">Lihat SOP</button>
-      <button type="button" class="btn btn-ghost">Bagikan Laporan</button>
+      <a href="{{ url_for('read_onboarding') }}" class="btn gradient-button" data-action="add-moderator">Tambah Moderator</a>
+      <a href="#mod-policies" class="btn btn-outline" data-action="view-sop">Lihat SOP</a>
+      <button type="button" class="btn btn-ghost" data-action="share-report" data-share-url="{{ request.url }}">Bagikan Laporan</button>
     </div>
     <p class="acknowledgement">🔔 {{ persona.acknowledgement }}</p>
   </div>
@@ -45,14 +45,69 @@
   </div>
 </section>
 
-<section class="mod-overview glass-surface">
+<nav class="mod-section-tabs glass-surface" aria-label="Navigasi section dashboard" data-tab-group>
+  <div class="tab-bar">
+    <div class="tab-scroller">
+      <ul class="tab-list" role="tablist">
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link is-active" aria-selected="true" data-action="jump-section" data-target="#mod-overview">
+            <span class="tab-label">Overview</span>
+            <span class="tab-subtitle">Ringkasan</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-team">
+            <span class="tab-label">Tim</span>
+            <span class="tab-subtitle">Manajemen</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-queues">
+            <span class="tab-label">Antrian</span>
+            <span class="tab-subtitle">Moderasi</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-curation">
+            <span class="tab-label">Kurasi</span>
+            <span class="tab-subtitle">Konten</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-analytics">
+            <span class="tab-label">Analitik</span>
+            <span class="tab-subtitle">Insight</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-policies">
+            <span class="tab-label">Kebijakan</span>
+            <span class="tab-subtitle">SOP</span>
+          </button>
+        </li>
+        <li class="tab-list__item" role="presentation">
+          <button type="button" role="tab" class="tab-link" aria-selected="false" data-action="jump-section" data-target="#mod-help">
+            <span class="tab-label">Bantuan</span>
+            <span class="tab-subtitle">Support</span>
+          </button>
+        </li>
+      </ul>
+      <span class="tab-indicator" aria-hidden="true"></span>
+    </div>
+    <div class="tab-actions">
+      <button type="button" class="btn btn-ghost" data-action="scroll-top">Kembali ke Atas</button>
+    </div>
+  </div>
+</nav>
+
+<section id="mod-overview" class="mod-overview glass-surface">
   <header class="section-heading">
     <div>
       <h2>Overview &amp; Alerts</h2>
       <p>Monitor kesehatan operasional, SLA, dan eskalasi lintas tim dalam satu layar.</p>
     </div>
     <div class="section-tools">
-      <button type="button" class="btn btn-ghost">Refresh</button>
+      <button type="button" class="btn btn-ghost" data-action="refresh-snapshot">Refresh</button>
       <button type="button" class="btn btn-outline">Download KPI</button>
     </div>
   </header>
@@ -87,7 +142,7 @@
   </div>
 </section>
 
-<section class="mod-team">
+<section id="mod-team" class="mod-team">
   <article class="glass-surface team-roster">
     <header class="section-heading">
       <div>
@@ -95,7 +150,7 @@
         <p>Kelola moderator, kurator, dan Quality Lead dengan visibilitas penuh terhadap kapasitas.</p>
       </div>
       <div class="section-tools">
-        <button type="button" class="btn gradient-button">Undang Pengguna</button>
+        <button type="button" class="btn gradient-button" data-action="invite-open">Undang Pengguna</button>
         <button type="button" class="btn btn-outline">Atur Shift</button>
       </div>
     </header>
@@ -129,8 +184,8 @@
               <p><strong>{{ invite.email }}</strong> · {{ invite.role }}</p>
               <p>Dikirim {{ invite.sent_at }} · Kedaluwarsa {{ invite.expires_at }}</p>
               <div class="panel-actions">
-                <button type="button" class="btn btn-ghost">Kirim ulang</button>
-                <button type="button" class="btn btn-outline">Batalkan</button>
+                <button type="button" class="btn btn-ghost" data-action="invite-resend" data-invite-email="{{ invite.email }}">Kirim ulang</button>
+                <button type="button" class="btn btn-outline" data-action="invite-cancel" data-invite-email="{{ invite.email }}">Batalkan</button>
               </div>
             </li>
             {% endfor %}
@@ -155,15 +210,15 @@
   </article>
 </section>
 
-<section class="mod-queues glass-surface">
+<section id="mod-queues" class="mod-queues glass-surface">
   <header class="section-heading">
     <div>
       <h2>Moderasi Laporan</h2>
       <p>Prioritaskan laporan komunitas, transaksi, dan pelanggaran seller sesuai SLA.</p>
     </div>
     <div class="section-tools">
-      <button type="button" class="btn btn-ghost">Mode Fokus</button>
-      <button type="button" class="btn btn-outline">Bulk Action</button>
+      <button type="button" class="btn btn-ghost" data-action="focus-mode" data-focus-target="{{ request.url.path ~ '?view=focus' }}">Mode Fokus</button>
+      <button type="button" class="btn btn-outline" data-action="bulk-action" data-bulk-target=".queue-table">Bulk Action</button>
     </div>
   </header>
   <div class="queue-grid">
@@ -209,7 +264,7 @@
   </div>
 </section>
 
-<section class="mod-curation glass-surface">
+<section id="mod-curation" class="mod-curation glass-surface">
   <header class="section-heading">
     <div>
       <h2>Kurasi Konten &amp; Brand</h2>
@@ -267,7 +322,7 @@
   </div>
 </section>
 
-<section class="mod-analytics glass-surface">
+<section id="mod-analytics" class="mod-analytics glass-surface">
   <header class="section-heading">
     <div>
       <h2>Analitik &amp; Insight</h2>
@@ -336,7 +391,7 @@
   </div>
 </section>
 
-<section class="mod-policies glass-surface">
+<section id="mod-policies" class="mod-policies glass-surface">
   <header class="section-heading">
     <div>
       <h2>Pengaturan Kebijakan &amp; Template</h2>
@@ -384,7 +439,7 @@
   </div>
 </section>
 
-<section class="mod-help glass-surface">
+<section id="mod-help" class="mod-help glass-surface">
   <header class="section-heading">
     <div>
       <h2>Pusat Bantuan Internal</h2>
@@ -425,4 +480,9 @@
     </section>
   </div>
 </section>
+{% endblock %}
+
+{% block body_scripts %}
+{{ super() }}
+<script src="{{ url_for('static', path='js/moderation-dashboard.js') }}?{{ static_asset_query }}" defer></script>
 {% endblock %}
