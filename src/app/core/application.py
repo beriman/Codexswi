@@ -9,6 +9,8 @@ from starlette.staticfiles import StaticFiles
 from app.core.config import get_settings
 from app.core.session import InMemorySessionMiddleware
 from app.web.templates import template_engine
+from app.services.moderation_dashboard import ModerationDashboardService
+from app.services.moderation_repository import ModerationDashboardRepository
 from app.api.routes import onboarding as onboarding_routes
 from app.api.routes import profile as profile_routes
 from app.api.routes import reports as reports_routes
@@ -57,7 +59,10 @@ def create_app() -> FastAPI:
 
     app.include_router(auth_routes.router)
 
-    # Expose the template engine on the app state for reuse by routers.
+    # Expose shared services on the app state for reuse by routers.
     app.state.templates = template_engine
+    app.state.moderation_dashboard_service = ModerationDashboardService(
+        ModerationDashboardRepository()
+    )
 
     return app

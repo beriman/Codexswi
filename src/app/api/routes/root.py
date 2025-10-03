@@ -4,10 +4,11 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from typing import cast
 
 from app.core.config import get_settings
 from app.services.brand_dashboard import brand_dashboard_service
-from app.services.moderation_dashboard import moderation_dashboard_service
+from app.services.moderation_dashboard import ModerationDashboardService
 from app.services.products import product_service
 from app.services.sambatan import SambatanCampaign, sambatan_service
 
@@ -1300,7 +1301,8 @@ async def read_moderation_dashboard(request: Request) -> HTMLResponse:
 
     settings = get_settings()
     templates = request.app.state.templates
-    snapshot = moderation_dashboard_service.get_snapshot()
+    service = cast(ModerationDashboardService, request.app.state.moderation_dashboard_service)
+    snapshot = service.get_snapshot()
 
     context = {
         "app_name": settings.app_name,
