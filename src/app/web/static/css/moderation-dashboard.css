@@ -60,6 +60,120 @@
   color: var(--text-secondary);
 }
 
+.mod-section-tabs {
+  margin: 2.5rem 0 1.5rem;
+  padding: 1.25rem 2.5rem 1rem;
+  display: block;
+}
+
+.mod-section-tabs .tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.mod-section-tabs .tab-scroller {
+  position: relative;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, #000 6%, #000 94%, rgba(0, 0, 0, 0) 100%);
+}
+
+.mod-section-tabs .tab-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.mod-section-tabs .tab-scroller {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.mod-section-tabs .tab-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 0.65rem;
+  min-width: max-content;
+}
+
+.mod-section-tabs .tab-list__item {
+  flex: 0 0 auto;
+}
+
+.mod-section-tabs .tab-link {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.25);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  min-width: 130px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  scroll-snap-align: center;
+}
+
+.mod-section-tabs .tab-link .tab-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.mod-section-tabs .tab-link .tab-subtitle {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.mod-section-tabs .tab-link:is(:hover, :focus-visible) {
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--text-primary);
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 1px 0 rgba(148, 163, 184, 0.2);
+}
+
+.mod-section-tabs .tab-link.is-active {
+  color: var(--text-primary);
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+}
+
+.mod-section-tabs .tab-link.is-active .tab-subtitle {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.mod-section-tabs .tab-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(191, 219, 254, 0.65) 0%, rgba(59, 130, 246, 0.95) 100%);
+  opacity: 0;
+  transition: transform 0.28s ease, width 0.28s ease, opacity 0.18s ease;
+}
+
+.mod-section-tabs .tab-indicator.is-visible {
+  opacity: 1;
+}
+
+.mod-section-tabs .tab-actions {
+  flex: 0 0 auto;
+}
+
+.mod-section-tabs .tab-actions .btn {
+  white-space: nowrap;
+}
+
 .mod-hero__kpis {
   align-self: stretch;
 }
