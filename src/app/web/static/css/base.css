@@ -801,6 +801,16 @@ p {
   position: relative;
 }
 
+a.product-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.product-card:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.55);
+  outline-offset: 3px;
+}
+
 .product-badge {
   position: absolute;
   top: 1rem;
@@ -918,11 +928,25 @@ p {
 .marketplace-grid .product-brand {
   color: var(--text-secondary);
   text-transform: none;
-}
-
-.marketplace-grid .product-brand small {
   font-size: 0.8rem;
   letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.marketplace-grid .product-brand[role='link'] {
+  cursor: pointer;
+  transition: color var(--transition-base);
+}
+
+.marketplace-grid .product-brand[role='link']:hover {
+  color: var(--text-primary);
+}
+
+.marketplace-grid .product-brand[role='link']:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.55);
+  outline-offset: 2px;
 }
 
 .product-brand-label {

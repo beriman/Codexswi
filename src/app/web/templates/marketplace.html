@@ -79,59 +79,76 @@
     <p class="empty-state" data-empty-message hidden>Belum ada produk yang cocok dengan pencarian Anda.</p>
     <div class="product-grid marketplace-grid">
       {% for product in tab.products %}
+      {% set card_contents %}
+      {% if product.sambatan %}
+      <span class="product-badge product-badge-sambatan">
+        {{ product.sambatan.slots_taken }}/{{ product.sambatan.total_slots }}
+      </span>
+      {% endif %}
+      <div class="product-content">
+        <div class="product-media {{ product.media_class }}"></div>
+        <div class="product-info">
+          <h3 class="product-name">{{ product.name }}</h3>
+          {% set brand_markup -%}
+          <span class="product-brand-label">
+            {{ product.origin }}
+            {% if product.brand_verified %}
+            <span class="brand-verified-badge" role="img" aria-label="Brand terverifikasi">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path
+                  d="m6.5 10.5 5-5M4 8l2.5 2.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            {% endif %}
+          </span>
+          {%- endset %}
+          {% if product.brand_slug %}
+          <small
+            class="product-brand"
+            role="link"
+            tabindex="0"
+            data-brand-link
+            data-brand-url="/brands/{{ product.brand_slug }}"
+          >
+            {{ brand_markup | trim | safe }}
+          </small>
+          {% else %}
+          <small class="product-brand">{{ brand_markup | trim | safe }}</small>
+          {% endif %}
+          {% if product.price %}
+          <p class="product-price">{{ product.price }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endset %}
+      {% if product.slug %}
+      <a
+        class="product-card glass-card"
+        data-product-card
+        data-name="{{ product.name }}"
+        data-brand="{{ product.origin }}"
+        data-perfumer="{{ product.perfumer or '' }}"
+        href="/marketplace/products/{{ product.slug }}"
+      >
+        {{ card_contents | trim | safe }}
+      </a>
+      {% else %}
       <article
         class="product-card glass-card"
         data-product-card
         data-name="{{ product.name }}"
         data-brand="{{ product.origin }}"
         data-perfumer="{{ product.perfumer or '' }}"
-        {% if product.slug %}
-        data-product-url="/marketplace/products/{{ product.slug }}"
-        tabindex="0"
-        role="link"
-        {% endif %}
       >
-        {% if product.sambatan %}
-        <span class="product-badge product-badge-sambatan">
-          {{ product.sambatan.slots_taken }}/{{ product.sambatan.total_slots }}
-        </span>
-        {% endif %}
-        <div class="product-content">
-          <div class="product-media {{ product.media_class }}"></div>
-          <div class="product-info">
-            <h3 class="product-name">{{ product.name }}</h3>
-            {% set brand_markup -%}
-            <span class="product-brand-label">
-              {{ product.origin }}
-              {% if product.brand_verified %}
-              <span class="brand-verified-badge" role="img" aria-label="Brand terverifikasi">
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                  <path
-                    d="m6.5 10.5 5-5M4 8l2.5 2.5"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              {% endif %}
-            </span>
-            {%- endset %}
-            {% if product.brand_slug %}
-            <a class="product-brand" href="/brands/{{ product.brand_slug }}">
-              <small>{{ brand_markup | trim | safe }}</small>
-            </a>
-            {% else %}
-            <small class="product-brand">{{ brand_markup | trim | safe }}</small>
-            {% endif %}
-            {% if product.price %}
-            <p class="product-price">{{ product.price }}</p>
-            {% endif %}
-          </div>
-        </div>
+        {{ card_contents | trim | safe }}
       </article>
+      {% endif %}
       {% endfor %}
     </div>
   </div>
@@ -217,23 +234,16 @@
       });
     }
 
-    const clickableCards = document.querySelectorAll('[data-product-card][data-product-url]');
+    const fallbackCards = document.querySelectorAll('[data-product-card]:not([href])');
 
-    clickableCards.forEach((card) => {
+    fallbackCards.forEach((card) => {
       const destination = card.dataset.productUrl;
 
       if (!destination) {
         return;
       }
 
-      card.addEventListener('click', (event) => {
-        const targetElement = event.target instanceof Element ? event.target : null;
-        const interactiveTarget = targetElement ? targetElement.closest('a, button') : null;
-
-        if (interactiveTarget) {
-          return;
-        }
-
+      card.addEventListener('click', () => {
         window.location.href = destination;
       });
 
@@ -245,6 +255,33 @@
         if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
           event.preventDefault();
           window.location.href = destination;
+        }
+      });
+    });
+
+    const brandLinks = document.querySelectorAll('[data-brand-link]');
+
+    brandLinks.forEach((element) => {
+      const destination = element.dataset.brandUrl;
+
+      if (!destination) {
+        return;
+      }
+
+      const navigateToBrand = () => {
+        window.location.href = destination;
+      };
+
+      element.addEventListener('click', (event) => {
+        event.stopPropagation();
+        navigateToBrand();
+      });
+
+      element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+          event.preventDefault();
+          event.stopPropagation();
+          navigateToBrand();
         }
       });
     });
