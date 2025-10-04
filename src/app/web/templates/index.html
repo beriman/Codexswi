@@ -42,11 +42,51 @@
       <h2>Katalog Pilihan</h2>
       <p>Pilih kategori untuk melihat inspirasi produk dan bahan dari kurator Sensasiwangi.id.</p>
     </div>
-    <div class="tab-list">
-      <button class="tab active">Parfum</button>
-      <button class="tab">Raw Material</button>
-      <button class="tab">Tools</button>
-      <button class="tab">Lainnya</button>
+    <div class="tab-list" role="tablist" aria-label="Kategori katalog">
+      <button
+        class="tab is-active"
+        role="tab"
+        id="tab-parfum"
+        aria-selected="true"
+        aria-controls="panel-parfum"
+        data-tab="parfum"
+        tabindex="0"
+      >
+        Parfum
+      </button>
+      <button
+        class="tab"
+        role="tab"
+        id="tab-raw-material"
+        aria-selected="false"
+        aria-controls="panel-raw-material"
+        data-tab="raw-material"
+        tabindex="-1"
+      >
+        Raw Material
+      </button>
+      <button
+        class="tab"
+        role="tab"
+        id="tab-tools"
+        aria-selected="false"
+        aria-controls="panel-tools"
+        data-tab="tools"
+        tabindex="-1"
+      >
+        Tools
+      </button>
+      <button
+        class="tab"
+        role="tab"
+        id="tab-lainnya"
+        aria-selected="false"
+        aria-controls="panel-lainnya"
+        data-tab="lainnya"
+        tabindex="-1"
+      >
+        Lainnya
+      </button>
     </div>
   </header>
 
@@ -67,65 +107,199 @@
     </div>
   </div>
 
-  <div class="product-grid">
-    <article class="product-card glass-card">
-      <div class="product-media parfum-aurora"></div>
-      <div class="product-content">
-        <div class="product-meta">
-          <span class="product-category">Parfum Artisan</span>
-          <span class="badge sambatan">Sambatan</span>
-        </div>
-        <h3>Rimba Embun</h3>
-        <p class="product-description">Jasmine sambac, vetiver Bali, dan cedar Atlas.</p>
-        <div class="product-footer">
-          <span class="price">Rp 420.000</span>
-          <div class="progress-indicator">
-            <span class="progress-label">72% terpenuhi</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="--progress: 72%"></div>
+  <div class="tab-panels">
+    <div
+      class="product-grid tab-panel"
+      id="panel-parfum"
+      role="tabpanel"
+      aria-labelledby="tab-parfum"
+      data-tab-panel="parfum"
+    >
+      <article class="product-card glass-card">
+        <div class="product-media parfum-aurora"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Parfum Artisan</span>
+            <span class="badge sambatan">Sambatan</span>
+          </div>
+          <h3>Rimba Embun</h3>
+          <p class="product-description">Jasmine sambac, vetiver Bali, dan cedar Atlas.</p>
+          <div class="product-footer">
+            <span class="price">Rp 420.000</span>
+            <div class="progress-indicator">
+              <span class="progress-label">72% terpenuhi</span>
+              <div class="progress-track">
+                <div class="progress-fill" style="--progress: 72%"></div>
+              </div>
+              <span class="progress-deadline">3 hari lagi</span>
             </div>
-            <span class="progress-deadline">3 hari lagi</span>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
 
-    <article class="product-card glass-card">
-      <div class="product-media parfum-tropis"></div>
-      <div class="product-content">
-        <div class="product-meta">
-          <span class="product-category">Signature Blend</span>
-        </div>
-        <h3>Pelangi Senja</h3>
-        <p class="product-description">Ylang-ylang, patchouli Sulawesi, dan amber praline.</p>
-        <div class="product-footer">
-          <span class="price">Rp 380.000</span>
-          <button class="btn btn-ghost">Lihat detail</button>
-        </div>
-      </div>
-    </article>
-
-    <article class="product-card glass-card">
-      <div class="product-media parfum-malam"></div>
-      <div class="product-content">
-        <div class="product-meta">
-          <span class="product-category">Kolaborasi Komunitas</span>
-          <span class="badge sambatan">Sambatan</span>
-        </div>
-        <h3>Kidung Laut</h3>
-        <p class="product-description">Sea salt accord, kelopak kenanga, dan oud Kalimantan.</p>
-        <div class="product-footer">
-          <span class="price">Rp 450.000</span>
-          <div class="progress-indicator">
-            <span class="progress-label">54% terpenuhi</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="--progress: 54%"></div>
-            </div>
-            <span class="progress-deadline">6 hari lagi</span>
+      <article class="product-card glass-card">
+        <div class="product-media parfum-tropis"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Signature Blend</span>
+          </div>
+          <h3>Pelangi Senja</h3>
+          <p class="product-description">Ylang-ylang, patchouli Sulawesi, dan amber praline.</p>
+          <div class="product-footer">
+            <span class="price">Rp 380.000</span>
+            <button class="btn btn-ghost">Lihat detail</button>
           </div>
         </div>
-      </div>
-    </article>
+      </article>
+
+      <article class="product-card glass-card">
+        <div class="product-media parfum-malam"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Kolaborasi Komunitas</span>
+            <span class="badge sambatan">Sambatan</span>
+          </div>
+          <h3>Kidung Laut</h3>
+          <p class="product-description">Sea salt accord, kelopak kenanga, dan oud Kalimantan.</p>
+          <div class="product-footer">
+            <span class="price">Rp 450.000</span>
+            <div class="progress-indicator">
+              <span class="progress-label">54% terpenuhi</span>
+              <div class="progress-track">
+                <div class="progress-fill" style="--progress: 54%"></div>
+              </div>
+              <span class="progress-deadline">6 hari lagi</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div
+      class="tab-panel product-grid"
+      id="panel-raw-material"
+      role="tabpanel"
+      aria-labelledby="tab-raw-material"
+      data-tab-panel="raw-material"
+      hidden
+    >
+      <article class="product-card glass-card">
+        <div class="product-media bahan-cendana"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Bahan Baku</span>
+          </div>
+          <h3>Kayu Cendana Timor</h3>
+          <p class="product-description">Distilat umur 15 tahun dari koperasi pengrajin Timor Tengah.</p>
+          <div class="product-footer">
+            <span class="price">Rp 1.250.000 / 50ml</span>
+            <button class="btn btn-ghost">Lihat detail</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card glass-card">
+        <div class="product-media bahan-jeruk"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Ekstrak Citrus</span>
+            <span class="badge sambatan">Sambatan</span>
+          </div>
+          <h3>Essential Oil Jeruk Bali</h3>
+          <p class="product-description">Cold press Bali pomelo dengan profil sparkling dan segar.</p>
+          <div class="product-footer">
+            <span class="price">Rp 320.000 / 30ml</span>
+            <div class="progress-indicator">
+              <span class="progress-label">38% terpenuhi</span>
+              <div class="progress-track">
+                <div class="progress-fill" style="--progress: 38%"></div>
+              </div>
+              <span class="progress-deadline">11 hari lagi</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div
+      class="tab-panel product-grid"
+      id="panel-tools"
+      role="tabpanel"
+      aria-labelledby="tab-tools"
+      data-tab-panel="tools"
+      hidden
+    >
+      <article class="product-card glass-card">
+        <div class="product-media alat-scale"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Peralatan Lab</span>
+          </div>
+          <h3>Digital Scale 0.001g</h3>
+          <p class="product-description">Timbangan presisi dengan kalibrasi ulang otomatis.</p>
+          <div class="product-footer">
+            <span class="price">Rp 890.000</span>
+            <button class="btn btn-ghost">Tambah ke keranjang</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card glass-card">
+        <div class="product-media alat-strip"></div>
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Aksesoris Sampling</span>
+          </div>
+          <h3>Blotter Strip Premium</h3>
+          <p class="product-description">Kertas kapas alami untuk evaluasi wewangian artisanal.</p>
+          <div class="product-footer">
+            <span class="price">Rp 95.000 / 100pcs</span>
+            <button class="btn btn-ghost">Lihat detail</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div
+      class="tab-panel product-grid"
+      id="panel-lainnya"
+      role="tabpanel"
+      aria-labelledby="tab-lainnya"
+      data-tab-panel="lainnya"
+      hidden
+    >
+      <article class="product-card glass-card">
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Program Komunitas</span>
+          </div>
+          <h3>Mentorship Formulasi</h3>
+          <p class="product-description">
+            Sesi privat bersama perfumer senior untuk menyusun signature scent brand Anda.
+          </p>
+          <div class="product-footer">
+            <span class="price">Mulai Rp 1.800.000</span>
+            <button class="btn gradient-button">Daftar sekarang</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-card glass-card">
+        <div class="product-content">
+          <div class="product-meta">
+            <span class="product-category">Kelas Workshop</span>
+          </div>
+          <h3>Studio Aroma Eksperimental</h3>
+          <p class="product-description">
+            Workshop akhir pekan untuk mengeksplorasi bahan-bahan langka Nusantara dengan fasilitator ahli.
+          </p>
+          <div class="product-footer">
+            <span class="price">Rp 650.000</span>
+            <button class="btn btn-ghost">Lihat jadwal</button>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
@@ -220,4 +394,9 @@
     <button type="submit" class="btn gradient-button">Daftar Newsletter</button>
   </form>
 </section>
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script src="{{ url_for('static', path='js/home-tabs.js') }}?{{ static_asset_query }}" defer></script>
 {% endblock %}
