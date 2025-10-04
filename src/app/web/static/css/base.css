@@ -214,6 +214,13 @@ p {
   gap: 1rem;
 }
 
+.navbar-collapsible {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: auto;
+}
+
 .navbar-brand .logo {
   font-family: "Playfair Display", "Times New Roman", serif;
   font-size: 1.4rem;
@@ -1402,16 +1409,61 @@ p {
 }
 
 @media (max-width: 1024px) {
-  .navbar-menu {
-    display: none;
+  .navbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .navbar-toggle {
     display: flex;
+    margin-left: auto;
+  }
+
+  .navbar-collapsible {
+    display: none;
+    position: relative;
+    width: 100%;
+    margin-left: 0;
+    padding: 1.5rem 1.25rem;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: var(--radius-md);
+    box-shadow: 0 18px 40px rgba(8, 15, 29, 0.4);
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .navbar[data-open="true"] .navbar-collapsible {
+    display: flex;
+  }
+
+  .navbar-menu {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.1rem;
+  }
+
+  .navbar-menu li {
+    width: 100%;
+  }
+
+  .navbar-menu a {
+    width: 100%;
+    display: block;
+    padding: 0.35rem 0;
   }
 
   .navbar-actions {
-    margin-left: auto;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .navbar-actions .navbar-dropdown {
+    width: 100%;
   }
 
   .hero {

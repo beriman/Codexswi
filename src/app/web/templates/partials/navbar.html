@@ -1,57 +1,64 @@
-<nav class="navbar glass-surface">
+<nav class="navbar glass-surface" data-open="false">
   <a class="navbar-brand" href="{{ url_for('read_home') }}">
     <span class="logo">Sensasiwangi.id</span>
   </a>
-  <button class="navbar-toggle" aria-label="Buka navigasi">
+  <button
+    class="navbar-toggle"
+    aria-label="Buka navigasi"
+    aria-expanded="false"
+    aria-controls="navbarCollapsible"
+  >
     <span></span>
     <span></span>
     <span></span>
   </button>
-  <ul class="navbar-menu">
-    <li>
-      <a href="{{ url_for('read_marketplace') }}" class="{% if request.url.path.startswith('/marketplace') %}active{% endif %}">
-        Marketplace
-      </a>
-    </li>
-    <li>
-      <a href="{{ url_for('read_home') }}#nusantarum" class="{% if request.url.path == '/' %}active{% endif %}">
-        Nusantarum
-      </a>
-    </li>
-  </ul>
-  {% set session_user = request.session.get('user') %}
-  <div class="navbar-actions">
-    <details class="navbar-dropdown">
-      <summary class="navbar-dropdown__toggle">
-        <span>{% if session_user %}{{ session_user.full_name }}{% else %}Login{% endif %}</span>
-        <span class="navbar-dropdown__icon" aria-hidden="true">▾</span>
-      </summary>
-      <ul class="navbar-dropdown__menu">
-        {% if session_user %}
-        {% set profile_username = session_user.get('username') if session_user else None %}
-        <li>
-          {% if profile_username %}
-          <a href="{{ url_for('profile_detail', username=profile_username) }}">Profil</a>
-          {% else %}
-          <a href="{{ url_for('read_auth') }}#login">Profil</a>
+  <div class="navbar-collapsible" id="navbarCollapsible" aria-hidden="true">
+    <ul class="navbar-menu">
+      <li>
+        <a href="{{ url_for('read_marketplace') }}" class="{% if request.url.path.startswith('/marketplace') %}active{% endif %}">
+          Marketplace
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('read_home') }}#nusantarum" class="{% if request.url.path == '/' %}active{% endif %}">
+          Nusantarum
+        </a>
+      </li>
+    </ul>
+    {% set session_user = request.session.get('user') %}
+    <div class="navbar-actions">
+      <details class="navbar-dropdown">
+        <summary class="navbar-dropdown__toggle">
+          <span>{% if session_user %}{{ session_user.full_name }}{% else %}Login{% endif %}</span>
+          <span class="navbar-dropdown__icon" aria-hidden="true">▾</span>
+        </summary>
+        <ul class="navbar-dropdown__menu">
+          {% if session_user %}
+          {% set profile_username = session_user.get('username') if session_user else None %}
+          <li>
+            {% if profile_username %}
+            <a href="{{ url_for('profile_detail', username=profile_username) }}">Profil</a>
+            {% else %}
+            <a href="{{ url_for('read_auth') }}#login">Profil</a>
+            {% endif %}
+          </li>
+          <li>
+            <a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a>
+          </li>
+          {% if session_user.get('is_admin') %}
+          <li>
+            <a href="{{ url_for('read_moderation_dashboard') }}">Admin Menu</a>
+          </li>
           {% endif %}
-        </li>
-        <li>
-          <a href="{{ url_for('read_brand_owner_dashboard') }}">Dashboard Brand</a>
-        </li>
-        {% if session_user.get('is_admin') %}
-        <li>
-          <a href="{{ url_for('read_moderation_dashboard') }}">Admin Menu</a>
-        </li>
-        {% endif %}
-        <li>
-          <button type="button" data-action="logout">Keluar</button>
-        </li>
-        {% else %}
-        <li><a href="{{ url_for('read_auth') }}#login">Masuk</a></li>
-        <li><a href="{{ url_for('read_onboarding') }}">Daftar</a></li>
-        {% endif %}
-      </ul>
-    </details>
+          <li>
+            <button type="button" data-action="logout">Keluar</button>
+          </li>
+          {% else %}
+          <li><a href="{{ url_for('read_auth') }}#login">Masuk</a></li>
+          <li><a href="{{ url_for('read_onboarding') }}">Daftar</a></li>
+          {% endif %}
+        </ul>
+      </details>
+    </div>
   </div>
 </nav>
