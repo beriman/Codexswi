@@ -2187,6 +2187,12 @@ p {
   outline-offset: 2px;
 }
 
+.slot-stepper:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .slot-input {
   width: 4rem;
   text-align: center;

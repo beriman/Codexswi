@@ -57,7 +57,7 @@
             </div>
           </div>
           <div class="slot-selector" role="group" aria-label="Pilih jumlah slot sambatan">
-            <button type="button" class="slot-stepper" aria-label="Kurangi slot">−</button>
+            <button type="button" class="slot-stepper" aria-label="Kurangi slot" data-direction="-1">−</button>
             <input
               type="number"
               inputmode="numeric"
@@ -67,7 +67,7 @@
               class="slot-input"
               aria-label="Jumlah slot sambatan"
             />
-            <button type="button" class="slot-stepper" aria-label="Tambah slot">+</button>
+            <button type="button" class="slot-stepper" aria-label="Tambah slot" data-direction="1">+</button>
           </div>
           <p class="slot-hint">Ambil hingga {{ product.purchase.max_slots_per_user }} slot untuk mengamankan stokmu.</p>
           <ul class="purchase-benefits">
@@ -178,4 +178,93 @@
     </section>
   </div>
 </section>
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script>
+    (function () {
+      const slotSelector = document.querySelector('.slot-selector');
+      if (!slotSelector) {
+        return;
+      }
+
+      const input = slotSelector.querySelector('.slot-input');
+      const steppers = slotSelector.querySelectorAll('.slot-stepper');
+      const hint = slotSelector.nextElementSibling && slotSelector.nextElementSibling.classList.contains('slot-hint')
+        ? slotSelector.nextElementSibling
+        : null;
+
+      if (!input || steppers.length === 0) {
+        return;
+      }
+
+      const min = input.hasAttribute('min') ? Number.parseInt(input.getAttribute('min'), 10) : 0;
+      const max = input.hasAttribute('max') ? Number.parseInt(input.getAttribute('max'), 10) : Number.POSITIVE_INFINITY;
+
+      if (hint) {
+        hint.dataset.baseHint = hint.textContent.trim();
+        if (!hint.hasAttribute('aria-live')) {
+          hint.setAttribute('aria-live', 'polite');
+        }
+      }
+
+      const clampValue = (value) => {
+        const numericValue = Number.isNaN(value) ? min : value;
+        return Math.min(max, Math.max(min, numericValue));
+      };
+
+      const updateUI = (rawValue) => {
+        const currentValue = clampValue(rawValue);
+        if (input.value !== String(currentValue)) {
+          input.value = String(currentValue);
+        }
+
+        steppers.forEach((button) => {
+          const direction = Number.parseInt(button.dataset.direction || '0', 10);
+          if (direction < 0) {
+            button.disabled = currentValue <= min;
+          } else if (direction > 0) {
+            button.disabled = currentValue >= max;
+          }
+        });
+
+        if (hint) {
+          const baseText = hint.dataset.baseHint || '';
+          const selectionText = `Saat ini memilih ${currentValue} slot.`;
+          hint.textContent = baseText ? `${baseText} ${selectionText}` : selectionText;
+        }
+
+        return currentValue;
+      };
+
+      steppers.forEach((button) => {
+        button.addEventListener('click', () => {
+          const direction = Number.parseInt(button.dataset.direction || '0', 10);
+          if (!direction) {
+            return;
+          }
+
+          const current = Number.parseInt(input.value, 10);
+          const nextValue = clampValue((Number.isNaN(current) ? min : current) + direction);
+          const updatedValue = updateUI(nextValue);
+          if (updatedValue !== current) {
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+      });
+
+      input.addEventListener('input', () => {
+        const numericValue = Number.parseInt(input.value, 10);
+        updateUI(Number.isNaN(numericValue) ? min : numericValue);
+      });
+
+      input.addEventListener('blur', () => {
+        const numericValue = Number.parseInt(input.value, 10);
+        updateUI(Number.isNaN(numericValue) ? min : numericValue);
+      });
+
+      updateUI(Number.parseInt(input.value, 10));
+    })();
+  </script>
 {% endblock %}
