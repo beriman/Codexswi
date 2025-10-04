@@ -2334,7 +2334,10 @@ a.product-card:focus-visible {
   gap: 1.2rem;
 }
 
-.category-chips {
+ul.category-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
