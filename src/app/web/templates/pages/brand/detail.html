@@ -41,7 +41,13 @@
         <p class="brand-product-card__price">{{ product.price_label }}</p>
         <p class="brand-product-card__availability">{{ product.availability }}</p>
         <div class="brand-product-card__actions">
+          {% if product.slug %}
+          <a href="{{ request.url_for('read_marketplace_product', slug=product.slug) }}" class="button button-ghost"
+            >Lihat di katalog</a
+          >
+          {% else %}
           <a href="/marketplace" class="button button-ghost">Lihat di katalog</a>
+          {% endif %}
         </div>
       </article>
       {% else %}
