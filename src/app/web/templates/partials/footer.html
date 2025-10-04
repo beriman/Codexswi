@@ -1,4 +1,6 @@
 <footer class="footer glass-surface">
+  {% set session_user = request.session.get('user') %}
+  {% set profile_username = session_user.get('username') if session_user else None %}
   <div class="footer-top">
     <div class="footer-brand">
       <span class="logo">{{ app_name }}</span>
@@ -28,7 +30,25 @@
         <ul>
           <li><a href="{{ url_for('read_home') }}#sambatan">Sambatan</a></li>
           <li><a href="{{ url_for('read_home') }}#nusantarum">Nusantarum</a></li>
-          <li><a href="{{ url_for('read_home') }}#profil">Profil</a></li>
+          <li>
+            {% if profile_username %}
+            <a
+              href="{{ url_for('profile_detail', username=profile_username) }}"
+              title="Buka profil pribadi"
+              aria-label="Buka profil pribadi Anda"
+            >
+              Profil
+            </a>
+            {% else %}
+            <a
+              href="{{ url_for('read_auth') }}#login"
+              title="Masuk untuk melihat profil"
+              aria-label="Masuk untuk mengakses profil Anda"
+            >
+              Profil
+            </a>
+            {% endif %}
+          </li>
         </ul>
       </div>
     </div>
