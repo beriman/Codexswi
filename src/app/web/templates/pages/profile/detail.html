@@ -264,11 +264,11 @@
           {% endif %}
         </ul>
         {% if profile_view.badges %}
-          <div class="profile-badges" role="list">
+          <ul class="profile-badges">
             {% for badge in profile_view.badges %}
               {% include 'components/profile/badge.html' with context %}
             {% endfor %}
-          </div>
+          </ul>
         {% else %}
           <div class="profile-empty profile-empty--subtle">
             <p>Belum ada badge aktif. Kolaborasi dengan brand untuk menampilkan pencapaianmu.</p>
