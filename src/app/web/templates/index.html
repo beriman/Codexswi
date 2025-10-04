@@ -96,8 +96,14 @@
       <label class="filter-chip">Sort: Popular</label>
       <label class="filter-chip">Aroma: Bunga</label>
     </div>
-    <div class="search-box">
-      <label class="sr-only" for="landing-catalog-search">Cari katalog marketplace</label>
+    <form
+      class="search-box"
+      method="get"
+      action="{{ url_for('read_marketplace') }}"
+      role="search"
+      aria-label="Cari produk marketplace"
+    >
+      <label class="sr-only" for="landing-catalog-search">Cari produk marketplace</label>
       <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
         <path
           d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l5 4.99L20.49 19l-4.99-5zM5 10.5a5.5 5.5 0 1 1 11 0a5.5 5.5 0 0 1-11 0z"
@@ -107,9 +113,19 @@
       <input
         type="search"
         id="landing-catalog-search"
+        name="q"
         placeholder="Cari parfum, brand, atau bahan baku"
       />
-    </div>
+      <button type="submit" class="search-submit" aria-label="Cari">
+        <span class="sr-only">Cari</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l5 4.99L20.49 19l-4.99-5zM5 10.5a5.5 5.5 0 1 1 11 0a5.5 5.5 0 0 1-11 0z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+    </form>
   </div>
 
   <div class="tab-panels">
