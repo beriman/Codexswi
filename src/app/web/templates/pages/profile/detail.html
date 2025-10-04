@@ -8,19 +8,68 @@
 {% block body_scripts %}
   {{ super() }}
   <script>
-    document.addEventListener("click", function (event) {
+    const updateActiveTab = (button, focusPanel = false) => {
+      if (!button) {
+        return;
+      }
+      const nav = button.closest(".profile-tabs__nav");
+      const panel = document.getElementById("profile-tab-content");
+      if (!nav || !panel) {
+        return;
+      }
+
+      nav.querySelectorAll(".profile-tabs__button").forEach((item) => {
+        const isActive = item === button;
+        item.classList.toggle("profile-tabs__button--active", isActive);
+        item.setAttribute("aria-selected", isActive ? "true" : "false");
+        item.setAttribute("tabindex", isActive ? "0" : "-1");
+        if (isActive) {
+          panel.setAttribute("aria-labelledby", item.id);
+        }
+      });
+
+      panel.setAttribute("role", "tabpanel");
+      if (!panel.hasAttribute("tabindex")) {
+        panel.setAttribute("tabindex", "0");
+      }
+      if (focusPanel && panel.getAttribute("tabindex") !== "-1") {
+        panel.focus();
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const activeTab = document.querySelector(
+        ".profile-tabs__button[aria-selected='true']"
+      );
+      if (activeTab) {
+        updateActiveTab(activeTab);
+      }
+    });
+
+    document.addEventListener("click", (event) => {
       const button = event.target.closest(".profile-tabs__button");
       if (!button) {
         return;
       }
-      const nav = button.parentElement;
-      if (!nav) {
+      const shouldFocusPanel = event.detail === 0;
+      updateActiveTab(button, shouldFocusPanel);
+    });
+
+    document.body.addEventListener("htmx:afterSwap", (event) => {
+      if (event.target.id !== "profile-tab-content") {
         return;
       }
-      nav.querySelectorAll(".profile-tabs__button").forEach((item) => {
-        item.classList.remove("profile-tabs__button--active");
-      });
-      button.classList.add("profile-tabs__button--active");
+      const activeTab = document.querySelector(
+        ".profile-tabs__button[aria-selected='true']"
+      );
+      if (activeTab) {
+        updateActiveTab(activeTab);
+      } else {
+        event.target.setAttribute("role", "tabpanel");
+        if (!event.target.hasAttribute("tabindex")) {
+          event.target.setAttribute("tabindex", "0");
+        }
+      }
     });
   </script>
 {% endblock %}
@@ -71,7 +120,12 @@
       <div class="profile-tabs__nav" role="tablist">
         <button
           class="profile-tabs__button profile-tabs__button--active"
+          id="profile-tab-aktivitas"
+          role="tab"
           type="button"
+          aria-selected="true"
+          aria-controls="profile-tab-content"
+          tabindex="0"
           data-tab="aktivitas"
           hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='aktivitas') }}"
           hx-target="#profile-tab-content"
@@ -79,7 +133,12 @@
         >Aktivitas</button>
         <button
           class="profile-tabs__button"
+          id="profile-tab-favorit"
+          role="tab"
           type="button"
+          aria-selected="false"
+          aria-controls="profile-tab-content"
+          tabindex="-1"
           data-tab="favorit"
           hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='favorit') }}"
           hx-target="#profile-tab-content"
@@ -87,7 +146,12 @@
         >Favorit</button>
         <button
           class="profile-tabs__button"
+          id="profile-tab-sambatan"
+          role="tab"
           type="button"
+          aria-selected="false"
+          aria-controls="profile-tab-content"
+          tabindex="-1"
           data-tab="sambatan"
           hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='sambatan') }}"
           hx-target="#profile-tab-content"
@@ -95,7 +159,12 @@
         >Sambatan</button>
         <button
           class="profile-tabs__button"
+          id="profile-tab-karya"
+          role="tab"
           type="button"
+          aria-selected="false"
+          aria-controls="profile-tab-content"
+          tabindex="-1"
           data-tab="karya"
           hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='karya') }}"
           hx-target="#profile-tab-content"
@@ -103,14 +172,25 @@
         >Karya Perfumer</button>
         <button
           class="profile-tabs__button"
+          id="profile-tab-brand"
+          role="tab"
           type="button"
+          aria-selected="false"
+          aria-controls="profile-tab-content"
+          tabindex="-1"
           data-tab="brand"
           hx-get="{{ request.url_for('profile_tab', username=profile.username, tab='brand') }}"
           hx-target="#profile-tab-content"
           hx-swap="innerHTML"
         >Brand Dimiliki</button>
       </div>
-      <div id="profile-tab-content" class="profile-tabs__content">
+      <div
+        id="profile-tab-content"
+        class="profile-tabs__content"
+        role="tabpanel"
+        aria-labelledby="profile-tab-aktivitas"
+        tabindex="0"
+      >
         {% include 'components/profile/tab_activity.html' %}
       </div>
     </section>
