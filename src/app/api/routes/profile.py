@@ -79,7 +79,12 @@ async def follow_profile(
     return _render_follow_button(request, profile_view)
 
 
-@router.delete("/{username}/follow", response_class=HTMLResponse, name="profile_unfollow")
+@router.api_route(
+    "/{username}/follow",
+    methods=["DELETE", "POST"],
+    response_class=HTMLResponse,
+    name="profile_unfollow",
+)
 async def unfollow_profile(
     username: str,
     request: Request,
@@ -88,6 +93,12 @@ async def unfollow_profile(
 ) -> HTMLResponse:
     if not viewer:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Viewer wajib diisi")
+
+    if request.method == "POST":
+        form = await request.form()
+        override = (form.get("_method") or form.get("intent") or "").strip().lower()
+        if override not in {"delete", "unfollow"}:
+            raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Metode tidak didukung")
 
     try:
         profile_view = await service.unfollow_profile(username, follower_id=viewer)
