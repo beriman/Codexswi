@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import secrets
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping
+from urllib.parse import urlparse
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, UploadFile, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.core.config import get_settings
@@ -16,6 +17,11 @@ from app.services.brands import (
     BrandNotFound,
     brand_service,
 )
+from app.services.storage import LogoUpload
+
+
+MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024
+ALLOWED_LOGO_TYPES = {"image/png", "image/jpeg", "image/svg+xml"}
 
 
 router = APIRouter()
@@ -399,6 +405,86 @@ async def update_brand(request: Request, slug: str) -> HTMLResponse:
     )
 
 
+@router.post("/brands/{slug}/logo", response_class=HTMLResponse, name="upload_brand_logo")
+async def upload_brand_logo(request: Request, slug: str) -> HTMLResponse:
+    try:
+        brand = brand_service.get_brand(slug)
+    except BrandNotFound as exc:  # pragma: no cover - handled via exception mapping
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    form = await request.form()
+    logo_url_value = (form.get("logo_url") or "").strip()
+    file_candidate = form.get("logo_file")
+    upload: UploadFile | None = file_candidate if isinstance(file_candidate, UploadFile) else None
+
+    errors: List[str] = []
+    logo_upload: LogoUpload | None = None
+
+    if upload and upload.filename:
+        content_type = (upload.content_type or "").lower()
+        if content_type not in ALLOWED_LOGO_TYPES:
+            errors.append("Format file logo tidak didukung. Gunakan PNG, JPG, atau SVG.")
+        else:
+            file_bytes = await upload.read()
+            if not file_bytes:
+                errors.append("File logo tidak boleh kosong.")
+            elif len(file_bytes) > MAX_LOGO_SIZE_BYTES:
+                errors.append("Ukuran file logo melebihi 2MB.")
+            else:
+                logo_upload = LogoUpload(
+                    filename=upload.filename,
+                    content_type=content_type,
+                    data=file_bytes,
+                )
+        await upload.close()
+    elif logo_url_value:
+        parsed = urlparse(logo_url_value)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            errors.append("URL logo tidak valid. Gunakan tautan dengan format http atau https.")
+    else:
+        errors.append("Masukkan URL logo atau unggah file logo.")
+
+    status_code = status.HTTP_200_OK
+    logo_feedback: Dict[str, str] | None = None
+    updated_brand = brand
+
+    if errors:
+        logo_feedback = {"level": "error", "message": errors[0]}
+        status_code = status.HTTP_400_BAD_REQUEST
+    else:
+        try:
+            if logo_upload is not None:
+                updated_brand = brand_service.update_logo(slug, logo_upload=logo_upload)
+            else:
+                updated_brand = brand_service.update_logo(slug, logo_url=logo_url_value)
+        except BrandError as exc:
+            logo_feedback = {"level": "error", "message": str(exc)}
+            status_code = status.HTTP_400_BAD_REQUEST
+        else:
+            logo_feedback = {
+                "level": "success",
+                "message": "Logo brand berhasil diperbarui.",
+            }
+
+    templates = request.app.state.templates
+    settings = get_settings()
+    context = {
+        "request": request,
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": updated_brand.name,
+        "brand": updated_brand,
+        "logo_feedback": logo_feedback,
+    }
+
+    return templates.TemplateResponse(
+        request,
+        "pages/brand/partials/hero.html",
+        context,
+        status_code=status_code,
+    )
+
+
 @router.get("/brands/{slug}", response_class=HTMLResponse)
 async def read_brand(request: Request, slug: str) -> HTMLResponse:
     """Render the public brand page with collaboration summary."""
@@ -417,6 +503,7 @@ async def read_brand(request: Request, slug: str) -> HTMLResponse:
         "environment": settings.environment,
         "title": brand.name,
         "brand": brand,
+        "logo_feedback": None,
     }
     return templates.TemplateResponse(request, "pages/brand/detail.html", context)
 
