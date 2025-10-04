@@ -144,11 +144,11 @@
 
       <aside class="glass-panel featured-categories">
         <h2>Featured Categories</h2>
-        <div class="category-chips" role="tablist">
+        <ul class="category-chips">
           {% for category in product.featured_categories %}
-          <span class="category-chip">{{ category.label }}</span>
+          <li><span class="category-chip">{{ category.label }}</span></li>
           {% endfor %}
-        </div>
+        </ul>
         <div class="featured-summary">
           <p>
             Eksplor pilihan kategori untuk menemukan parfum lain dalam kisaran aroma dan karakter yang serupa.
