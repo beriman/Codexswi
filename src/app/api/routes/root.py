@@ -988,6 +988,95 @@ MARKETPLACE_PRODUCTS = {
             ],
         },
     },
+    "timbangan-digital-senja": {
+        "catalog": {
+            "name": "Timbangan Digital 0.01g",
+            "slug": "timbangan-digital-senja",
+            "origin": "Studio Senja",
+            "brand_slug": "studio-senja",
+            "brand_verified": True,
+            "origin_type": "Peralatan Produksi",
+            "category": "Tools & Equipment",
+            "notes": [
+                "Akurasi 0.01g",
+                "Auto kalibrasi",
+                "Platform tempered glass",
+            ],
+            "perfumer": "Kurator Studio Senja",
+            "price": "Rp 420.000",
+            "media_class": "alat-scale",
+            "tags": ["Tools", "Ready Stock"],
+        },
+        "detail": {
+            "name": "Timbangan Digital 0.01g",
+            "tagline": "Toolkit Presisi untuk Peracik Rumahan",
+            "brand": "Studio Senja",
+            "origin_city": "Yogyakarta, Indonesia",
+            "image_class": "product-visual-scale",
+            "price_primary": "Rp 420.000",
+            "price_secondary": "Termasuk adaptor dan penutup akrilik",
+            "hero_kicker": "Precision Toolkit",
+            "summary": (
+                "Timbangan presisi dengan resolusi 0.01 gram yang dirancang untuk batch parfum skala kecil."
+            ),
+            "description": (
+                "Setiap unit melalui kalibrasi internal Studio Senja dan dilengkapi mode tare cepat."
+                " Cocok untuk formulasi minyak esensial maupun bahan padat berukuran mikro."
+            ),
+            "purchase": {
+                "mode": "regular",
+                "cta_label": "Tambahkan ke Keranjang",
+                "supporting_text": "Garansi servis 12 bulan dengan dukungan teknisi lokal.",
+                "benefits": [
+                    "Pengiriman aman dengan foam pelindung khusus.",
+                    "Termasuk anak timbangan 50g untuk kalibrasi ulang.",
+                    "Video panduan kalibrasi dan perawatan tersedia setelah pembelian.",
+                ],
+            },
+            "experience_points": [
+                "Mode tare instan untuk pergantian beaker cepat.",
+                "Backlight LED dengan pengaturan intensitas tiga tingkat.",
+                "Baterai isi ulang dengan durasi pakai hingga 12 jam.",
+            ],
+            "volume_options": [
+                {"size": "Unit standar", "price": "Rp 420.000"},
+                {"size": "Bundel 2 unit", "price": "Rp 790.000"},
+                {"size": "Bundel 5 unit", "price": "Rp 1.920.000"},
+            ],
+            "scent_pyramid": [
+                {"title": "Spesifikasi", "notes": ["Akurasi 0.01g", "Kapasitas 3kg", "Mode tare cepat"]},
+                {"title": "Material", "notes": ["Panel tempered glass", "Casing aluminium", "Feet anti slip"]},
+                {"title": "Fitur", "notes": ["Layar LED", "Auto shut-off", "Port USB-C"]},
+            ],
+            "production_notes": {
+                "macration": "N/A",
+                "bottle_batch": "Batch QC mingguan",
+                "dispatch": "Pengiriman 2-3 hari kerja",
+            },
+            "recommendations": [
+                {
+                    "name": "Pelangi Senja",
+                    "category": "Signature Blend",
+                    "price": "Rp 380.000",
+                    "slug": "pelangi-senja",
+                    "media_class": "parfum-tropis",
+                },
+                {
+                    "name": "Rimba Embun",
+                    "category": "Parfum Artisan",
+                    "price": "Rp 420.000",
+                    "slug": "rimba-embun",
+                    "media_class": "parfum-aurora",
+                },
+            ],
+            "featured_categories": [
+                {"label": "Tools", "slug": "tools"},
+                {"label": "Workshop", "slug": "workshop"},
+                {"label": "Starter Kit", "slug": "starter-kit"},
+                {"label": "Community", "slug": "community"},
+            ],
+        },
+    },
     "kidung-laut": {
         "catalog": {
             "name": "Kidung Laut",
@@ -1247,15 +1336,15 @@ async def read_marketplace(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request, "marketplace.html", context)
 
 
-@router.get("/marketplace/products/{product_slug}", response_class=HTMLResponse)
-async def read_marketplace_product(request: Request, product_slug: str) -> HTMLResponse:
+@router.get("/marketplace/products/{slug}", response_class=HTMLResponse)
+async def read_marketplace_product(request: Request, slug: str) -> HTMLResponse:
     """Render a detailed product spotlight page for curated marketplace items."""
 
     settings = get_settings()
     templates = request.app.state.templates
 
     try:
-        product_data = MARKETPLACE_PRODUCTS[product_slug]["detail"]
+        product_data = MARKETPLACE_PRODUCTS[slug]["detail"]
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Produk tidak ditemukan") from exc
 
