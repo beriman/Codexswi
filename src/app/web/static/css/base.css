@@ -7,6 +7,7 @@
   --glass-shadow: 0 25px 45px rgba(15, 23, 42, 0.45);
   --text-primary: #f8fafc;
   --text-secondary: #cbd5f5;
+  --text-tertiary: rgba(203, 213, 225, 0.78);
   --accent-primary: linear-gradient(135deg, #f97316, #c026d3);
   --accent-secondary: #38bdf8;
   --muted: #94a3b8;
