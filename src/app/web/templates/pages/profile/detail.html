@@ -71,6 +71,169 @@
         }
       }
     });
+
+    (function () {
+      const profileModal = document.getElementById("profile-modal");
+      if (!profileModal) {
+        return;
+      }
+
+      const focusableSelector = [
+        "a[href]",
+        "button:not([disabled])",
+        "textarea:not([disabled])",
+        "input:not([disabled])",
+        "select:not([disabled])",
+        "[tabindex]:not([tabindex='-1'])",
+      ].join(", ");
+
+      const state = {
+        dialog: null,
+        keydownHandler: null,
+        previouslyFocusedElement: null,
+        observer: null,
+      };
+
+      const restoreFocus = () => {
+        if (
+          state.previouslyFocusedElement &&
+          typeof state.previouslyFocusedElement.focus === "function"
+        ) {
+          state.previouslyFocusedElement.focus();
+        }
+        state.previouslyFocusedElement = null;
+      };
+
+      const getFocusableElements = () => {
+        if (!state.dialog) {
+          return [];
+        }
+        return Array.from(state.dialog.querySelectorAll(focusableSelector)).filter(
+          (element) => {
+            if (element.hasAttribute("disabled")) {
+              return false;
+            }
+            if (element.getAttribute("aria-hidden") === "true") {
+              return false;
+            }
+            const style = window.getComputedStyle(element);
+            if (style.display === "none" || style.visibility === "hidden") {
+              return false;
+            }
+            return element.offsetParent !== null || style.position === "fixed";
+          }
+        );
+      };
+
+      const cleanup = () => {
+        if (state.dialog && state.keydownHandler) {
+          state.dialog.removeEventListener("keydown", state.keydownHandler);
+        }
+        if (state.observer) {
+          state.observer.disconnect();
+          state.observer = null;
+        }
+        state.dialog = null;
+        state.keydownHandler = null;
+      };
+
+      const handleKeyDown = (event) => {
+        if (!state.dialog) {
+          return;
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeProfileModal();
+          return;
+        }
+        if (event.key !== "Tab") {
+          return;
+        }
+
+        const focusableElements = getFocusableElements();
+        if (focusableElements.length === 0) {
+          event.preventDefault();
+          state.dialog.focus();
+          return;
+        }
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        const activeElement = document.activeElement;
+
+        if (event.shiftKey) {
+          if (activeElement === firstElement || activeElement === state.dialog) {
+            event.preventDefault();
+            lastElement.focus();
+          }
+          return;
+        }
+
+        if (activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      };
+
+      function closeProfileModal() {
+        cleanup();
+        profileModal.innerHTML = "";
+        restoreFocus();
+      }
+
+      window.closeProfileModal = closeProfileModal;
+
+      const setupDialog = (dialog) => {
+        if (
+          !state.previouslyFocusedElement ||
+          !document.body.contains(state.previouslyFocusedElement)
+        ) {
+          state.previouslyFocusedElement =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+        }
+
+        cleanup();
+
+        state.dialog = dialog;
+        state.keydownHandler = handleKeyDown;
+        dialog.addEventListener("keydown", handleKeyDown);
+
+        const focusableElements = getFocusableElements();
+        if (focusableElements.length > 0) {
+          focusableElements[0].focus();
+        } else {
+          dialog.focus();
+        }
+
+        if (state.observer) {
+          state.observer.disconnect();
+        }
+
+        state.observer = new MutationObserver(() => {
+          if (!profileModal.firstElementChild) {
+            cleanup();
+            restoreFocus();
+          }
+        });
+
+        state.observer.observe(profileModal, { childList: true });
+      };
+
+      document.body.addEventListener("htmx:afterSwap", (event) => {
+        if (event.target !== profileModal) {
+          return;
+        }
+
+        const dialog = profileModal.querySelector("[role='dialog']");
+        if (dialog) {
+          setupDialog(dialog);
+        } else {
+          cleanup();
+        }
+      });
+    })();
   </script>
 {% endblock %}
 
