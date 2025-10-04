@@ -7,6 +7,8 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional
 
+from app.services.storage import BrandLogoStorage, LogoUpload, StorageUploadFailed
+
 
 class BrandError(Exception):
     """Base error raised for invalid brand operations."""
@@ -123,9 +125,10 @@ def _slugify(value: str) -> str:
 class BrandService:
     """Minimal service to manage brand storefronts for the MVP."""
 
-    def __init__(self) -> None:
+    def __init__(self, logo_storage: Optional[BrandLogoStorage] = None) -> None:
         self._brands: Dict[str, Brand] = {}
         self._brands_by_slug: Dict[str, Brand] = {}
+        self._logo_storage = logo_storage or BrandLogoStorage()
         self._seed_demo_brands()
 
     # ------------------------------------------------------------------
@@ -419,11 +422,28 @@ class BrandService:
         brand.members = normalized
         return normalized
 
-    def update_logo(self, brand_slug: str, *, logo_url: Optional[str]) -> Brand:
+    def update_logo(
+        self,
+        brand_slug: str,
+        *,
+        logo_url: Optional[str] = None,
+        logo_upload: Optional[LogoUpload] = None,
+    ) -> Brand:
         """Assign or replace the public logo for a brand."""
 
         brand = self.get_brand(brand_slug)
-        brand.logo_url = logo_url
+        resolved_url: Optional[str] = None
+
+        if logo_upload is not None:
+            try:
+                resolved_url = self._logo_storage.store_logo(slug=brand.slug, upload=logo_upload)
+            except StorageUploadFailed as exc:
+                raise BrandError(str(exc)) from exc
+        elif logo_url is not None:
+            stripped = logo_url.strip()
+            resolved_url = stripped or None
+
+        brand.logo_url = resolved_url
         return brand
 
     def add_product(

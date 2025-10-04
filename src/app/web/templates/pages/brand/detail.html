@@ -6,76 +6,7 @@
 
 {% block content %}
 <article class="brand-page" aria-labelledby="brand-title">
-  <header class="brand-hero glass-card">
-    <div class="brand-hero__media" style="background-image: url('{{ brand.hero_image_url }}')" role="img" aria-label="Visual brand {{ brand.name }}"></div>
-    <div class="brand-hero__content">
-      <div class="brand-hero__branding">
-        {% if brand.logo_url %}
-        <img class="brand-logo" src="{{ brand.logo_url }}" alt="Logo {{ brand.name }}" loading="lazy" />
-        {% else %}
-        <div class="brand-logo brand-logo--placeholder" role="img" aria-label="Inisial brand {{ brand.name }}">
-          {{ brand.name[:2]|upper }}
-        </div>
-        {% endif %}
-        <form class="brand-logo-upload" aria-label="Form unggah logo brand" enctype="multipart/form-data">
-          <label class="brand-logo-upload__trigger">
-            <input type="file" name="logo" accept="image/*" />
-            <span>Unggah logo brand</span>
-          </label>
-          <p class="brand-logo-upload__hint">Format yang didukung: PNG, JPG, atau SVG maksimal 2MB.</p>
-        </form>
-      </div>
-      <span class="badge brand">Brand Partner</span>
-      <div class="brand-title-group">
-        <h1 id="brand-title">{{ brand.name }}</h1>
-        {% if brand.is_verified %}
-        <span class="badge verified" aria-label="Brand terverifikasi">&#10003; Verified Brand</span>
-        {% endif %}
-      </div>
-      <p class="brand-tagline">{{ brand.tagline }}</p>
-      <div class="brand-description">
-        <h2>Deskripsi Brand</h2>
-        <p>{{ brand.description }}</p>
-      </div>
-      <dl class="brand-meta">
-        <div>
-          <dt>Berbasis di</dt>
-          <dd>{{ brand.origin_city }}</dd>
-        </div>
-        <div>
-          <dt>Owner brand</dt>
-          <dd>
-            {% if brand.list_owners() %}
-            {% for owner in brand.list_owners() %}
-            <span class="chip chip-owner">{{ owner.full_name }}</span>
-            {% endfor %}
-            {% else %}
-            <span class="chip chip-muted">Belum ada owner aktif</span>
-            {% endif %}
-          </dd>
-        </div>
-        <div>
-          <dt>Tahun berdiri</dt>
-          <dd>Sejak {{ brand.established_year }}</dd>
-        </div>
-        {% if brand.aroma_focus %}
-        <div>
-          <dt>Fokus aroma</dt>
-          <dd>
-            {% for focus in brand.aroma_focus %}
-            <span class="chip">{{ focus }}</span>
-            {% endfor %}
-          </dd>
-        </div>
-        {% endif %}
-      </dl>
-      <div class="brand-cta">
-        <a class="button" href="{{ request.url_for('edit_brand', slug=brand.slug) }}">Kelola brand</a>
-        <a class="button button-secondary" href="/marketplace">Lihat katalog marketplace</a>
-        <a class="button button-ghost" href="/brands">Brand lainnya</a>
-      </div>
-    </div>
-  </header>
+  {% include 'pages/brand/partials/hero.html' %}
 
   <section class="brand-section" aria-labelledby="brand-story">
     <div class="section-header">
