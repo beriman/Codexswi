@@ -736,10 +736,25 @@ p {
   transition: background var(--transition-base), color var(--transition-base);
 }
 
-.tab.active,
- .tab:hover {
+.tab:hover,
+.tab:focus-visible {
   background: rgba(249, 115, 22, 0.18);
   color: var(--text-primary);
+}
+
+.tab:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.55);
+  outline-offset: 2px;
+}
+
+.tab.is-active,
+.tab[aria-selected="true"] {
+  background: rgba(249, 115, 22, 0.24);
+  color: var(--text-primary);
+}
+
+.tab-panel[hidden] {
+  display: none;
 }
 
 .filter-bar {
@@ -857,6 +872,22 @@ a.product-card:focus-visible {
 
 .parfum-malam {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(17, 94, 89, 0.35));
+}
+
+.bahan-cendana {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.38), rgba(249, 115, 22, 0.24));
+}
+
+.bahan-jeruk {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.34), rgba(234, 179, 8, 0.26));
+}
+
+.alat-scale {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(56, 189, 248, 0.28));
+}
+
+.alat-strip {
+  background: linear-gradient(135deg, rgba(147, 197, 253, 0.32), rgba(126, 34, 206, 0.24));
 }
 
 .community-lagoon {
