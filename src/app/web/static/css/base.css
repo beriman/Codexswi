@@ -803,6 +803,33 @@ p {
   font-size: 0.95rem;
 }
 
+.search-box .search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: var(--radius-full);
+  border: none;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.9), rgba(192, 38, 211, 0.9));
+  color: #0b1120;
+  cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  box-shadow: 0 10px 24px rgba(56, 189, 248, 0.28);
+}
+
+.search-box .search-submit:hover,
+.search-box .search-submit:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(192, 38, 211, 0.24);
+  outline: none;
+}
+
+.search-box .search-submit svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
