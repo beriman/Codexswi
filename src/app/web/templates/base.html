@@ -24,7 +24,9 @@
       </main>
       {% include 'partials/footer.html' %}
     </div>
+    {% block body_scripts %}
     <script src="{{ url_for('static', path='js/session.js') }}?{{ static_asset_query }}" defer></script>
-    {% block body_scripts %}{% endblock %}
+    <script src="{{ url_for('static', path='js/navbar.js') }}?{{ static_asset_query }}" defer></script>
+    {% endblock %}
   </body>
 </html>
