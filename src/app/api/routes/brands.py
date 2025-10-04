@@ -5,7 +5,7 @@ from __future__ import annotations
 import secrets
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.core.config import get_settings
@@ -16,9 +16,14 @@ from app.services.brands import (
     BrandNotFound,
     brand_service,
 )
+from app.services.profile import ProfileError, ProfileService, profile_service
 
 
 router = APIRouter()
+
+
+def get_profile_service() -> ProfileService:
+    return profile_service
 
 
 def _render_brand_form(
@@ -48,6 +53,33 @@ def _render_brand_form(
     return templates.TemplateResponse(
         request,
         "pages/brand/form.html",
+        context,
+        status_code=status_code,
+    )
+
+
+def _render_pending_team_column(
+    request: Request,
+    brand_slug: str,
+    *,
+    feedback_message: str | None = None,
+    feedback_type: str = "info",
+    form_state: Dict[str, str] | None = None,
+    status_code: int = status.HTTP_200_OK,
+) -> HTMLResponse:
+    templates = request.app.state.templates
+    context = brand_service.get_team_partial_context(brand_slug)
+    context.update(
+        {
+            "request": request,
+            "feedback_message": feedback_message,
+            "feedback_type": feedback_type,
+            "form_state": form_state or {"username": "", "note": ""},
+        }
+    )
+    return templates.TemplateResponse(
+        request,
+        "components/brand/team_pending_column.html",
         context,
         status_code=status_code,
     )
@@ -437,4 +469,118 @@ async def list_brands(request: Request) -> HTMLResponse:
         "brands": brands,
     }
     return templates.TemplateResponse(request, "pages/brand/index.html", context)
+
+
+@router.post(
+    "/brands/{slug}/co-owners",
+    response_class=HTMLResponse,
+    name="invite_brand_co_owner",
+)
+async def invite_brand_co_owner(
+    request: Request,
+    slug: str,
+    username: str = Form(...),
+    note: str = Form(default=""),
+    profile_service: ProfileService = Depends(get_profile_service),
+) -> HTMLResponse:
+    try:
+        profile_view = await profile_service.get_profile(username)
+    except ProfileError as exc:
+        return _render_pending_team_column(
+            request,
+            slug,
+            feedback_message=exc.message,
+            feedback_type="error",
+            form_state={"username": username, "note": note},
+        )
+
+    try:
+        brand = brand_service.get_brand(slug)
+        invited_by = brand.list_owners()[0].full_name if brand.list_owners() else None
+        brand_service.invite_co_owner(
+            slug,
+            profile_id=profile_view.profile.id,
+            full_name=profile_view.profile.full_name,
+            username=profile_view.profile.username,
+            expertise=profile_view.profile.preferred_aroma,
+            avatar_url=profile_view.profile.avatar_url,
+            invited_by=invited_by,
+        )
+    except BrandError as exc:
+        return _render_pending_team_column(
+            request,
+            slug,
+            feedback_message=exc.message,
+            feedback_type="error",
+            form_state={"username": username, "note": note},
+        )
+
+    feedback = f"Undangan co-owner dikirim ke {profile_view.profile.full_name}."
+    if note.strip():
+        feedback += " Catatan ikut diteruskan."
+
+    return _render_pending_team_column(
+        request,
+        slug,
+        feedback_message=feedback,
+        feedback_type="success",
+    )
+
+
+@router.post(
+    "/brands/{slug}/co-owners/{profile_id}/approve",
+    response_class=HTMLResponse,
+    name="approve_brand_co_owner",
+)
+async def approve_brand_co_owner(
+    request: Request,
+    slug: str,
+    profile_id: str,
+) -> HTMLResponse:
+    try:
+        member = brand_service.approve_co_owner(slug, profile_id)
+    except BrandError as exc:
+        return _render_pending_team_column(
+            request,
+            slug,
+            feedback_message=exc.message,
+            feedback_type="error",
+        )
+
+    feedback = f"{member.full_name} sekarang menjadi co-owner aktif."
+    return _render_pending_team_column(
+        request,
+        slug,
+        feedback_message=feedback,
+        feedback_type="success",
+    )
+
+
+@router.delete(
+    "/brands/{slug}/co-owners/{profile_id}",
+    response_class=HTMLResponse,
+    name="cancel_brand_co_owner",
+)
+async def cancel_brand_co_owner(
+    request: Request,
+    slug: str,
+    profile_id: str,
+) -> HTMLResponse:
+    try:
+        member = brand_service.cancel_co_owner_invite(slug, profile_id)
+    except BrandError as exc:
+        return _render_pending_team_column(
+            request,
+            slug,
+            feedback_message=exc.message,
+            feedback_type="error",
+        )
+
+    feedback = f"Undangan untuk {member.full_name} dibatalkan."
+    return _render_pending_team_column(
+        request,
+        slug,
+        feedback_message=feedback,
+        feedback_type="success",
+    )
 

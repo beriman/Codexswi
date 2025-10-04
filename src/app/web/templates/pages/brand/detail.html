@@ -144,47 +144,11 @@
           {% endfor %}
         </ul>
       </div>
-      <div class="team-column">
-        <h3>Menunggu Persetujuan</h3>
-        {% if brand.list_pending_members() %}
-        <ul class="team-list">
-          {% for member in brand.list_pending_members() %}
-          <li class="team-card glass-panel team-card--pending">
-            {% if member.avatar_url %}
-            <img src="{{ member.avatar_url }}" alt="{{ member.full_name }}" loading="lazy" />
-            {% endif %}
-            <div>
-              <p class="team-name">{{ member.full_name }}</p>
-              <p class="team-role">{{ member.role|replace('-', ' ')|title }}</p>
-              <p class="team-expertise">{{ member.expertise or 'Menunggu konfirmasi peran' }}</p>
-              {% if member.invited_by %}
-              <p class="team-invited">Diundang oleh {{ member.invited_by }}</p>
-              {% endif %}
-            </div>
-            <div class="team-actions">
-              <button type="button" class="button button-small">Setujui</button>
-              <button type="button" class="button button-ghost button-small">Batalkan</button>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="empty-state">Belum ada undangan co-owner yang menunggu persetujuan.</p>
-        {% endif %}
-        <form class="invite-form glass-panel" aria-label="Form undang co-owner">
-          <h4>Undang Co-owner</h4>
-          <p>Masukkan username komunitas untuk meminta persetujuan mereka sebagai co-owner.</p>
-          <label>
-            <span>Username</span>
-            <input type="text" placeholder="contoh: chandra-pratama" />
-          </label>
-          <label>
-            <span>Catatan</span>
-            <textarea rows="3" placeholder="Jelaskan peran atau kontribusi yang diharapkan"></textarea>
-          </label>
-          <button type="button" class="button button-secondary">Kirim Undangan</button>
-        </form>
-      </div>
+      {% set pending_members = brand.list_pending_members() %}
+      {% set form_state = {"username": "", "note": ""} %}
+      {% set feedback_message = None %}
+      {% set feedback_type = "info" %}
+      {% include "components/brand/team_pending_column.html" %}
     </div>
   </section>
 

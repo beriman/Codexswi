@@ -500,6 +500,25 @@ class BrandService:
                 return member
         raise BrandError("Undangan co-owner tidak ditemukan untuk brand ini.")
 
+    def cancel_co_owner_invite(self, brand_slug: str, profile_id: str) -> BrandMember:
+        brand = self.get_brand(brand_slug)
+        for index, member in enumerate(brand.members):
+            if (
+                member.profile_id == profile_id
+                and member.role == "co-owner"
+                and member.status == "pending"
+            ):
+                return brand.members.pop(index)
+        raise BrandError("Undangan co-owner tidak ditemukan untuk brand ini.")
+
+    def get_team_partial_context(self, brand_slug: str) -> Dict[str, Any]:
+        brand = self.get_brand(brand_slug)
+        return {
+            "brand": brand,
+            "pending_members": brand.list_pending_members(),
+            "active_members": brand.list_active_members(),
+        }
+
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------

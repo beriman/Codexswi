@@ -1,0 +1,84 @@
+<div
+  id="brand-team-pending"
+  class="team-column"
+  hx-target="this"
+  hx-swap="outerHTML"
+>
+  <h3>Menunggu Persetujuan</h3>
+  <p
+    class="team-feedback{% if feedback_type %} team-feedback--{{ feedback_type }}{% endif %}"
+    aria-live="polite"
+    role="status"
+  >
+    {% if feedback_message %}{{ feedback_message }}{% endif %}
+  </p>
+  {% if pending_members %}
+  <ul class="team-list">
+    {% for member in pending_members %}
+    <li class="team-card glass-panel team-card--pending">
+      {% if member.avatar_url %}
+      <img src="{{ member.avatar_url }}" alt="{{ member.full_name }}" loading="lazy" />
+      {% endif %}
+      <div>
+        <p class="team-name">{{ member.full_name }}</p>
+        <p class="team-role">{{ member.role|replace('-', ' ')|title }}</p>
+        <p class="team-expertise">{{ member.expertise or 'Menunggu konfirmasi peran' }}</p>
+        {% if member.invited_by %}
+        <p class="team-invited">Diundang oleh {{ member.invited_by }}</p>
+        {% endif %}
+      </div>
+      <div class="team-actions">
+        <form
+          method="post"
+          hx-post="{{ request.url_for('approve_brand_co_owner', slug=brand.slug, profile_id=member.profile_id) }}"
+          hx-target="#brand-team-pending"
+          hx-swap="outerHTML"
+        >
+          <button type="submit" class="button button-small">Setujui</button>
+        </form>
+        <form
+          method="post"
+          hx-delete="{{ request.url_for('cancel_brand_co_owner', slug=brand.slug, profile_id=member.profile_id) }}"
+          hx-target="#brand-team-pending"
+          hx-swap="outerHTML"
+        >
+          <button type="submit" class="button button-ghost button-small">Batalkan</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-state">Belum ada undangan co-owner yang menunggu persetujuan.</p>
+  {% endif %}
+  <form
+    class="invite-form glass-panel"
+    aria-label="Form undang co-owner"
+    method="post"
+    hx-post="{{ request.url_for('invite_brand_co_owner', slug=brand.slug) }}"
+    hx-target="#brand-team-pending"
+    hx-swap="outerHTML"
+  >
+    <h4>Undang Co-owner</h4>
+    <p>Masukkan username komunitas untuk meminta persetujuan mereka sebagai co-owner.</p>
+    <label>
+      <span>Username</span>
+      <input
+        type="text"
+        name="username"
+        placeholder="contoh: chandra-pratama"
+        value="{{ form_state.username }}"
+        required
+      />
+    </label>
+    <label>
+      <span>Catatan</span>
+      <textarea
+        name="note"
+        rows="3"
+        placeholder="Jelaskan peran atau kontribusi yang diharapkan"
+      >{{ form_state.note }}</textarea>
+    </label>
+    <button type="submit" class="button button-secondary">Kirim Undangan</button>
+  </form>
+</div>
