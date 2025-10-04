@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const navbars = Array.from(document.querySelectorAll(".navbar"));
   const configs = [];
+  const mobileQuery = window.matchMedia("(max-width: 1024px)");
 
   navbars.forEach((nav) => {
     const toggle = nav.querySelector(".navbar-toggle");
@@ -13,7 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const setOpenState = (isOpen) => {
       nav.dataset.open = isOpen ? "true" : "false";
       toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      collapsible.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      toggle.setAttribute("aria-label", isOpen ? "Tutup navigasi" : "Buka navigasi");
+
+      if (mobileQuery.matches) {
+        collapsible.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      } else {
+        collapsible.setAttribute("aria-hidden", "false");
+      }
 
       if (isOpen) {
         nav.classList.add("navbar--open");
@@ -23,6 +30,17 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     setOpenState(false);
+
+    const handleBreakpointChange = () => {
+      const isOpen = nav.dataset.open === "true";
+      setOpenState(isOpen);
+    };
+
+    if (typeof mobileQuery.addEventListener === "function") {
+      mobileQuery.addEventListener("change", handleBreakpointChange);
+    } else if (typeof mobileQuery.addListener === "function") {
+      mobileQuery.addListener(handleBreakpointChange);
+    }
 
     const toggleOpen = () => {
       const isOpen = nav.dataset.open === "true";
