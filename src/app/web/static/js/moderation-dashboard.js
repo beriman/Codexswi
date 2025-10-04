@@ -52,10 +52,8 @@
     var tabs = container.querySelectorAll('[data-action="jump-section"]');
     Array.prototype.forEach.call(tabs, function (tab) {
       tab.classList.remove("is-active");
-      tab.setAttribute("aria-selected", "false");
     });
     trigger.classList.add("is-active");
-    trigger.setAttribute("aria-selected", "true");
     if (!opts.silent) {
       ensureTabVisible(container, trigger);
     }
@@ -132,17 +130,13 @@
         break;
       }
       case "jump-section": {
-        if (event && typeof event.preventDefault === "function") {
-          event.preventDefault();
-        }
         var targetSelector = trigger.dataset.target || trigger.getAttribute("href");
         var scrolled = scrollToTarget(targetSelector);
-        if (scrolled) {
-          activateTab(trigger);
-        } else if (targetSelector) {
-          window.location.hash = targetSelector.replace(/^#/, "");
+        activateTab(trigger);
+        if (scrolled && event && typeof event.preventDefault === "function") {
+          event.preventDefault();
         }
-        return true;
+        return scrolled;
       }
       case "scroll-top": {
         if (event && typeof event.preventDefault === "function") {
