@@ -41,7 +41,13 @@
     <div id="onboarding-feedback" class="feedback" role="alert" aria-live="polite"></div>
 
     <div class="onboarding-forms">
-      <form id="registration-form" data-step="register" class="onboarding-form">
+      <form
+        id="registration-form"
+        data-step="register"
+        class="onboarding-form"
+        method="post"
+        action="/api/onboarding/register"
+      >
         <fieldset>
           <legend>1. Registrasi Pengguna</legend>
           <label>
@@ -64,7 +70,15 @@
         <button type="submit" class="btn gradient-button">Daftar &amp; Kirim Tautan</button>
       </form>
 
-      <form id="verification-form" data-step="verify" class="onboarding-form" aria-disabled="true">
+      <form
+        id="verification-form"
+        data-step="verify"
+        class="onboarding-form"
+        method="post"
+        action="/api/onboarding/verify"
+        aria-disabled="true"
+      >
+        <input type="hidden" name="onboarding_id" data-onboarding-id />
         <fieldset>
           <legend>2. Verifikasi Email</legend>
           <p class="form-help">
@@ -78,12 +92,28 @@
         </fieldset>
         <div class="form-actions">
           <button type="submit" class="btn btn-outline" disabled>Verifikasi Email</button>
-          <button type="button" class="btn btn-ghost" data-resend disabled>Kirim Ulang Tautan</button>
+          <button
+            type="submit"
+            class="btn btn-ghost"
+            data-resend
+            formaction="/api/onboarding/resend"
+            disabled
+          >
+            Kirim Ulang Tautan
+          </button>
         </div>
         <p class="debug-token" data-debug-token hidden></p>
       </form>
 
-      <form id="profile-form" data-step="profile" class="onboarding-form" aria-disabled="true">
+      <form
+        id="profile-form"
+        data-step="profile"
+        class="onboarding-form"
+        method="post"
+        action="/api/onboarding/profile"
+        aria-disabled="true"
+      >
+        <input type="hidden" name="onboarding_id" data-onboarding-id />
         <fieldset>
           <legend>3. Lengkapi Profil</legend>
           <label>
@@ -128,9 +158,26 @@
   const registrationForm = document.getElementById("registration-form");
   const verificationForm = document.getElementById("verification-form");
   const profileForm = document.getElementById("profile-form");
-  const resendButton = verificationForm.querySelector("[data-resend]");
+  const onboardingIdInputs = document.querySelectorAll("input[data-onboarding-id]");
   const debugTokenEl = verificationForm.querySelector("[data-debug-token]");
   const countdownEl = document.getElementById("verification-countdown");
+
+  function fallbackSubmit(form, submitter) {
+    if (!form) return;
+    const originalAction = form.getAttribute("action");
+    const submitterAction = submitter?.formAction;
+    if (submitterAction && submitterAction !== originalAction) {
+      form.setAttribute("action", submitterAction);
+    }
+    form.submit();
+    if (submitterAction && submitterAction !== originalAction) {
+      if (originalAction) {
+        form.setAttribute("action", originalAction);
+      } else {
+        form.removeAttribute("action");
+      }
+    }
+  }
 
   function setFeedback(message, tone = "info") {
     feedbackEl.textContent = message;
@@ -169,6 +216,11 @@
     const status = state.progress ? state.progress.status : "registered";
     enableForm(verificationForm, Boolean(state.onboardingId) && status === "registered");
     enableForm(profileForm, status === "email_verified");
+    const onboardingValue = state.onboardingId || "";
+    onboardingIdInputs.forEach((input) => {
+      input.value = onboardingValue;
+      input.defaultValue = onboardingValue;
+    });
   }
 
   function refreshCountdown(expiresAt) {
@@ -199,91 +251,140 @@
   }
 
   async function handleRegister(event) {
+    if (typeof window.fetch !== "function") {
+      return;
+    }
+
     event.preventDefault();
-    const formData = new FormData(registrationForm);
+    const form = event.target;
+    const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
     payload.marketing_opt_in = Boolean(payload.marketing_opt_in);
 
     setFeedback("Memproses registrasi...");
-    const response = await fetch("/api/onboarding/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/onboarding/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      setFeedback(error.detail || "Registrasi gagal", "danger");
-      return;
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        setFeedback(error.detail || "Registrasi gagal", "danger");
+        return;
+      }
+
+      const data = await response.json();
+      state.onboardingId = data.onboarding_id;
+      state.verificationToken = data.verification_token;
+      verificationForm.reset();
+      profileForm.reset();
+      updateProgress(data.progress);
+      syncForms();
+      refreshCountdown(data.verification_expires_at);
+      debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
+      debugTokenEl.hidden = !state.verificationToken;
+      setFeedback("Registrasi berhasil. Tautan verifikasi telah dikirim ke email Anda.", "success");
+    } catch (error) {
+      console.error(error);
+      fallbackSubmit(form);
     }
-
-    const data = await response.json();
-    state.onboardingId = data.onboarding_id;
-    state.verificationToken = data.verification_token;
-    verificationForm.reset();
-    profileForm.reset();
-    updateProgress(data.progress);
-    syncForms();
-    refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
-    debugTokenEl.hidden = !state.verificationToken;
-    setFeedback("Registrasi berhasil. Tautan verifikasi telah dikirim ke email Anda.", "success");
   }
 
   async function handleVerification(event) {
-    event.preventDefault();
-    if (!state.onboardingId) return;
+    if (typeof window.fetch !== "function") {
+      return;
+    }
 
-    const formData = new FormData(verificationForm);
+    event.preventDefault();
+    const form = event.target;
+    const submitter = event.submitter;
+
+    if (!state.onboardingId) {
+      fallbackSubmit(form, submitter);
+      return;
+    }
+
+    if (submitter && submitter.hasAttribute("data-resend")) {
+      await handleResend(event, submitter);
+      return;
+    }
+
+    const formData = new FormData(form);
     const payload = { onboarding_id: state.onboardingId, token: formData.get("token") };
 
     setFeedback("Memeriksa token...");
-    const response = await fetch("/api/onboarding/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/onboarding/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setFeedback(data.detail || "Token tidak valid", "danger");
-      return;
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setFeedback(data.detail || "Token tidak valid", "danger");
+        return;
+      }
+
+      updateProgress(data.progress);
+      syncForms();
+      refreshCountdown(data.progress.verification.expires_at);
+      verificationForm.reset();
+      setFeedback("Email berhasil diverifikasi.", "success");
+    } catch (error) {
+      console.error(error);
+      fallbackSubmit(form, submitter);
     }
-
-    updateProgress(data.progress);
-    syncForms();
-    refreshCountdown(data.progress.verification.expires_at);
-    verificationForm.reset();
-    setFeedback("Email berhasil diverifikasi.", "success");
   }
 
-  async function handleResend() {
-    if (!state.onboardingId) return;
-    setFeedback("Meminta token baru...");
-    const response = await fetch("/api/onboarding/resend", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ onboarding_id: state.onboardingId }),
-    });
-    if (!response.ok) {
-      setFeedback("Gagal memperbarui token", "danger");
+  async function handleResend(event, submitter) {
+    const form = event.target;
+    if (!state.onboardingId) {
+      fallbackSubmit(form, submitter);
       return;
     }
-    const data = await response.json();
-    state.verificationToken = data.verification_token;
-    updateProgress(data.progress);
-    refreshCountdown(data.verification_expires_at);
-    debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
-    debugTokenEl.hidden = !state.verificationToken;
-    verificationForm.reset();
-    setFeedback("Tautan verifikasi baru dikirim. Cek email Anda.", "success");
+
+    setFeedback("Meminta token baru...");
+    try {
+      const response = await fetch("/api/onboarding/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ onboarding_id: state.onboardingId }),
+      });
+      if (!response.ok) {
+        setFeedback("Gagal memperbarui token", "danger");
+        return;
+      }
+      const data = await response.json();
+      state.verificationToken = data.verification_token;
+      updateProgress(data.progress);
+      syncForms();
+      refreshCountdown(data.verification_expires_at);
+      debugTokenEl.textContent = `Token verifikasi (QA): ${state.verificationToken}`;
+      debugTokenEl.hidden = !state.verificationToken;
+      verificationForm.reset();
+      setFeedback("Tautan verifikasi baru dikirim. Cek email Anda.", "success");
+    } catch (error) {
+      console.error(error);
+      fallbackSubmit(form, submitter);
+    }
   }
 
   async function handleProfile(event) {
-    event.preventDefault();
-    if (!state.onboardingId) return;
+    if (typeof window.fetch !== "function") {
+      return;
+    }
 
-    const formData = new FormData(profileForm);
+    event.preventDefault();
+    const form = event.target;
+    if (!state.onboardingId) {
+      fallbackSubmit(form);
+      return;
+    }
+
+    const formData = new FormData(form);
     const payload = {
       onboarding_id: state.onboardingId,
       display_name: formData.get("display_name"),
@@ -292,28 +393,32 @@
     };
 
     setFeedback("Menyimpan profil...");
-    const response = await fetch("/api/onboarding/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/onboarding/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setFeedback(data.detail || "Profil tidak valid", "danger");
-      return;
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setFeedback(data.detail || "Profil tidak valid", "danger");
+        return;
+      }
+
+      updateProgress(data.progress);
+      syncForms();
+      setFeedback("Profil berhasil disimpan. Onboarding selesai!", "success");
+      profileForm.reset();
+    } catch (error) {
+      console.error(error);
+      fallbackSubmit(form);
     }
-
-    updateProgress(data.progress);
-    syncForms();
-    setFeedback("Profil berhasil disimpan. Onboarding selesai!", "success");
-    profileForm.reset();
   }
 
   registrationForm.addEventListener("submit", handleRegister);
   verificationForm.addEventListener("submit", handleVerification);
   profileForm.addEventListener("submit", handleProfile);
-  resendButton.addEventListener("click", handleResend);
 
   updateProgress({ step_index: 1, total_steps: 3, is_complete: false, status: "registered", verification: { active: false, expires_at: null } });
   syncForms();

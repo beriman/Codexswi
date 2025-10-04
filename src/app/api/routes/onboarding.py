@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type, TypeVar
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field, ValidationError
 
 from app.services.onboarding import (
     OnboardingEvent,
@@ -17,6 +17,8 @@ from app.services.onboarding import (
 )
 
 router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
+
+ModelT = TypeVar("ModelT", bound=BaseModel)
 
 
 class RegistrationRequest(BaseModel):
@@ -91,11 +93,35 @@ def _handle_error(exc: OnboardingError) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.message)
 
 
+async def _resolve_payload(
+    model_cls: Type[ModelT],
+    request: Request,
+    payload: ModelT | None,
+) -> ModelT:
+    if payload is not None:
+        return payload
+
+    form = await request.form()
+    data: Dict[str, Any] = {}
+    for key, value in form.multi_items():
+        data[key] = value
+
+    try:
+        return model_cls(**data)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=exc.errors(),
+        ) from exc
+
+
 @router.post("/register", response_model=RegistrationResponse, status_code=status.HTTP_201_CREATED)
-def register_user(
-    payload: RegistrationRequest,
+async def register_user(
+    request: Request,
+    payload: RegistrationRequest | None = Body(None),
     service: OnboardingService = Depends(get_onboarding_service),
 ) -> RegistrationResponse:
+    payload = await _resolve_payload(RegistrationRequest, request, payload)
     try:
         user = service.register_user(
             email=payload.email,
@@ -117,10 +143,12 @@ def register_user(
 
 
 @router.post("/verify", response_model=VerificationResponse)
-def verify_email(
-    payload: VerificationRequest,
+async def verify_email(
+    request: Request,
+    payload: VerificationRequest | None = Body(None),
     service: OnboardingService = Depends(get_onboarding_service),
 ) -> VerificationResponse:
+    payload = await _resolve_payload(VerificationRequest, request, payload)
     try:
         user = service.verify_email(
             onboarding_id=payload.onboarding_id,
@@ -134,10 +162,12 @@ def verify_email(
 
 
 @router.post("/profile", response_model=ProfileResponse)
-def complete_profile(
-    payload: ProfileRequest,
+async def complete_profile(
+    request: Request,
+    payload: ProfileRequest | None = Body(None),
     service: OnboardingService = Depends(get_onboarding_service),
 ) -> ProfileResponse:
+    payload = await _resolve_payload(ProfileRequest, request, payload)
     try:
         user = service.complete_profile(
             onboarding_id=payload.onboarding_id,
@@ -159,10 +189,12 @@ def complete_profile(
 
 
 @router.post("/resend", response_model=RegistrationResponse)
-def resend_token(
-    payload: ResendRequest,
+async def resend_token(
+    request: Request,
+    payload: ResendRequest | None = Body(None),
     service: OnboardingService = Depends(get_onboarding_service),
 ) -> RegistrationResponse:
+    payload = await _resolve_payload(ResendRequest, request, payload)
     try:
         token = service.resend_verification_token(onboarding_id=payload.onboarding_id)
         user = service.get_user(payload.onboarding_id)
