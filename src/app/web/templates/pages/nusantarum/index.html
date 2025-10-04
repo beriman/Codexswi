@@ -36,6 +36,9 @@
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'parfum' else 'false' }}"
+      id="nusantarum-tab-parfum"
+      aria-controls="nusantarum-tab-content"
+      tabindex="{{ '0' if active_tab == 'parfum' else '-1' }}"
       hx-get="/nusantarum/tab/parfum"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
@@ -49,6 +52,9 @@
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'brand' else 'false' }}"
+      id="nusantarum-tab-brand"
+      aria-controls="nusantarum-tab-content"
+      tabindex="{{ '0' if active_tab == 'brand' else '-1' }}"
       hx-get="/nusantarum/tab/brand"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
@@ -62,6 +68,9 @@
       class="nusantarum-tab"
       role="tab"
       aria-selected="{{ 'true' if active_tab == 'perfumer' else 'false' }}"
+      id="nusantarum-tab-perfumer"
+      aria-controls="nusantarum-tab-content"
+      tabindex="{{ '0' if active_tab == 'perfumer' else '-1' }}"
       hx-get="/nusantarum/tab/perfumer"
       hx-target="#nusantarum-tab-content"
       hx-include="#nusantarum-filter-form"
@@ -114,6 +123,7 @@
 
 {% block body_scripts %}
 {{ super() }}
+<script src="{{ url_for('static', path='js/nusantarum-tabs.js') }}?{{ static_asset_query }}" defer></script>
 <script>
   (function () {
     const searchInput = document.getElementById('nusantarum-search-input');
