@@ -2,31 +2,37 @@
 {% set following_url = request.url_for('profile_following', username=profile.username) %}
 <section id="profile-community-stats" class="profile-stats glass-panel" aria-label="Statistik komunitas">
   <div class="profile-stat">
-    <span class="profile-stat__label">Pengikut</span>
+    <span class="profile-stat__label" id="profile-stat-label-followers">Pengikut</span>
     <button
+      id="profile-stat-value-followers"
       class="profile-stat__value"
       type="button"
       hx-get="{{ follower_url }}"
       hx-target="#profile-modal"
       hx-trigger="click"
+      aria-labelledby="profile-stat-label-followers profile-stat-value-followers"
+      aria-label="Lihat {{ stats.follower_count }} pengikut"
     >{{ stats.follower_count }}</button>
   </div>
   <div class="profile-stat">
-    <span class="profile-stat__label">Mengikuti</span>
+    <span class="profile-stat__label" id="profile-stat-label-following">Mengikuti</span>
     <button
+      id="profile-stat-value-following"
       class="profile-stat__value"
       type="button"
       hx-get="{{ following_url }}"
       hx-target="#profile-modal"
       hx-trigger="click"
+      aria-labelledby="profile-stat-label-following profile-stat-value-following"
+      aria-label="Lihat {{ stats.following_count }} akun yang diikuti"
     >{{ stats.following_count }}</button>
   </div>
   <div class="profile-stat">
-    <span class="profile-stat__label">Karya Perfumer</span>
+    <span class="profile-stat__label" id="profile-stat-label-perfumer-works">Karya Perfumer</span>
     <span class="profile-stat__value" aria-live="polite">{{ stats.perfumer_product_count }}</span>
   </div>
   <div class="profile-stat">
-    <span class="profile-stat__label">Brand Dimiliki</span>
+    <span class="profile-stat__label" id="profile-stat-label-owned-brands">Brand Dimiliki</span>
     <span class="profile-stat__value" aria-live="polite">{{ stats.owned_brand_count }}</span>
   </div>
 </section>
