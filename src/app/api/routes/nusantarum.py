@@ -92,15 +92,35 @@ TAB_LOADERS: Dict[str, Tuple[str, Callable[..., Any]]] = {
 }
 
 
-@router.get("", response_class=HTMLResponse, name="nusantarum:index")
-async def nusantarum_index(
+def _parse_float_param(value: str | None) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed >= 0 else None
+
+
+def _parse_bool_param(value: str | None, *, default: bool) -> bool:
+    if value is None:
+        return default
+    value_normalized = value.strip().lower()
+    if value_normalized in {"1", "true", "on", "yes"}:
+        return True
+    if value_normalized in {"0", "false", "off", "no"}:
+        return False
+    return default
+
+
+def _parse_list_param(values: List[str]) -> List[str]:
+    return [value for value in values if value]
+
+
+@router.get("", response_class=HTMLResponse, name="read_nusantarum")
+async def read_nusantarum(
     request: Request,
     service: NusantarumService = Depends(get_service),
-    families: List[str] = Query(default_factory=list),
-    city: str | None = Query(default=None),
-    price_min: float | None = Query(default=None, ge=0),
-    price_max: float | None = Query(default=None, ge=0),
-    verified: bool = Query(default=True),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
     tab: str = Query(default="parfum"),
@@ -108,6 +128,13 @@ async def nusantarum_index(
     direction: str | None = Query(default=None),
 ) -> HTMLResponse:
     templates = request.app.state.templates
+    query_params = request.query_params
+    families = _parse_list_param(query_params.getlist("families"))
+    city_raw = query_params.get("city")
+    city = city_raw.strip() if city_raw else None
+    price_min = _parse_float_param(query_params.get("price_min"))
+    price_max = _parse_float_param(query_params.get("price_max"))
+    verified = _parse_bool_param(query_params.get("verified"), default=True)
     tab_slug = tab.lower()
     if tab_slug not in TAB_LOADERS:
         raise HTTPException(status_code=404, detail="Tab tidak ditemukan")
