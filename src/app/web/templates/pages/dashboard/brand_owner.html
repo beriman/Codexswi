@@ -100,10 +100,13 @@
         {% for filter in product_filters %}
         <button
           type="button"
+          id="product-filter-{{ filter.key }}"
           class="chip {% if loop.first %}is-active{% endif %}"
           data-product-filter="{{ filter.key }}"
           role="tab"
           aria-selected="{{ 'true' if loop.first else 'false' }}"
+          aria-controls="product-rows"
+          tabindex="{{ '0' if loop.first else '-1' }}"
         >
           {{ filter.label }}
         </button>
@@ -127,7 +130,7 @@
             <th scope="col" class="actions">Aksi</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="product-rows">
           {% for product in snapshot.products %}
           <tr
             data-product-row
@@ -179,10 +182,13 @@
         {% for filter in order_filters %}
         <button
           type="button"
+          id="order-filter-{{ filter.key | replace(' ', '-') }}"
           class="chip {% if loop.first %}is-active{% endif %}"
           data-order-filter="{{ filter.key }}"
           role="tab"
           aria-selected="{{ 'true' if loop.first else 'false' }}"
+          aria-controls="order-table"
+          tabindex="{{ '0' if loop.first else '-1' }}"
         >
           {{ filter.label }}
         </button>
@@ -195,7 +201,7 @@
     </div>
 
     <div class="table-wrapper">
-      <table class="data-table">
+      <table class="data-table" id="order-table">
         <thead>
           <tr>
             <th scope="col">Invoice</th>
@@ -245,10 +251,13 @@
       {% for dataset in snapshot.analytics_ranges %}
       <button
         type="button"
+        id="analytics-range-{{ dataset.key }}"
         class="chip {% if loop.first %}is-active{% endif %}"
         data-analytics-range="{{ dataset.key }}"
         role="tab"
         aria-selected="{{ 'true' if loop.first else 'false' }}"
+        aria-controls="analytics-panel-{{ dataset.key }}"
+        tabindex="{{ '0' if loop.first else '-1' }}"
       >
         {{ dataset.label }}
       </button>
@@ -259,7 +268,10 @@
   {% for dataset in snapshot.analytics_ranges %}
   <div
     class="analytics-panel {% if not loop.first %}is-hidden{% endif %}"
+    id="analytics-panel-{{ dataset.key }}"
+    role="tabpanel"
     data-analytics-panel="{{ dataset.key }}"
+    aria-labelledby="analytics-range-{{ dataset.key }}"
     {% if not loop.first %}hidden{% endif %}
   >
     <div class="analytics-summary">

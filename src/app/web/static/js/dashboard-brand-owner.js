@@ -3,11 +3,58 @@
     return (value || "").toString().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
   }
 
+  function activateTabGroup(
+    buttons,
+    targetKey,
+    { buttonDatasetKey, panels, panelDatasetKey, shouldFocus = true } = {}
+  ) {
+    let activeButton = null;
+    buttons.forEach((button) => {
+      const key = buttonDatasetKey ? button.dataset[buttonDatasetKey] : undefined;
+      const isActive = key === targetKey;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      button.setAttribute("tabindex", isActive ? "0" : "-1");
+      if (isActive) {
+        activeButton = button;
+      }
+    });
+
+    if (panels && panelDatasetKey) {
+      panels.forEach((panel) => {
+        const panelKey = panel.dataset[panelDatasetKey];
+        const isMatch = panelKey === targetKey;
+        panel.classList.toggle("is-hidden", !isMatch);
+        if (isMatch) {
+          panel.removeAttribute("hidden");
+          panel.setAttribute("aria-hidden", "false");
+        } else {
+          panel.setAttribute("hidden", "hidden");
+          panel.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+
+    if (activeButton && shouldFocus) {
+      activeButton.focus();
+    }
+
+    return activeButton;
+  }
+
   function bindProductFilters() {
-    const buttons = document.querySelectorAll("[data-product-filter]");
+    const buttons = Array.from(document.querySelectorAll("[data-product-filter]"));
     const rows = document.querySelectorAll("[data-product-row]");
     const searchInput = document.querySelector("[data-product-search]");
-    let activeFilter = "semua";
+    if (!buttons.length) return;
+    let activeFilter =
+      buttons.find((button) => button.classList.contains("is-active"))?.dataset.productFilter ||
+      "semua";
+
+    activateTabGroup(buttons, activeFilter, {
+      buttonDatasetKey: "productFilter",
+      shouldFocus: false,
+    });
 
     function apply() {
       const query = normalise(searchInput ? searchInput.value.trim() : "");
@@ -22,16 +69,28 @@
       });
     }
 
-    buttons.forEach((button) => {
+    buttons.forEach((button, index) => {
       button.addEventListener("click", () => {
         const target = button.dataset.productFilter;
         if (!target) return;
         activeFilter = target;
-        buttons.forEach((chip) => {
-          const isActive = chip === button;
-          chip.classList.toggle("is-active", isActive);
-          chip.setAttribute("aria-selected", String(isActive));
-        });
+        activateTabGroup(buttons, target, { buttonDatasetKey: "productFilter" });
+        apply();
+      });
+
+      button.addEventListener("keydown", (event) => {
+        const { key } = event;
+        const isNext = key === "ArrowRight" || key === "ArrowDown";
+        const isPrev = key === "ArrowLeft" || key === "ArrowUp";
+        if (!isNext && !isPrev) return;
+        event.preventDefault();
+        const offset = isNext ? 1 : -1;
+        const nextIndex = (index + offset + buttons.length) % buttons.length;
+        const nextButton = buttons[nextIndex];
+        const target = nextButton?.dataset.productFilter;
+        if (!target) return;
+        activeFilter = target;
+        activateTabGroup(buttons, target, { buttonDatasetKey: "productFilter" });
         apply();
       });
     });
@@ -44,10 +103,18 @@
   }
 
   function bindOrderFilters() {
-    const buttons = document.querySelectorAll("[data-order-filter]");
+    const buttons = Array.from(document.querySelectorAll("[data-order-filter]"));
     const rows = document.querySelectorAll("[data-order-row]");
     const searchInput = document.querySelector("[data-order-search]");
-    let activeFilter = "semua";
+    if (!buttons.length) return;
+    let activeFilter =
+      buttons.find((button) => button.classList.contains("is-active"))?.dataset.orderFilter ||
+      "semua";
+
+    activateTabGroup(buttons, activeFilter, {
+      buttonDatasetKey: "orderFilter",
+      shouldFocus: false,
+    });
 
     function apply() {
       const query = normalise(searchInput ? searchInput.value.trim() : "");
@@ -62,16 +129,28 @@
       });
     }
 
-    buttons.forEach((button) => {
+    buttons.forEach((button, index) => {
       button.addEventListener("click", () => {
         const target = button.dataset.orderFilter;
         if (!target) return;
         activeFilter = target;
-        buttons.forEach((chip) => {
-          const isActive = chip === button;
-          chip.classList.toggle("is-active", isActive);
-          chip.setAttribute("aria-selected", String(isActive));
-        });
+        activateTabGroup(buttons, target, { buttonDatasetKey: "orderFilter" });
+        apply();
+      });
+
+      button.addEventListener("keydown", (event) => {
+        const { key } = event;
+        const isNext = key === "ArrowRight" || key === "ArrowDown";
+        const isPrev = key === "ArrowLeft" || key === "ArrowUp";
+        if (!isNext && !isPrev) return;
+        event.preventDefault();
+        const offset = isNext ? 1 : -1;
+        const nextIndex = (index + offset + buttons.length) % buttons.length;
+        const nextButton = buttons[nextIndex];
+        const target = nextButton?.dataset.orderFilter;
+        if (!target) return;
+        activeFilter = target;
+        activateTabGroup(buttons, target, { buttonDatasetKey: "orderFilter" });
         apply();
       });
     });
@@ -145,26 +224,49 @@
   }
 
   function initialiseAnalytics() {
-    const buttons = document.querySelectorAll("[data-analytics-range]");
-    const panels = document.querySelectorAll("[data-analytics-panel]");
+    const buttons = Array.from(document.querySelectorAll("[data-analytics-range]"));
+    const panels = Array.from(document.querySelectorAll("[data-analytics-panel]"));
+    if (!buttons.length) return;
 
-    buttons.forEach((button) => {
+    let activeRange =
+      buttons.find((button) => button.classList.contains("is-active"))?.dataset.analyticsRange ||
+      buttons[0]?.dataset.analyticsRange;
+
+    activateTabGroup(buttons, activeRange, {
+      buttonDatasetKey: "analyticsRange",
+      panels,
+      panelDatasetKey: "analyticsPanel",
+      shouldFocus: false,
+    });
+
+    buttons.forEach((button, index) => {
       button.addEventListener("click", () => {
         const target = button.dataset.analyticsRange;
         if (!target) return;
-        buttons.forEach((chip) => {
-          const isActive = chip === button;
-          chip.classList.toggle("is-active", isActive);
-          chip.setAttribute("aria-selected", String(isActive));
+        activeRange = target;
+        activateTabGroup(buttons, target, {
+          buttonDatasetKey: "analyticsRange",
+          panels,
+          panelDatasetKey: "analyticsPanel",
         });
-        panels.forEach((panel) => {
-          const isMatch = panel.dataset.analyticsPanel === target;
-          panel.classList.toggle("is-hidden", !isMatch);
-          if (isMatch) {
-            panel.removeAttribute("hidden");
-          } else {
-            panel.setAttribute("hidden", "hidden");
-          }
+      });
+
+      button.addEventListener("keydown", (event) => {
+        const { key } = event;
+        const isNext = key === "ArrowRight" || key === "ArrowDown";
+        const isPrev = key === "ArrowLeft" || key === "ArrowUp";
+        if (!isNext && !isPrev) return;
+        event.preventDefault();
+        const offset = isNext ? 1 : -1;
+        const nextIndex = (index + offset + buttons.length) % buttons.length;
+        const nextButton = buttons[nextIndex];
+        const target = nextButton?.dataset.analyticsRange;
+        if (!target) return;
+        activeRange = target;
+        activateTabGroup(buttons, target, {
+          buttonDatasetKey: "analyticsRange",
+          panels,
+          panelDatasetKey: "analyticsPanel",
         });
       });
     });
