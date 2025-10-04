@@ -2,8 +2,10 @@
 
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Form, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+
+from pydantic import BaseModel, EmailStr, ValidationError
 
 from app.core.config import get_settings
 from app.services.brand_dashboard import brand_dashboard_service
@@ -19,6 +21,25 @@ STATUS_META = {
     "progress": {"icon": "◐", "label": "Sedang berjalan"},
     "done": {"icon": "✅", "label": "Selesai"},
 }
+
+
+class NewsletterSubscription(BaseModel):
+    """Payload schema for newsletter subscriptions."""
+
+    email: EmailStr
+
+
+def _newsletter_response(*, request: Request, message: str, tone: str, status_code: int):
+    """Return either JSON or HTML depending on the client accept header."""
+
+    accept_header = request.headers.get("accept", "")
+    prefers_json = "application/json" in accept_header
+    payload = {"status": tone, "message": message}
+
+    if prefers_json:
+        return JSONResponse(payload, status_code=status_code)
+
+    return HTMLResponse(message, status_code=status_code)
 
 
 UIUX_IMPLEMENTATION_PLAN = [
@@ -743,6 +764,43 @@ def _serialize_campaign_for_ui(campaign: SambatanCampaign, *, now: datetime | No
         "slots_remaining": campaign.slots_remaining(),
         "deadline_label": _format_deadline(campaign.deadline, now=now),
     }
+
+
+@router.post("/newsletter/subscribe", name="newsletter_subscribe")
+async def newsletter_subscribe(request: Request, email: str = Form(...)):
+    """Validate newsletter submissions and return a friendly status message."""
+
+    cleaned_email = email.strip()
+    if not cleaned_email:
+        return _newsletter_response(
+            request=request,
+            message="Alamat email wajib diisi.",
+            tone="error",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        payload = NewsletterSubscription(email=cleaned_email)
+    except ValidationError:
+        return _newsletter_response(
+            request=request,
+            message="Alamat email tidak valid. Periksa kembali dan coba lagi.",
+            tone="error",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    normalized_email = str(payload.email)
+    success_message = (
+        "Terima kasih sudah bergabung! Kami akan mengirimkan kabar terbaru ke "
+        f"{normalized_email}."
+    )
+
+    return _newsletter_response(
+        request=request,
+        message=success_message,
+        tone="success",
+        status_code=status.HTTP_200_OK,
+    )
 
 
 @router.get("/")
