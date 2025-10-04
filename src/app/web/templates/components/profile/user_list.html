@@ -1,12 +1,22 @@
-<div class="profile-modal__overlay" role="dialog" aria-modal="true" aria-label="{{ title }}">
+<div
+  class="profile-modal__overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="profile-modal-title"
+  tabindex="-1"
+>
   <div class="profile-modal__content glass-panel">
     <header class="profile-modal__header">
-      <h2>{{ title }}</h2>
+      <h2 id="profile-modal-title">{{ title }}</h2>
       <button
         class="profile-modal__close"
         type="button"
-        hx-on="click: document.getElementById('profile-modal').innerHTML = ''"
-      >✕</button>
+        data-profile-modal-close
+        hx-on="click: window.closeProfileModal && window.closeProfileModal()"
+      >
+        <span aria-hidden="true">✕</span>
+        <span class="sr-only">Tutup</span>
+      </button>
     </header>
     {% if profiles %}
       <ul class="profile-modal__list">
