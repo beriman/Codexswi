@@ -25,6 +25,8 @@
         role="search"
         aria-label="Cari produk marketplace"
         data-marketplace-search-form
+        method="get"
+        action="{{ url_for('read_marketplace') }}"
       >
         <label class="sr-only" for="marketplace-search-input">Cari produk marketplace</label>
         <div class="catalog-search-input">
@@ -47,6 +49,7 @@
             placeholder="Cari di katalog"
             autocomplete="off"
             data-marketplace-search
+            value="{{ active_query | default('', true) }}"
           />
           <button type="submit" class="catalog-search-button">
             <span class="sr-only">Cari</span>
@@ -76,7 +79,11 @@
     {% if not loop.first %}hidden{% endif %}
   >
     <p class="panel-description">{{ tab.description }}</p>
-    <p class="empty-state" data-empty-message hidden>Belum ada produk yang cocok dengan pencarian Anda.</p>
+    <p
+      class="empty-state"
+      data-empty-message
+      {% if not active_query or tab.products %}hidden{% endif %}
+    >Belum ada produk yang cocok dengan pencarian Anda.</p>
     <div class="product-grid marketplace-grid">
       {% for product in tab.products %}
       {% set card_contents %}
@@ -227,11 +234,37 @@
       });
     }
 
+    function updateQueryString(nextQuery) {
+      const url = new URL(window.location.href);
+
+      if (nextQuery) {
+        url.searchParams.set('q', nextQuery);
+      } else {
+        url.searchParams.delete('q');
+      }
+
+      const newUrl = `${url.pathname}${url.search}${url.hash}`;
+
+      if (window.history && typeof window.history.replaceState === 'function') {
+        window.history.replaceState({}, '', newUrl);
+      } else {
+        window.location.assign(newUrl);
+      }
+    }
+
     if (searchForm) {
       searchForm.addEventListener('submit', (event) => {
         event.preventDefault();
+        const formData = new FormData(searchForm);
+        const submittedQuery = String(formData.get('q') || '').trim();
+
         applySearchFilter();
+        updateQueryString(submittedQuery);
       });
+    }
+
+    if (searchInput && searchInput.value.trim()) {
+      applySearchFilter();
     }
 
     const fallbackCards = document.querySelectorAll('[data-product-card]:not([href])');

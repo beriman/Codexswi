@@ -1,6 +1,7 @@
 """Landing page routes for the MVP."""
 
 from datetime import UTC, datetime, timedelta
+import unicodedata
 
 from fastapi import APIRouter, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -1200,11 +1201,48 @@ async def read_marketplace(request: Request) -> HTMLResponse:
             "deadline": highlight["deadline_label"],
         }
 
+    raw_query = request.query_params.get("q", "")
+    active_query = raw_query.strip()
+
+    def _normalise_text(value: str) -> str:
+        decomposed = unicodedata.normalize("NFKD", value)
+        without_diacritics = "".join(char for char in decomposed if not unicodedata.combining(char))
+        return without_diacritics.casefold()
+
+    normalised_query = _normalise_text(active_query) if active_query else ""
+
+    if normalised_query:
+        filtered_catalog = []
+
+        for tab in marketplace_catalog:
+            filtered_products = []
+
+            for product in tab["products"]:
+                haystack = " ".join(
+                    filter(
+                        None,
+                        [
+                            product.get("name", ""),
+                            product.get("origin", ""),
+                            product.get("perfumer", ""),
+                        ],
+                    )
+                )
+                normalised_product = _normalise_text(haystack)
+
+                if normalised_query in normalised_product:
+                    filtered_products.append(product)
+
+            filtered_catalog.append({**tab, "products": filtered_products})
+
+        marketplace_catalog = filtered_catalog
+
     context = {
         "app_name": settings.app_name,
         "environment": settings.environment,
         "title": "Marketplace",
         "marketplace_catalog": marketplace_catalog,
+        "active_query": active_query,
     }
     return templates.TemplateResponse(request, "marketplace.html", context)
 
