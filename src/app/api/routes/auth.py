@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
 from app.services.auth import (
@@ -126,11 +126,15 @@ def verify_user(
 
 
 @router.post("/login", response_model=AuthPayload)
-def login_user(
-    payload: LoginRequest,
+async def login_user(
     request: Request,
+    payload: LoginRequest | None = Body(None),
     service: AuthService = Depends(get_auth_service),
 ) -> AuthPayload:
+    if payload is None:
+        form = await request.form()
+        payload = LoginRequest(**dict(form))
+
     try:
         user = service.authenticate(email=payload.email, password=payload.password)
     except AuthError as exc:
