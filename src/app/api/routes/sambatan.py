@@ -24,6 +24,7 @@ from app.services.sambatan import (
     sambatan_lifecycle_service,
     sambatan_service,
 )
+from app.services.scheduler import get_scheduler
 
 
 router = APIRouter(prefix="/api/sambatan", tags=["sambatan"])
@@ -257,4 +258,40 @@ def get_audit_logs(campaign_id: str, service: SambatanService = Depends(get_samb
         _handle_error(exc)
 
     return [_serialize_audit(log) for log in service.get_audit_logs(campaign_id)]
+
+
+@router.get("/scheduler/status", response_model=Dict[str, Any])
+def get_scheduler_status() -> Dict[str, Any]:
+    """Get the current status of the background scheduler."""
+    scheduler = get_scheduler()
+    
+    next_run = scheduler.get_next_run_time()
+    
+    return {
+        "is_running": scheduler.is_running,
+        "next_run_time": next_run.isoformat() if next_run else None,
+        "interval_minutes": scheduler.interval_minutes,
+        "last_run": scheduler.lifecycle_service.last_run.isoformat() 
+                    if scheduler.lifecycle_service.last_run else None,
+    }
+
+
+@router.post("/scheduler/trigger", response_model=Dict[str, Any])
+def trigger_scheduler_now() -> Dict[str, Any]:
+    """Manually trigger the scheduler to run lifecycle checks immediately."""
+    scheduler = get_scheduler()
+    
+    if not scheduler.is_running:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Scheduler is not running"
+        )
+    
+    scheduler.run_now()
+    
+    return {
+        "status": "triggered",
+        "message": "Lifecycle check triggered successfully",
+        "triggered_at": datetime.now(UTC).isoformat()
+    }
 

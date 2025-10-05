@@ -15,6 +15,7 @@ from app.core.session import InMemorySessionMiddleware
 from app.core.supabase import get_supabase_client
 from app.core.rate_limit import limiter
 from app.web.templates import template_engine
+from app.services.scheduler import start_scheduler, stop_scheduler
 from app.api.routes import onboarding as onboarding_routes
 from app.api.routes import profile as profile_routes
 from app.api.routes import reports as reports_routes
@@ -83,7 +84,30 @@ def create_app() -> FastAPI:
         if client:
             app.state.supabase = client
             logger.info("Supabase client initialized successfully")
+            
+            # Start the Sambatan lifecycle scheduler
+            try:
+                scheduler = start_scheduler(interval_minutes=5)
+                app.state.sambatan_scheduler = scheduler
+                app.state.scheduler_healthy = True
+                logger.info("Sambatan lifecycle scheduler started successfully")
+            except Exception as e:
+                logger.error(f"Failed to start Sambatan scheduler: {e}", exc_info=True)
+                app.state.scheduler_healthy = False
+                logger.warning(
+                    "⚠️  Application running WITHOUT automated Sambatan lifecycle! "
+                    "Manual triggering via API will still work."
+                )
         else:
             logger.warning("Supabase client not available - using fallback storage")
+
+    @app.on_event("shutdown")
+    async def shutdown():
+        # Stop the scheduler on application shutdown
+        try:
+            stop_scheduler()
+            logger.info("Sambatan lifecycle scheduler stopped")
+        except Exception as e:
+            logger.error(f"Error stopping Sambatan scheduler: {e}")
 
     return app
