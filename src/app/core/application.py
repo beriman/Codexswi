@@ -58,7 +58,11 @@ def create_app() -> FastAPI:
     )
 
     # Mount static assets (CSS, JS, images) served by the Jinja2 templates.
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    # Only mount if the directory exists (may not be available in serverless deployments)
+    if STATIC_DIR.exists():
+        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    else:
+        logger.warning(f"Static directory not found at {STATIC_DIR}, skipping mount")
 
     # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)
@@ -80,26 +84,39 @@ def create_app() -> FastAPI:
     # Initialize Supabase client on startup
     @app.on_event("startup")
     async def startup():
-        client = get_supabase_client()
-        if client:
-            app.state.supabase = client
-            logger.info("Supabase client initialized successfully")
-            
-            # Start the Sambatan lifecycle scheduler
-            try:
-                scheduler = start_scheduler(interval_minutes=5)
-                app.state.sambatan_scheduler = scheduler
-                app.state.scheduler_healthy = True
-                logger.info("Sambatan lifecycle scheduler started successfully")
-            except Exception as e:
-                logger.error(f"Failed to start Sambatan scheduler: {e}", exc_info=True)
-                app.state.scheduler_healthy = False
-                logger.warning(
-                    "⚠️  Application running WITHOUT automated Sambatan lifecycle! "
-                    "Manual triggering via API will still work."
-                )
-        else:
-            logger.warning("Supabase client not available - using fallback storage")
+        try:
+            client = get_supabase_client()
+            if client:
+                app.state.supabase = client
+                logger.info("Supabase client initialized successfully")
+                
+                # Start the Sambatan lifecycle scheduler
+                # Skip scheduler in serverless environments (Vercel)
+                import os
+                is_vercel = os.getenv("VERCEL", "0") == "1"
+                
+                if not is_vercel:
+                    try:
+                        scheduler = start_scheduler(interval_minutes=5)
+                        app.state.sambatan_scheduler = scheduler
+                        app.state.scheduler_healthy = True
+                        logger.info("Sambatan lifecycle scheduler started successfully")
+                    except Exception as e:
+                        logger.error(f"Failed to start Sambatan scheduler: {e}", exc_info=True)
+                        app.state.scheduler_healthy = False
+                        logger.warning(
+                            "⚠️  Application running WITHOUT automated Sambatan lifecycle! "
+                            "Manual triggering via API will still work."
+                        )
+                else:
+                    logger.info("Running in Vercel serverless environment - scheduler disabled")
+                    app.state.scheduler_healthy = False
+            else:
+                logger.warning("Supabase client not available - using fallback storage")
+        except Exception as e:
+            logger.error(f"Error during startup: {e}", exc_info=True)
+            # Don't fail the startup, just log the error
+            app.state.scheduler_healthy = False
 
     @app.on_event("shutdown")
     async def shutdown():

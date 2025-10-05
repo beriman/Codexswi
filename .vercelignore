@@ -1,0 +1,30 @@
+# Test files
+tests/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Documentation
+docs/
+story/
+PRDshard/
+*.md
+!README.md
+
+# Development files
+.git/
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Supabase migrations (not needed in runtime)
+supabase/
