@@ -2,6 +2,13 @@
 
 This document explains how to deploy the Sensasiwangi.id application to Vercel.
 
+## Project Structure
+
+The application uses Vercel's modern serverless functions approach:
+- `api/index.py` - Main entry point for the serverless function
+- `src/` - Application source code
+- `vercel.json` - Vercel configuration using rewrites (not legacy builds)
+
 ## Required Environment Variables
 
 Configure the following environment variables in your Vercel project settings:
@@ -95,9 +102,9 @@ If static files (CSS/JS) are not loading:
 2. Check the `.vercelignore` file isn't excluding static files
 3. Review the application logs for static mount warnings
 
-### Python Version Mismatch
+### Python Version
 
-The application supports Python 3.11 and 3.12. Vercel will use Python 3.12 by default. This is compatible with the application.
+The application requires Python 3.12 or later. Vercel automatically detects and uses Python 3.12 based on the `pyproject.toml` configuration.
 
 ## Additional Resources
 
