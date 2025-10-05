@@ -13,9 +13,9 @@ from app.services.sambatan import (
 )
 
 
-def create_services() -> tuple[ProductService, SambatanService]:
+def create_services(fake_supabase_client) -> tuple[ProductService, SambatanService]:
     product_service = ProductService()
-    sambatan_service = SambatanService(product_service)
+    sambatan_service = SambatanService(product_service, db=fake_supabase_client)
     return product_service, sambatan_service
 
 
@@ -30,8 +30,8 @@ def enable_product(product_service: ProductService) -> str:
     return product.id
 
 
-def test_create_campaign_requires_enabled_product() -> None:
-    product_service, sambatan_service = create_services()
+def test_create_campaign_requires_enabled_product(fake_supabase_client) -> None:
+    product_service, sambatan_service = create_services(fake_supabase_client)
     product = product_service.create_product(name="Regular", base_price=100_000)
 
     with pytest.raises(SambatanError):
@@ -44,8 +44,8 @@ def test_create_campaign_requires_enabled_product() -> None:
         )
 
 
-def test_join_campaign_updates_progress_and_status() -> None:
-    product_service, sambatan_service = create_services()
+def test_join_campaign_updates_progress_and_status(fake_supabase_client) -> None:
+    product_service, sambatan_service = create_services(fake_supabase_client)
     product_id = enable_product(product_service)
     campaign = sambatan_service.create_campaign(
         product_id=product_id,
@@ -86,8 +86,8 @@ def test_join_campaign_updates_progress_and_status() -> None:
         )
 
 
-def test_lifecycle_completes_and_fails_based_on_deadline() -> None:
-    product_service, sambatan_service = create_services()
+def test_lifecycle_completes_and_fails_based_on_deadline(fake_supabase_client) -> None:
+    product_service, sambatan_service = create_services(fake_supabase_client)
     product_id = enable_product(product_service)
 
     complete_campaign = sambatan_service.create_campaign(
