@@ -10,6 +10,9 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Dict, Optional
 
+from supabase import Client
+
+from app.core.supabase import get_supabase_admin_client
 from app.services.email import send_verification_email
 
 
@@ -267,11 +270,258 @@ class SupabaseAuthRepository:
         return registration
 
 
+class SupabaseAuthRepositoryLive:
+    """Production repository using actual Supabase database connection."""
+
+    def __init__(self, client: Optional[Client] = None) -> None:
+        self._client = client or get_supabase_admin_client()
+        if not self._client:
+            raise RuntimeError("Supabase client not configured. Check your environment variables.")
+
+    # ``auth_accounts`` helpers -------------------------------------------------
+    def upsert_account(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        status: AccountStatus,
+    ) -> AuthUser:
+        now = datetime.now(UTC)
+        
+        # Check if account exists
+        result = self._client.table("auth_accounts").select("*").eq("email", email).execute()
+        
+        if result.data:
+            # Update existing account
+            account_data = result.data[0]
+            update_result = (
+                self._client.table("auth_accounts")
+                .update({
+                    "full_name": full_name,
+                    "password_hash": password_hash,
+                    "status": status.value,
+                    "updated_at": now.isoformat()
+                })
+                .eq("id", account_data["id"])
+                .execute()
+            )
+            account_data = update_result.data[0]
+        else:
+            # Insert new account
+            insert_result = (
+                self._client.table("auth_accounts")
+                .insert({
+                    "email": email,
+                    "full_name": full_name,
+                    "password_hash": password_hash,
+                    "status": status.value,
+                })
+                .execute()
+            )
+            account_data = insert_result.data[0]
+        
+        return AuthUser(
+            id=account_data["id"],
+            email=account_data["email"],
+            full_name=account_data["full_name"],
+            password_hash=account_data["password_hash"],
+            status=AccountStatus(account_data["status"]),
+            created_at=datetime.fromisoformat(account_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(account_data["updated_at"].replace("Z", "+00:00")),
+            last_login_at=datetime.fromisoformat(account_data["last_login_at"].replace("Z", "+00:00")) if account_data.get("last_login_at") else None,
+        )
+
+    def get_account_by_email(self, email: str) -> AuthUser:
+        result = self._client.table("auth_accounts").select("*").eq("email", email).execute()
+        
+        if not result.data:
+            raise AccountNotFound("Akun tidak ditemukan.")
+        
+        account_data = result.data[0]
+        return AuthUser(
+            id=account_data["id"],
+            email=account_data["email"],
+            full_name=account_data["full_name"],
+            password_hash=account_data["password_hash"],
+            status=AccountStatus(account_data["status"]),
+            created_at=datetime.fromisoformat(account_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(account_data["updated_at"].replace("Z", "+00:00")),
+            last_login_at=datetime.fromisoformat(account_data["last_login_at"].replace("Z", "+00:00")) if account_data.get("last_login_at") else None,
+        )
+
+    def set_account_status(self, account_id: str, status: AccountStatus) -> AuthUser:
+        now = datetime.now(UTC)
+        result = (
+            self._client.table("auth_accounts")
+            .update({"status": status.value, "updated_at": now.isoformat()})
+            .eq("id", account_id)
+            .execute()
+        )
+        
+        account_data = result.data[0]
+        return AuthUser(
+            id=account_data["id"],
+            email=account_data["email"],
+            full_name=account_data["full_name"],
+            password_hash=account_data["password_hash"],
+            status=AccountStatus(account_data["status"]),
+            created_at=datetime.fromisoformat(account_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(account_data["updated_at"].replace("Z", "+00:00")),
+            last_login_at=datetime.fromisoformat(account_data["last_login_at"].replace("Z", "+00:00")) if account_data.get("last_login_at") else None,
+        )
+
+    def record_login(self, account_id: str, timestamp: datetime) -> AuthUser:
+        result = (
+            self._client.table("auth_accounts")
+            .update({
+                "last_login_at": timestamp.isoformat(),
+                "updated_at": timestamp.isoformat()
+            })
+            .eq("id", account_id)
+            .execute()
+        )
+        
+        account_data = result.data[0]
+        return AuthUser(
+            id=account_data["id"],
+            email=account_data["email"],
+            full_name=account_data["full_name"],
+            password_hash=account_data["password_hash"],
+            status=AccountStatus(account_data["status"]),
+            created_at=datetime.fromisoformat(account_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(account_data["updated_at"].replace("Z", "+00:00")),
+            last_login_at=datetime.fromisoformat(account_data["last_login_at"].replace("Z", "+00:00")) if account_data.get("last_login_at") else None,
+        )
+
+    # ``onboarding_registrations`` helpers -------------------------------------
+    def upsert_registration(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        token: str,
+        expires_at: datetime,
+    ) -> AuthRegistration:
+        now = datetime.now(UTC)
+        
+        # Check if registration exists
+        result = self._client.table("onboarding_registrations").select("*").eq("email", email).execute()
+        
+        if result.data:
+            # Update existing registration
+            registration_data = result.data[0]
+            update_result = (
+                self._client.table("onboarding_registrations")
+                .update({
+                    "full_name": full_name,
+                    "password_hash": password_hash,
+                    "verification_token": token,
+                    "verification_expires_at": expires_at.isoformat(),
+                    "verification_sent_at": now.isoformat(),
+                    "status": "registered",
+                })
+                .eq("id", registration_data["id"])
+                .execute()
+            )
+            registration_data = update_result.data[0]
+        else:
+            # Insert new registration
+            insert_result = (
+                self._client.table("onboarding_registrations")
+                .insert({
+                    "email": email,
+                    "full_name": full_name,
+                    "password_hash": password_hash,
+                    "verification_token": token,
+                    "verification_sent_at": now.isoformat(),
+                    "verification_expires_at": expires_at.isoformat(),
+                    "status": "registered",
+                })
+                .execute()
+            )
+            registration_data = insert_result.data[0]
+        
+        return AuthRegistration(
+            id=registration_data["id"],
+            email=registration_data["email"],
+            full_name=registration_data["full_name"],
+            password_hash=registration_data.get("password_hash", ""),
+            verification_token=registration_data.get("verification_token"),
+            verification_sent_at=datetime.fromisoformat(registration_data["verification_sent_at"].replace("Z", "+00:00")) if registration_data.get("verification_sent_at") else None,
+            verification_expires_at=datetime.fromisoformat(registration_data["verification_expires_at"].replace("Z", "+00:00")) if registration_data.get("verification_expires_at") else None,
+            status=registration_data["status"],
+            created_at=datetime.fromisoformat(registration_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(registration_data["updated_at"].replace("Z", "+00:00")),
+        )
+
+    def get_registration_by_token(self, token: str) -> AuthRegistration:
+        result = (
+            self._client.table("onboarding_registrations")
+            .select("*")
+            .eq("verification_token", token)
+            .execute()
+        )
+        
+        if not result.data:
+            raise VerificationTokenInvalid("Token verifikasi tidak ditemukan.")
+        
+        registration_data = result.data[0]
+        return AuthRegistration(
+            id=registration_data["id"],
+            email=registration_data["email"],
+            full_name=registration_data["full_name"],
+            password_hash=registration_data.get("password_hash", ""),
+            verification_token=registration_data.get("verification_token"),
+            verification_sent_at=datetime.fromisoformat(registration_data["verification_sent_at"].replace("Z", "+00:00")) if registration_data.get("verification_sent_at") else None,
+            verification_expires_at=datetime.fromisoformat(registration_data["verification_expires_at"].replace("Z", "+00:00")) if registration_data.get("verification_expires_at") else None,
+            status=registration_data["status"],
+            created_at=datetime.fromisoformat(registration_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(registration_data["updated_at"].replace("Z", "+00:00")),
+        )
+
+    def mark_registration_verified(self, registration_id: str) -> AuthRegistration:
+        now = datetime.now(UTC)
+        result = (
+            self._client.table("onboarding_registrations")
+            .update({
+                "status": "email_verified",
+                "verification_token": None,
+                "verification_expires_at": now.isoformat(),
+            })
+            .eq("id", registration_id)
+            .execute()
+        )
+        
+        registration_data = result.data[0]
+        return AuthRegistration(
+            id=registration_data["id"],
+            email=registration_data["email"],
+            full_name=registration_data["full_name"],
+            password_hash=registration_data.get("password_hash", ""),
+            verification_token=registration_data.get("verification_token"),
+            verification_sent_at=datetime.fromisoformat(registration_data["verification_sent_at"].replace("Z", "+00:00")) if registration_data.get("verification_sent_at") else None,
+            verification_expires_at=datetime.fromisoformat(registration_data["verification_expires_at"].replace("Z", "+00:00")) if registration_data.get("verification_expires_at") else None,
+            status=registration_data["status"],
+            created_at=datetime.fromisoformat(registration_data["created_at"].replace("Z", "+00:00")),
+            updated_at=datetime.fromisoformat(registration_data["updated_at"].replace("Z", "+00:00")),
+        )
+
+
 class AuthService:
     """Authentication workflow backed by the Supabase repository."""
 
-    def __init__(self, repository: Optional[SupabaseAuthRepository] = None) -> None:
-        self._repository = repository or SupabaseAuthRepository()
+    def __init__(self, repository: Optional[SupabaseAuthRepository | SupabaseAuthRepositoryLive] = None) -> None:
+        if repository is None:
+            # Try to use live Supabase connection if configured, otherwise fall back to in-memory
+            try:
+                self._repository = SupabaseAuthRepositoryLive()
+            except RuntimeError:
+                # Supabase not configured, use in-memory for testing
+                self._repository = SupabaseAuthRepository()
+        else:
+            self._repository = repository
 
     def register_user(self, *, email: str, full_name: str, password: str) -> RegistrationResult:
         normalized_email = email.strip().lower()
