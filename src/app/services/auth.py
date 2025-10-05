@@ -8,7 +8,12 @@ import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
+
+try:
+    from supabase import Client
+except ImportError:
+    Client = None  # type: ignore
 
 from app.services.email import send_verification_email
 
@@ -139,6 +144,181 @@ class VerificationTokenExpired(VerificationError):
 
 
 class SupabaseAuthRepository:
+    """Real Supabase repository using auth_accounts and onboarding_registrations tables."""
+
+    def __init__(self, db: Optional[Client] = None) -> None:
+        self.db = db
+
+    def _map_account(self, data: Dict[str, Any]) -> AuthUser:
+        """Map Supabase row to AuthUser dataclass."""
+        return AuthUser(
+            id=data['id'],
+            email=data['email'],
+            full_name=data['full_name'],
+            password_hash=data['password_hash'],
+            status=AccountStatus(data['status']),
+            created_at=datetime.fromisoformat(data['created_at']) if isinstance(data['created_at'], str) else data['created_at'],
+            updated_at=datetime.fromisoformat(data['updated_at']) if isinstance(data['updated_at'], str) else data['updated_at'],
+            last_login_at=datetime.fromisoformat(data['last_login_at']) if data.get('last_login_at') and isinstance(data['last_login_at'], str) else data.get('last_login_at'),
+        )
+
+    def _map_registration(self, data: Dict[str, Any]) -> AuthRegistration:
+        """Map Supabase row to AuthRegistration dataclass."""
+        return AuthRegistration(
+            id=data['id'],
+            email=data['email'],
+            full_name=data['full_name'],
+            password_hash=data['password_hash'],
+            verification_token=data.get('verification_token'),
+            verification_sent_at=datetime.fromisoformat(data['verification_sent_at']) if data.get('verification_sent_at') and isinstance(data['verification_sent_at'], str) else data.get('verification_sent_at'),
+            verification_expires_at=datetime.fromisoformat(data['verification_expires_at']) if data.get('verification_expires_at') and isinstance(data['verification_expires_at'], str) else data.get('verification_expires_at'),
+            status=data.get('status', 'registered'),
+            created_at=datetime.fromisoformat(data['created_at']) if isinstance(data['created_at'], str) else data['created_at'],
+            updated_at=datetime.fromisoformat(data['updated_at']) if isinstance(data['updated_at'], str) else data['updated_at'],
+        )
+
+    # ``auth_accounts`` helpers -------------------------------------------------
+    def upsert_account(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        status: AccountStatus,
+    ) -> AuthUser:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        # Check if account exists
+        existing = self.db.table('auth_accounts').select('*').eq('email', email).execute()
+
+        if existing.data:
+            # Update existing account
+            account_data = {
+                'full_name': full_name,
+                'password_hash': password_hash,
+                'status': status.value,
+                'updated_at': datetime.now(UTC).isoformat()
+            }
+            result = self.db.table('auth_accounts').update(account_data).eq('email', email).execute()
+            return self._map_account(result.data[0])
+        else:
+            # Create new account
+            account_data = {
+                'email': email,
+                'full_name': full_name,
+                'password_hash': password_hash,
+                'status': status.value
+            }
+            result = self.db.table('auth_accounts').insert(account_data).execute()
+            return self._map_account(result.data[0])
+
+    def get_account_by_email(self, email: str) -> AuthUser:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        result = self.db.table('auth_accounts').select('*').eq('email', email).execute()
+
+        if not result.data:
+            raise AccountNotFound("Akun tidak ditemukan.")
+
+        return self._map_account(result.data[0])
+
+    def set_account_status(self, account_id: str, status: AccountStatus) -> AuthUser:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        update_data = {
+            'status': status.value,
+            'updated_at': datetime.now(UTC).isoformat()
+        }
+        result = self.db.table('auth_accounts').update(update_data).eq('id', account_id).execute()
+
+        if not result.data:
+            raise AccountNotFound("Akun tidak ditemukan.")
+
+        return self._map_account(result.data[0])
+
+    def record_login(self, account_id: str, timestamp: datetime) -> AuthUser:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        update_data = {
+            'last_login_at': timestamp.isoformat(),
+            'updated_at': timestamp.isoformat()
+        }
+        result = self.db.table('auth_accounts').update(update_data).eq('id', account_id).execute()
+
+        if not result.data:
+            raise AccountNotFound("Akun tidak ditemukan.")
+
+        return self._map_account(result.data[0])
+
+    # ``onboarding_registrations`` helpers -------------------------------------
+    def upsert_registration(
+        self,
+        *,
+        email: str,
+        full_name: str,
+        password_hash: str,
+        token: str,
+        expires_at: datetime,
+    ) -> AuthRegistration:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        # Check if registration exists
+        existing = self.db.table('onboarding_registrations').select('*').eq('email', email).execute()
+
+        registration_data = {
+            'email': email,
+            'full_name': full_name,
+            'password_hash': password_hash,
+            'verification_token': token,
+            'verification_sent_at': datetime.now(UTC).isoformat(),
+            'verification_expires_at': expires_at.isoformat(),
+            'status': 'registered'
+        }
+
+        if existing.data:
+            # Update existing registration
+            result = self.db.table('onboarding_registrations').update(registration_data).eq('email', email).execute()
+            return self._map_registration(result.data[0])
+        else:
+            # Create new registration
+            result = self.db.table('onboarding_registrations').insert(registration_data).execute()
+            return self._map_registration(result.data[0])
+
+    def get_registration_by_token(self, token: str) -> AuthRegistration:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        result = self.db.table('onboarding_registrations').select('*').eq('verification_token', token).execute()
+
+        if not result.data:
+            raise VerificationTokenInvalid("Token verifikasi tidak ditemukan.")
+
+        return self._map_registration(result.data[0])
+
+    def mark_registration_verified(self, registration_id: str) -> AuthRegistration:
+        if not self.db:
+            raise AuthError("Database not available")
+
+        update_data = {
+            'status': 'email_verified',
+            'verification_token': None,
+            'verification_expires_at': datetime.now(UTC).isoformat(),
+            'updated_at': datetime.now(UTC).isoformat()
+        }
+        result = self.db.table('onboarding_registrations').update(update_data).eq('id', registration_id).execute()
+
+        if not result.data:
+            raise VerificationError("Registrasi tidak ditemukan.")
+
+        return self._map_registration(result.data[0])
+
+
+class InMemoryAuthRepository:
     """In-memory repository simulating Supabase ``auth`` tables.
 
     The tests exercise behaviour without a real Supabase instance, therefore the
@@ -270,8 +450,15 @@ class SupabaseAuthRepository:
 class AuthService:
     """Authentication workflow backed by the Supabase repository."""
 
-    def __init__(self, repository: Optional[SupabaseAuthRepository] = None) -> None:
-        self._repository = repository or SupabaseAuthRepository()
+    def __init__(self, repository = None, db: Optional[Client] = None) -> None:
+        if repository is not None:
+            self._repository = repository
+        elif db is not None:
+            # Use Supabase if db client is provided
+            self._repository = SupabaseAuthRepository(db)
+        else:
+            # Fall back to in-memory for tests
+            self._repository = InMemoryAuthRepository()
 
     def register_user(self, *, email: str, full_name: str, password: str) -> RegistrationResult:
         normalized_email = email.strip().lower()

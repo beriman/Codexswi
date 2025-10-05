@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
+try:
+    from supabase import Client
+except ImportError:
+    Client = None  # type: ignore
+
+from app.core.dependencies import get_db
 from app.services.auth import (
     AccountStatus,
     AuthService,
@@ -65,7 +72,9 @@ class SessionResponse(BaseModel):
     user: dict | None = None
 
 
-def get_auth_service() -> AuthService:
+def get_auth_service(db: Optional[Client] = Depends(get_db)) -> AuthService:
+    if db:
+        return AuthService(db=db)
     return auth_service
 
 
