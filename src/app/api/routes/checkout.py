@@ -116,8 +116,8 @@ async def create_order(
             channel='marketplace'
         )
         
-        # Clear cart after successful order creation
-        cart_service.clear_cart(request.session)
+        # Don't clear cart yet - wait until confirmation page is reached
+        # This prevents cart loss if user closes browser before redirect
         
         logger.info(f"Order created successfully: {order['order_number']}")
         
@@ -149,6 +149,17 @@ async def order_confirmation(
 ):
     """Display order confirmation page after successful checkout."""
     
+    # Verify user is logged in first
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse(
+            url=f"/auth/login?next=/order/confirmation/{order_id}", 
+            status_code=303
+        )
+    
+    # Clear cart after reaching confirmation (moved from checkout)
+    cart_service.clear_cart(request.session)
+    
     order_service = OrderService(db)
     order = await order_service.get_order(order_id)
     
@@ -156,8 +167,8 @@ async def order_confirmation(
         raise HTTPException(status_code=404, detail="Pesanan tidak ditemukan")
     
     # Verify that the order belongs to the current user
-    user = request.session.get('user')
-    if user and order.get('customer_id') != user.get('id'):
+    if order.get('customer_id') != user.get('id'):
+        logger.warning(f"User {user.get('id')} attempted to access order {order_id} owned by {order.get('customer_id')}")
         raise HTTPException(status_code=403, detail="Akses ditolak")
     
     templates = request.app.state.templates
@@ -179,6 +190,14 @@ async def order_details(
 ):
     """Display order details and tracking page."""
     
+    # Verify user is logged in first
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse(
+            url=f"/auth/login?next=/order/{order_id}", 
+            status_code=303
+        )
+    
     order_service = OrderService(db)
     order = await order_service.get_order(order_id)
     
@@ -186,8 +205,8 @@ async def order_details(
         raise HTTPException(status_code=404, detail="Pesanan tidak ditemukan")
     
     # Verify that the order belongs to the current user
-    user = request.session.get('user')
-    if user and order.get('customer_id') != user.get('id'):
+    if order.get('customer_id') != user.get('id'):
+        logger.warning(f"User {user.get('id')} attempted to access order {order_id} owned by {order.get('customer_id')}")
         raise HTTPException(status_code=403, detail="Akses ditolak")
     
     templates = request.app.state.templates
