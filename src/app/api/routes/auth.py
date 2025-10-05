@@ -14,6 +14,7 @@ except ImportError:
     Client = None  # type: ignore
 
 from app.core.dependencies import get_db
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.services.auth import (
     AccountStatus,
     AuthService,
@@ -103,7 +104,8 @@ def _handle_registration_result(result: RegistrationResult) -> RegisterResponse:
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-def register_user(payload: RegisterRequest, service: AuthService = Depends(get_auth_service)) -> RegisterResponse:
+@limiter.limit(RATE_LIMITS["auth_register"])
+def register_user(request: Request, payload: RegisterRequest, service: AuthService = Depends(get_auth_service)) -> RegisterResponse:
     try:
         result = service.register_user(
             email=payload.email,
@@ -117,8 +119,9 @@ def register_user(payload: RegisterRequest, service: AuthService = Depends(get_a
 
 
 @router.post("/verify", response_model=VerificationResponse)
+@limiter.limit(RATE_LIMITS["auth_verify"])
 def verify_user(
-    payload: VerificationRequest, service: AuthService = Depends(get_auth_service)
+    request: Request, payload: VerificationRequest, service: AuthService = Depends(get_auth_service)
 ) -> VerificationResponse:
     try:
         user = service.verify_email(token=payload.token)
@@ -135,6 +138,7 @@ def verify_user(
 
 
 @router.post("/login", response_model=AuthPayload)
+@limiter.limit(RATE_LIMITS["auth_login"])
 async def login_user(
     request: Request,
     payload: LoginRequest | None = Body(None),

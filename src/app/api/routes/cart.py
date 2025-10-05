@@ -3,12 +3,14 @@
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from app.core.rate_limit import limiter, RATE_LIMITS
 from app.services.cart import cart_service
 
 router = APIRouter(tags=["cart"])
 
 
 @router.post("/api/cart/add")
+@limiter.limit(RATE_LIMITS["cart_add"])
 async def add_to_cart(
     request: Request,
     product_id: str = Form(...),

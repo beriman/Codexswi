@@ -1,5 +1,6 @@
 """Order management service for marketplace transactions."""
 
+import logging
 from datetime import datetime, UTC
 from typing import List, Dict, Any, Optional
 from decimal import Decimal
@@ -8,6 +9,8 @@ try:
     from supabase import Client
 except ImportError:
     Client = None  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 
 class OrderError(Exception):
@@ -44,13 +47,19 @@ class OrderService:
     ) -> Dict[str, Any]:
         """Create a new order with items and shipping address."""
         if not self.db:
+            logger.error("Order creation attempted without database connection")
             raise OrderError("Database connection required for order operations")
 
         # Generate order number
         order_number = self._generate_order_number()
+        logger.info(f"Creating order {order_number} for customer {customer_id} with {len(items)} items")
 
         # Validate stock
-        await self._validate_stock(items)
+        try:
+            await self._validate_stock(items)
+        except InsufficientStock as e:
+            logger.warning(f"Order creation failed for {order_number}: {str(e)}")
+            raise
 
         # Calculate totals
         subtotal = sum(
@@ -118,6 +127,7 @@ class OrderService:
             note="Order dibuat"
         )
 
+        logger.info(f"Order {order_number} created successfully with ID {order_id}")
         return order
 
     async def update_order_status(
@@ -130,13 +140,17 @@ class OrderService:
     ):
         """Update order status and log the change."""
         if not self.db:
+            logger.error("Order status update attempted without database connection")
             raise OrderError("Database connection required")
+
+        logger.info(f"Updating order {order_id} status to {new_status} by actor {actor_id}")
 
         # Get current order
         order_result = self.db.table('orders').select('status, payment_status').eq('id', order_id).execute()
 
         if not order_result.data:
-            raise OrderNotFound("Order tidak ditemukan")
+            logger.warning(f"Order status update failed: order {order_id} not found")
+            raise OrderNotFound(f"Order dengan ID {order_id} tidak ditemukan")
 
         current_order = order_result.data[0]
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import secrets
 import re
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Dict, Iterable, Optional, List, Any
@@ -12,6 +13,8 @@ try:
     from supabase import Client
 except ImportError:
     Client = None  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 
 class ProductError(Exception):
@@ -105,8 +108,10 @@ class ProductService:
         description: Optional[str] = None,
     ) -> Product:
         if base_price <= 0:
-            raise ProductError("Harga dasar produk harus lebih dari 0.")
+            logger.warning(f"Product creation failed: invalid price {base_price}")
+            raise ProductError("Harga dasar produk harus lebih dari 0 (minimal Rp 1).")
 
+        logger.info(f"Creating product: {name} with price {base_price}")
         now = datetime.now(UTC)
 
         if self.db:

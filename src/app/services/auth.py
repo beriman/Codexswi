@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 import secrets
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
@@ -15,7 +16,15 @@ try:
 except ImportError:
     Client = None  # type: ignore
 
+try:
+    import bcrypt
+    BCRYPT_AVAILABLE = True
+except ImportError:
+    BCRYPT_AVAILABLE = False
+
 from app.services.email import send_verification_email
+
+logger = logging.getLogger(__name__)
 
 
 class AuthError(Exception):
@@ -118,7 +127,39 @@ class RegistrationResult:
 
 
 def _hash_password(raw: str) -> str:
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    """Hash password using bcrypt if available, fallback to SHA-256.
+    
+    Note: SHA-256 is NOT recommended for production. This fallback exists
+    only for development/testing environments without bcrypt installed.
+    """
+    if BCRYPT_AVAILABLE:
+        # Use bcrypt with a cost factor of 12 (good balance of security and performance)
+        salt = bcrypt.gensalt(rounds=12)
+        hashed = bcrypt.hashpw(raw.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+    else:
+        logger.warning("bcrypt not available, using SHA-256 fallback (NOT SECURE for production!)")
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _verify_password(raw: str, hashed: str) -> bool:
+    """Verify password against hash using appropriate method.
+    
+    Detects whether the hash is bcrypt or SHA-256 and uses the correct verification.
+    """
+    if hashed.startswith('$2b$') or hashed.startswith('$2a$'):
+        # This is a bcrypt hash
+        if not BCRYPT_AVAILABLE:
+            logger.error("Attempting to verify bcrypt hash but bcrypt not installed!")
+            return False
+        try:
+            return bcrypt.checkpw(raw.encode('utf-8'), hashed.encode('utf-8'))
+        except Exception as e:
+            logger.error(f"bcrypt verification failed: {e}")
+            return False
+    else:
+        # Assume SHA-256 hash (legacy/fallback)
+        return secrets.compare_digest(hashed, hashlib.sha256(raw.encode("utf-8")).hexdigest())
 
 
 class AccountNotFound(AuthError):
@@ -462,6 +503,10 @@ class AuthService:
 
     def register_user(self, *, email: str, full_name: str, password: str) -> RegistrationResult:
         normalized_email = email.strip().lower()
+        
+        logger.info(f"Registration attempt for email: {normalized_email}")
+        
+        # Validate inputs
         self._validate_email(normalized_email)
         self._validate_full_name(full_name)
         self._validate_password(password)
@@ -474,59 +519,89 @@ class AuthService:
             existing_account = None
 
         if existing_account:
+            logger.warning(f"Registration failed: email already exists {normalized_email}")
             raise UserAlreadyExists("Email sudah terdaftar. Silakan login.")
 
         verification_token = secrets.token_urlsafe(24)
         verification_expires = datetime.now(UTC) + timedelta(hours=24)
 
-        account = self._repository.upsert_account(
-            email=normalized_email,
-            full_name=full_name.strip(),
-            password_hash=password_hash,
-            status=AccountStatus.PENDING_VERIFICATION,
-        )
+        try:
+            account = self._repository.upsert_account(
+                email=normalized_email,
+                full_name=full_name.strip(),
+                password_hash=password_hash,
+                status=AccountStatus.PENDING_VERIFICATION,
+            )
 
-        registration = self._repository.upsert_registration(
-            email=normalized_email,
-            full_name=full_name.strip(),
-            password_hash=password_hash,
-            token=verification_token,
-            expires_at=verification_expires,
-        )
+            registration = self._repository.upsert_registration(
+                email=normalized_email,
+                full_name=full_name.strip(),
+                password_hash=password_hash,
+                token=verification_token,
+                expires_at=verification_expires,
+            )
 
-        send_verification_email(account.email, verification_token)
-
-        return RegistrationResult(account=account, registration=registration)
+            send_verification_email(account.email, verification_token)
+            
+            logger.info(f"Registration successful for {normalized_email}, account_id: {account.id}")
+            
+            return RegistrationResult(account=account, registration=registration)
+        except Exception as e:
+            logger.error(f"Registration failed for {normalized_email}: {str(e)}")
+            raise AuthError(f"Gagal mendaftarkan akun: {str(e)}")
 
     def verify_email(self, *, token: str) -> AuthUser:
-        registration = self._repository.get_registration_by_token(token)
+        logger.info(f"Email verification attempt with token: {token[:10]}...")
+        
+        try:
+            registration = self._repository.get_registration_by_token(token)
+        except VerificationTokenInvalid as e:
+            logger.warning(f"Email verification failed: invalid token {token[:10]}...")
+            raise
+        
         now = datetime.now(UTC)
         if registration.verification_expires_at and registration.verification_expires_at < now:
-            raise VerificationTokenExpired("Token verifikasi sudah kedaluwarsa.")
+            logger.warning(f"Email verification failed: expired token for {registration.email}")
+            raise VerificationTokenExpired(
+                "Token verifikasi sudah kedaluwarsa. Silakan minta tautan verifikasi baru."
+            )
 
-        account = self._repository.get_account_by_email(registration.email)
-        account = self._repository.set_account_status(account.id, AccountStatus.ACTIVE)
-        self._repository.mark_registration_verified(registration.id)
-        return account
+        try:
+            account = self._repository.get_account_by_email(registration.email)
+            account = self._repository.set_account_status(account.id, AccountStatus.ACTIVE)
+            self._repository.mark_registration_verified(registration.id)
+            
+            logger.info(f"Email verification successful for {registration.email}")
+            return account
+        except Exception as e:
+            logger.error(f"Email verification failed for {registration.email}: {str(e)}")
+            raise AuthError(f"Gagal memverifikasi email: {str(e)}")
 
     def verify_registration(self, *, token: str) -> AuthUser:
         return self.verify_email(token=token)
 
     def authenticate(self, *, email: str, password: str) -> AuthUser:
         normalized_email = email.strip().lower()
+        
+        logger.info(f"Authentication attempt for email: {normalized_email}")
+        
         try:
             user = self._repository.get_account_by_email(normalized_email)
         except AccountNotFound as exc:
+            logger.warning(f"Authentication failed: account not found for {normalized_email}")
             raise InvalidCredentials("Email atau password salah.") from exc
 
         if user.status is AccountStatus.DISABLED:
+            logger.warning(f"Authentication failed: disabled account {normalized_email}")
             raise InvalidCredentials("Akun belum aktif. Selesaikan verifikasi email terlebih dahulu.")
 
-        if not secrets.compare_digest(user.password_hash, _hash_password(password)):
+        if not _verify_password(password, user.password_hash):
+            logger.warning(f"Authentication failed: invalid password for {normalized_email}")
             raise InvalidCredentials("Email atau password salah.")
 
         now = datetime.now(UTC)
         self._repository.record_login(user.id, now)
+        logger.info(f"Authentication successful for {normalized_email}")
         return user
 
     def _validate_email(self, email: str) -> None:
