@@ -8,10 +8,14 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Dict, Iterable, List, Optional
 
-from supabase import Client
+try:
+    from supabase import Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    Client = None  # type: ignore
+    SUPABASE_AVAILABLE = False
 
 from app.core.supabase import get_supabase_client, require_supabase
-from app.services.products import ProductService, product_service
 
 
 def _coerce_utc(value: Optional[datetime] = None) -> datetime:
@@ -150,10 +154,14 @@ class SambatanService:
 
     def __init__(
         self, 
-        catalog_service: ProductService | None = None,
-        db: Client | None = None
+        catalog_service: Optional["ProductService"] = None,
+        db: Optional[Client] = None
     ) -> None:
-        self._product_service = catalog_service or product_service
+        # Lazy import to avoid circular dependency
+        if catalog_service is None:
+            from app.services.products import product_service
+            catalog_service = product_service
+        self._product_service = catalog_service
         self._db = db
 
     def _get_db(self) -> Client:
