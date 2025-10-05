@@ -4,12 +4,14 @@ from app.services.auth import (
     AuthService,
     InvalidCredentials,
     PasswordPolicyError,
+    SupabaseAuthRepository,
     UserAlreadyExists,
 )
 
 
 def test_register_and_authenticate_user():
-    service = AuthService()
+    # Use in-memory repository for testing
+    service = AuthService(repository=SupabaseAuthRepository())
 
     user = service.register_user(
         email="tester@example.com",
@@ -25,7 +27,8 @@ def test_register_and_authenticate_user():
 
 
 def test_register_duplicate_email():
-    service = AuthService()
+    # Use in-memory repository for testing
+    service = AuthService(repository=SupabaseAuthRepository())
     service.register_user(email="tester@example.com", full_name="Tester", password="Password123")
 
     with pytest.raises(UserAlreadyExists):
@@ -33,7 +36,8 @@ def test_register_duplicate_email():
 
 
 def test_password_policy_enforced():
-    service = AuthService()
+    # Use in-memory repository for testing
+    service = AuthService(repository=SupabaseAuthRepository())
 
     with pytest.raises(PasswordPolicyError):
         service.register_user(email="tester@example.com", full_name="Tester", password="short")
@@ -43,7 +47,8 @@ def test_password_policy_enforced():
 
 
 def test_invalid_credentials_raise_error():
-    service = AuthService()
+    # Use in-memory repository for testing
+    service = AuthService(repository=SupabaseAuthRepository())
     service.register_user(email="tester@example.com", full_name="Tester", password="Password123")
 
     with pytest.raises(InvalidCredentials):
