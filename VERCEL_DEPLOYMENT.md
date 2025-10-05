@@ -90,11 +90,31 @@ Check application logs at: `https://your-deployment-url/_logs`
 
 ### FUNCTION_INVOCATION_FAILED Error
 
-If you see this error:
-1. Check that all required environment variables are set
-2. Review logs at `/_logs` endpoint
-3. Ensure `SESSION_SECRET` is at least 32 characters
-4. Verify Supabase credentials are correct
+If you see this error, it typically means the serverless function cannot start. Common causes and solutions:
+
+1. **Python Version Mismatch**: 
+   - Ensure `runtime.txt` specifies `python-3.11`
+   - Vercel currently has best support for Python 3.9 and 3.11
+   - Python 3.12+ may not be fully supported yet
+
+2. **Missing Environment Variables**:
+   - Check that all required environment variables are set in Vercel dashboard
+   - Use `vercel env ls` to list configured variables
+   - Ensure `SESSION_SECRET` is at least 32 characters in production
+
+3. **Import Errors**:
+   - Verify all dependencies in `requirements.txt` are compatible
+   - Check Vercel build logs for import errors
+   - Ensure `mangum` is included in dependencies
+
+4. **Configuration Issues**:
+   - Verify `vercel.json` has proper `functions` and `rewrites` configuration
+   - Check that `api/index.py` exports a `handler` variable
+   - Review logs at `/_logs` endpoint (if accessible)
+
+5. **Supabase Credentials**:
+   - Verify Supabase credentials are correct
+   - The app will start without Supabase, but some features won't work
 
 ### Static Files Not Loading
 
@@ -105,7 +125,7 @@ If static files (CSS/JS) are not loading:
 
 ### Python Version
 
-The application requires Python 3.12 or later. Vercel automatically detects and uses Python 3.12 based on the `pyproject.toml` configuration.
+The application requires Python 3.11 or later. Vercel uses Python 3.11 as specified in the `runtime.txt` file. This ensures compatibility with Vercel's serverless Python runtime.
 
 ### Mangum Handler
 

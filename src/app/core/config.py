@@ -61,6 +61,20 @@ def get_settings() -> Settings:
         return settings
     except Exception as e:
         logger.error(f"Failed to load settings: {e}", exc_info=True)
-        # Return settings with defaults only
-        logger.warning("Using default settings without environment variables")
-        return Settings(_env_file=None)
+        # Try to create settings without loading .env file
+        logger.warning("Using default settings without .env file")
+        try:
+            # Create a new Settings class with env_file disabled
+            class SettingsNoEnv(Settings):
+                model_config = SettingsConfigDict(
+                    env_file=None,
+                    env_file_encoding="utf-8",
+                    extra="ignore"
+                )
+            return SettingsNoEnv()
+        except Exception as e2:
+            logger.error(f"Failed to create default settings: {e2}", exc_info=True)
+            raise RuntimeError(
+                "Unable to initialize application settings. "
+                "Please ensure required environment variables are set or check the error logs."
+            ) from e
