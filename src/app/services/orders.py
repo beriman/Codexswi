@@ -251,25 +251,29 @@ class OrderService:
                 )
 
     async def _reserve_inventory(self, order_id: str, items: List[Dict]) -> None:
-        """Reserve inventory for order items."""
+        """Reserve inventory for order items using atomic database function."""
         if not self.db:
             return
 
         for item in items:
-            # Update marketplace listing - increment stock_reserved
-            listing = self.db.table('marketplace_listings') \
-                .select('stock_reserved') \
-                .eq('product_id', item['product_id']) \
-                .execute()
+            try:
+                # Use atomic function from migration 0004 to prevent race conditions
+                self.db.rpc('reserve_stock', {
+                    'p_product_id': item['product_id'],
+                    'p_quantity': item['quantity']
+                }).execute()
+                
+                logger.debug(f"Reserved {item['quantity']} units of {item['product_id']} for order {order_id}")
+                
+            except Exception as e:
+                # If reservation fails, this will bubble up and prevent order creation
+                logger.error(f"Failed to reserve stock for {item['product_id']}: {str(e)}")
+                raise InsufficientStock(
+                    f"Gagal mereservasi stok untuk {item['product_name']}. "
+                    f"Mungkin stok telah habis atau sedang direservasi."
+                )
 
-            if listing.data:
-                new_reserved = listing.data[0]['stock_reserved'] + item['quantity']
-                self.db.table('marketplace_listings') \
-                    .update({'stock_reserved': new_reserved}) \
-                    .eq('product_id', item['product_id']) \
-                    .execute()
-
-            # Log adjustment
+            # Log adjustment for audit trail
             adjustment_data = {
                 'product_id': item['product_id'],
                 'adjustment': -item['quantity'],
@@ -281,7 +285,7 @@ class OrderService:
             self.db.table('marketplace_inventory_adjustments').insert(adjustment_data).execute()
 
     async def _release_inventory(self, order_id: str) -> None:
-        """Release reserved inventory for cancelled order."""
+        """Release reserved inventory for cancelled order using atomic database function."""
         if not self.db:
             return
 
@@ -292,20 +296,20 @@ class OrderService:
             .execute()
 
         for item in items_result.data:
-            # Update marketplace listing - decrement stock_reserved
-            listing = self.db.table('marketplace_listings') \
-                .select('stock_reserved') \
-                .eq('product_id', item['product_id']) \
-                .execute()
+            try:
+                # Use atomic function from migration 0004
+                self.db.rpc('release_stock', {
+                    'p_product_id': item['product_id'],
+                    'p_quantity': item['quantity']
+                }).execute()
+                
+                logger.debug(f"Released {item['quantity']} units of {item['product_id']} from order {order_id}")
+                
+            except Exception as e:
+                # Log but don't fail - product might have been deleted
+                logger.warning(f"Failed to release stock for {item['product_id']}: {str(e)}")
 
-            if listing.data:
-                new_reserved = max(0, listing.data[0]['stock_reserved'] - item['quantity'])
-                self.db.table('marketplace_listings') \
-                    .update({'stock_reserved': new_reserved}) \
-                    .eq('product_id', item['product_id']) \
-                    .execute()
-
-            # Log adjustment
+            # Log adjustment for audit trail
             adjustment_data = {
                 'product_id': item['product_id'],
                 'adjustment': item['quantity'],

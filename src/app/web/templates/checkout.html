@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <nav class="text-sm breadcrumbs">
+            <ul class="flex space-x-2 text-gray-600">
+                <li><a href="/marketplace" class="hover:text-blue-600">Marketplace</a></li>
+                <li>›</li>
+                <li><a href="/cart" class="hover:text-blue-600">Keranjang</a></li>
+                <li>›</li>
+                <li class="text-blue-600 font-semibold">Checkout</li>
+            </ul>
+        </nav>
+    </div>
+
+    <h1 class="text-3xl font-bold mb-8">Checkout</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Checkout Form -->
+        <div class="lg:col-span-2">
+            <form action="/api/checkout/create-order" method="post" class="space-y-6">
+                
+                <!-- Shipping Address Section -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Alamat Pengiriman</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="recipient_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nama Penerima <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="recipient_name" 
+                                name="recipient_name" 
+                                required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Nama lengkap penerima"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-1">
+                                Nomor Telepon <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="phone_number" 
+                                name="phone_number" 
+                                required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="08xx xxxx xxxx"
+                            >
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="province_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Provinsi <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="province_name" 
+                                    name="province_name" 
+                                    required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Contoh: Jawa Barat"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="city_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Kota/Kabupaten <span class="text-red-500">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="city_name" 
+                                    name="city_name" 
+                                    required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Contoh: Bandung"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="subdistrict_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Kecamatan
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="subdistrict_name" 
+                                    name="subdistrict_name"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Contoh: Coblong"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Kode Pos
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="postal_code" 
+                                    name="postal_code"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="40xxx"
+                                    maxlength="5"
+                                >
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="address_line" class="block text-sm font-medium text-gray-700 mb-1">
+                                Alamat Lengkap <span class="text-red-500">*</span>
+                            </label>
+                            <textarea 
+                                id="address_line" 
+                                name="address_line" 
+                                required
+                                rows="3"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Jalan, nomor rumah, RT/RW, dll"
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label for="additional_info" class="block text-sm font-medium text-gray-700 mb-1">
+                                Catatan Tambahan
+                            </label>
+                            <textarea 
+                                id="additional_info" 
+                                name="additional_info"
+                                rows="2"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Patokan atau catatan untuk kurir (opsional)"
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Section (Future) -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Metode Pembayaran</h2>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-sm text-yellow-800">
+                            <strong>Informasi:</strong> Setelah pesanan dibuat, Anda akan menerima instruksi pembayaran melalui email atau WhatsApp.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-between items-center">
+                    <a href="/cart" class="text-gray-600 hover:text-gray-800">
+                        ‹ Kembali ke Keranjang
+                    </a>
+                    <button 
+                        type="submit"
+                        class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-semibold shadow-md transition"
+                    >
+                        Buat Pesanan
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+                <h2 class="text-xl font-semibold mb-4">Ringkasan Pesanan</h2>
+                
+                <div class="space-y-3 mb-4">
+                    {% for item in cart.items %}
+                    <div class="flex justify-between text-sm">
+                        <div class="flex-1">
+                            <p class="font-medium">{{ item.product_name }}</p>
+                            <p class="text-gray-600">{{ item.quantity }} × Rp {{ "{:,.0f}".format(item.unit_price) }}</p>
+                        </div>
+                        <p class="font-semibold">Rp {{ "{:,.0f}".format(item.unit_price * item.quantity) }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="border-t pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-semibold">Rp {{ "{:,.0f}".format(cart.subtotal) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Ongkos Kirim</span>
+                        <span class="text-gray-500 text-xs">Akan dihitung</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Diskon</span>
+                        <span>Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="border-t mt-4 pt-4">
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span class="text-blue-600">Rp {{ "{:,.0f}".format(cart.total) }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        * Total akhir akan dikonfirmasi setelah perhitungan ongkos kirim
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-format phone number
+document.getElementById('phone_number').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    e.target.value = value;
+});
+
+// Auto-format postal code
+document.getElementById('postal_code').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    e.target.value = value;
+});
+</script>
+{% endblock %}
