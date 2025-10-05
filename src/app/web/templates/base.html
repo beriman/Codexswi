@@ -4,16 +4,36 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ title or app_name }} – Sensasiwangi.id</title>
+    
+    <!-- Resource Hints for Performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Optimized Font Loading with font-display: swap -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
-      <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css" />
-      <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}?{{ static_asset_query }}" />
-      {% block head_extra %}{% endblock %}
-      <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-9gCsk+S4iigFsMghvYDn8ApX2HFqRSbuuSSMzdg3NofM8JrIoYNewc19hXtF87dj" crossorigin="anonymous"></script>
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+    
+    <!-- Critical CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base.min.css') if use_minified else url_for('static', path='css/base.css') }}?v={{ static_asset_query }}" />
+    {% block head_extra %}{% endblock %}
+    
+    <!-- HTMX with Preload -->
+    <link rel="modulepreload" href="https://unpkg.com/htmx.org@1.9.10" />
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-9gCsk+S4iigFsMghvYDn8ApX2HFqRSbuuSSMzdg3NofM8JrIoYNewc19hXtF87dj" crossorigin="anonymous" defer></script>
   </head>
   <body>
     <div class="background-aurora"></div>
@@ -25,8 +45,8 @@
       {% include 'partials/footer.html' %}
     </div>
     {% block body_scripts %}
-    <script src="{{ url_for('static', path='js/session.js') }}?{{ static_asset_query }}" defer></script>
-    <script src="{{ url_for('static', path='js/navbar.js') }}?{{ static_asset_query }}" defer></script>
+    <script src="{{ url_for('static', path='js/session.min.js') if use_minified else url_for('static', path='js/session.js') }}?v={{ static_asset_query }}" defer></script>
+    <script src="{{ url_for('static', path='js/navbar.min.js') if use_minified else url_for('static', path='js/navbar.js') }}?v={{ static_asset_query }}" defer></script>
     {% endblock %}
   </body>
 </html>

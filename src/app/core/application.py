@@ -4,10 +4,11 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import get_settings
 from app.core.session import InMemorySessionMiddleware
+from app.core.static_files import CachedStaticFiles
 from app.web.templates import template_engine
 from app.api.routes import onboarding as onboarding_routes
 from app.api.routes import profile as profile_routes
@@ -27,6 +28,10 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title=settings.app_name)
 
+    # Add GZip compression for better performance
+    if settings.enable_compression:
+        app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=6)
+
     app.add_middleware(
         InMemorySessionMiddleware,
         max_age=60 * 60 * 24 * 30,
@@ -42,8 +47,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Mount static assets (CSS, JS, images) served by the Jinja2 templates.
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    # Mount static assets (CSS, JS, images) with optimized caching.
+    app.mount("/static", CachedStaticFiles(directory=str(STATIC_DIR)), name="static")
 
     # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)

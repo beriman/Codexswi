@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', path='css/brand.css') }}?{{ static_asset_query }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/brand.min.css') if use_minified else url_for('static', path='css/brand.css') }}?v={{ static_asset_query }}" />
 {% endblock %}
 
 {% block content %}

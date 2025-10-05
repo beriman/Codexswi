@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', path='css/nusantarum.css') }}?{{ static_asset_query }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/nusantarum.min.css') if use_minified else url_for('static', path='css/nusantarum.css') }}?v={{ static_asset_query }}" />
 {% endblock %}
 
 {% block content %}
@@ -123,7 +123,7 @@
 
 {% block body_scripts %}
 {{ super() }}
-<script src="{{ url_for('static', path='js/nusantarum-tabs.js') }}?{{ static_asset_query }}" defer></script>
+<script src="{{ url_for('static', path='js/nusantarum-tabs.min.js') if use_minified else url_for('static', path='js/nusantarum-tabs.js') }}?v={{ static_asset_query }}" defer></script>
 <script>
   (function () {
     const searchInput = document.getElementById('nusantarum-search-input');

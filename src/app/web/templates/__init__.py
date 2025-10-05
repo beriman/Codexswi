@@ -15,5 +15,6 @@ settings = get_settings()
 template_engine.env.globals.update(
     app_name=settings.app_name,
     static_asset_version=settings.static_asset_version,
-    static_asset_query=f"v={settings.static_asset_version}",
+    static_asset_query=settings.static_asset_version,
+    use_minified=getattr(settings, 'use_minified_assets', False),
 )

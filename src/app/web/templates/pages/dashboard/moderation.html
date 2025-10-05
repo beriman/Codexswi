@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="{{ url_for('static', path='css/moderation-dashboard.css') }}?{{ static_asset_query }}" />
+<link rel="stylesheet" href="{{ url_for('static', path='css/moderation-dashboard.min.css') if use_minified else url_for('static', path='css/moderation-dashboard.css') }}?v={{ static_asset_query }}" />
 {% endblock %}
 
 {% block content %}
@@ -484,5 +484,5 @@
 
 {% block body_scripts %}
 {{ super() }}
-<script src="{{ url_for('static', path='js/moderation-dashboard.js') }}?{{ static_asset_query }}" defer></script>
+<script src="{{ url_for('static', path='js/moderation-dashboard.min.js') if use_minified else url_for('static', path='js/moderation-dashboard.js') }}?v={{ static_asset_query }}" defer></script>
 {% endblock %}
