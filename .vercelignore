@@ -6,16 +6,17 @@ tests/
 *.pyd
 .pytest_cache/
 
-# Documentation
+# Documentation (keep deployment guide)
 docs/
 story/
 PRDshard/
 *.md
 !README.md
+!VERCEL_DEPLOYMENT.md
 
 # Development files
 .git/
-.env
+.env.example
 .venv/
 venv/
 env/
@@ -28,3 +29,6 @@ env/
 
 # Supabase migrations (not needed in runtime)
 supabase/
+
+# Media files (too large for serverless)
+media/
