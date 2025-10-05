@@ -75,4 +75,14 @@ if app and not any(route.path == "/health" for route in app.routes):
     async def health_check():
         return {"status": "healthy", "service": "sensasiwangi.id"}
 
-__all__ = ["app"]
+# Vercel serverless function handler
+# This is required for Vercel to properly invoke the ASGI app
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+    logger.info("✓ Mangum handler created successfully")
+except ImportError:
+    logger.warning("Mangum not available, using app directly")
+    handler = app
+
+__all__ = ["app", "handler"]

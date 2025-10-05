@@ -5,9 +5,10 @@ This document explains how to deploy the Sensasiwangi.id application to Vercel.
 ## Project Structure
 
 The application uses Vercel's modern serverless functions approach:
-- `api/index.py` - Main entry point for the serverless function
+- `api/index.py` - Main entry point for the serverless function (exports `handler` via Mangum)
 - `src/` - Application source code
 - `vercel.json` - Vercel configuration using rewrites (not legacy builds)
+- `mangum` - ASGI adapter that allows FastAPI to run on serverless platforms
 
 ## Required Environment Variables
 
@@ -105,6 +106,10 @@ If static files (CSS/JS) are not loading:
 ### Python Version
 
 The application requires Python 3.12 or later. Vercel automatically detects and uses Python 3.12 based on the `pyproject.toml` configuration.
+
+### Mangum Handler
+
+The application uses [Mangum](https://mangum.io/) as an adapter to run the FastAPI ASGI application on Vercel's serverless infrastructure. This is the standard way to deploy FastAPI applications to serverless platforms.
 
 ## Additional Resources
 

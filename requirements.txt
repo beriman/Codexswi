@@ -10,3 +10,4 @@ supabase>=2.3.0
 bcrypt>=4.1.0
 slowapi>=0.1.9
 apscheduler>=3.10.0
+mangum>=0.17.0
