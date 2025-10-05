@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     # Session management
     session_secret: str = "development-session-secret-placeholder"
     static_asset_version: str = "2024051901"
+    
+    # Performance optimizations
+    use_minified_assets: bool = False
+    enable_compression: bool = True
 
     @field_validator("session_secret")
     @classmethod
