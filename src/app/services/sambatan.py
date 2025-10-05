@@ -389,15 +389,29 @@ class SambatanService:
 
             if campaign.status is SambatanStatus.FULL:
                 self._complete_campaign(campaign, now)
-                transitions.append(self._audit_logs_cache[-1] if hasattr(self, '_audit_logs_cache') else 
-                                 SambatanAuditLog(campaign.id, "campaign_completed", now, {}))
+                transitions.append(SambatanAuditLog(
+                    campaign.id, 
+                    "campaign_completed", 
+                    now, 
+                    {"slots_taken": str(campaign.slots_taken)}
+                ))
             elif now > campaign.deadline:
                 if campaign.slots_taken >= campaign.total_slots:
                     self._complete_campaign(campaign, now)
-                    transitions.append(SambatanAuditLog(campaign.id, "campaign_completed", now, {}))
+                    transitions.append(SambatanAuditLog(
+                        campaign.id, 
+                        "campaign_completed", 
+                        now, 
+                        {"slots_taken": str(campaign.slots_taken)}
+                    ))
                 else:
                     self._fail_campaign(campaign, now)
-                    transitions.append(SambatanAuditLog(campaign.id, "campaign_failed", now, {}))
+                    transitions.append(SambatanAuditLog(
+                        campaign.id, 
+                        "campaign_failed", 
+                        now, 
+                        {"slots_taken": str(campaign.slots_taken)}
+                    ))
 
         return transitions
 

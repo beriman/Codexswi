@@ -89,9 +89,15 @@ def create_app() -> FastAPI:
             try:
                 scheduler = start_scheduler(interval_minutes=5)
                 app.state.sambatan_scheduler = scheduler
-                logger.info("Sambatan lifecycle scheduler started")
+                app.state.scheduler_healthy = True
+                logger.info("Sambatan lifecycle scheduler started successfully")
             except Exception as e:
-                logger.error(f"Failed to start Sambatan scheduler: {e}")
+                logger.error(f"Failed to start Sambatan scheduler: {e}", exc_info=True)
+                app.state.scheduler_healthy = False
+                logger.warning(
+                    "⚠️  Application running WITHOUT automated Sambatan lifecycle! "
+                    "Manual triggering via API will still work."
+                )
         else:
             logger.warning("Supabase client not available - using fallback storage")
 

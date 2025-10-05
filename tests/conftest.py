@@ -61,6 +61,7 @@ class FakeSupabaseTable:
         self._filters: List[tuple[str, str, Any]] = []
         self._select_fields = '*'
         self._order_field: Optional[tuple[str, bool]] = None
+        self._update_data: Optional[Dict[str, Any]] = None
     
     def select(self, fields: str = '*'):
         """Mock select operation."""
@@ -99,10 +100,38 @@ class FakeSupabaseTable:
     
     def update(self, data: Dict[str, Any]):
         """Mock update operation."""
+        self._update_data = data
         return self
     
     def execute(self):
         """Mock execute operation."""
+        # Handle UPDATE operations
+        if self._update_data is not None:
+            if self.name not in self.storage:
+                self._filters = []
+                self._update_data = None
+                return FakeSupabaseResult([])
+            
+            updated_rows = []
+            for row in self.storage[self.name]:
+                matches = True
+                for filter_type, field, value in self._filters:
+                    if filter_type == 'eq' and row.get(field) != value:
+                        matches = False
+                    elif filter_type == 'in' and row.get(field) not in value:
+                        matches = False
+                
+                if matches:
+                    row.update(self._update_data)
+                    row['updated_at'] = datetime.now(UTC).isoformat()
+                    updated_rows.append(row)
+            
+            # Reset state
+            self._filters = []
+            self._update_data = None
+            return FakeSupabaseResult(updated_rows)
+        
+        # Handle SELECT operations
         if self.name not in self.storage:
             return FakeSupabaseResult([])
         
