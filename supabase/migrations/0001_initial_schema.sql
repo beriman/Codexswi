@@ -10,11 +10,34 @@ create extension if not exists "citext" with schema public;
 
 -- Enumerated types ---------------------------------------------------------
 
-create type if not exists onboarding_status as enum ('registered', 'email_verified', 'profile_completed');
-create type if not exists brand_status as enum ('draft', 'review', 'active', 'suspended');
-create type if not exists brand_member_role as enum ('owner', 'admin', 'contributor');
-create type if not exists product_status as enum ('draft', 'active', 'inactive', 'archived');
-create type if not exists order_status as enum (
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'onboarding_status') THEN
+    CREATE TYPE onboarding_status AS ENUM ('registered', 'email_verified', 'profile_completed');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'brand_status') THEN
+    CREATE TYPE brand_status AS ENUM ('draft', 'review', 'active', 'suspended');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'brand_member_role') THEN
+    CREATE TYPE brand_member_role AS ENUM ('owner', 'admin', 'contributor');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'product_status') THEN
+    CREATE TYPE product_status AS ENUM ('draft', 'active', 'inactive', 'archived');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
+    CREATE TYPE order_status AS ENUM (
     'draft',
     'awaiting_payment',
     'paid',
@@ -24,21 +47,68 @@ create type if not exists order_status as enum (
     'completed',
     'cancelled'
 );
-create type if not exists payment_status as enum ('pending', 'paid', 'refunded', 'partial_refund', 'failed');
-create type if not exists sambatan_status as enum ('draft', 'scheduled', 'active', 'locked', 'fulfilled', 'expired', 'cancelled');
-create type if not exists sambatan_participant_status as enum ('pending_payment', 'confirmed', 'cancelled', 'refunded', 'fulfilled');
-create type if not exists sambatan_transaction_type as enum ('payment', 'payout', 'refund', 'adjustment');
-create type if not exists article_status as enum ('draft', 'review', 'published', 'archived');
-create type if not exists article_category as enum ('parfum', 'brand', 'perfumer');
-create type if not exists marketplace_listing_status as enum ('draft', 'preview', 'published', 'paused', 'archived');
-create type if not exists order_channel as enum ('marketplace', 'sambatan', 'mixed');
-create type if not exists inventory_adjustment_reason as enum (
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
+    CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'refunded', 'partial_refund', 'failed');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sambatan_status') THEN
+    CREATE TYPE sambatan_status AS ENUM ('draft', 'scheduled', 'active', 'locked', 'fulfilled', 'expired', 'cancelled');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sambatan_participant_status') THEN
+    CREATE TYPE sambatan_participant_status AS ENUM ('pending_payment', 'confirmed', 'cancelled', 'refunded', 'fulfilled');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sambatan_transaction_type') THEN
+    CREATE TYPE sambatan_transaction_type AS ENUM ('payment', 'payout', 'refund', 'adjustment');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'article_status') THEN
+    CREATE TYPE article_status AS ENUM ('draft', 'review', 'published', 'archived');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'article_category') THEN
+    CREATE TYPE article_category AS ENUM ('parfum', 'brand', 'perfumer');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'marketplace_listing_status') THEN
+    CREATE TYPE marketplace_listing_status AS ENUM ('draft', 'preview', 'published', 'paused', 'archived');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_channel') THEN
+    CREATE TYPE order_channel AS ENUM ('marketplace', 'sambatan', 'mixed');
+  END IF;
+END $$;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'inventory_adjustment_reason') THEN
+    CREATE TYPE inventory_adjustment_reason AS ENUM (
     'manual',
     'order_reservation',
     'order_release',
     'restock',
     'correction'
 );
+  END IF;
+END $$;
 
 -- Utility function to maintain updated_at columns
 create or replace function set_updated_at()
