@@ -9,6 +9,7 @@ from app.core.rate_limit import limiter, RATE_LIMITS
 from app.core.dependencies import get_db
 from app.services.cart import cart_service
 from app.services.orders import OrderService, OrderError, InsufficientStock
+from app.services.wallet import WalletService, WalletError, InsufficientBalance
 
 try:
     from supabase import Client
@@ -60,6 +61,7 @@ async def create_order(
     postal_code: Optional[str] = Form(None),
     address_line: str = Form(...),
     additional_info: Optional[str] = Form(None),
+    payment_method: str = Form("wallet"),
     db: Client = Depends(get_db)
 ):
     """Create order from cart and redirect to confirmation."""
@@ -113,8 +115,51 @@ async def create_order(
             customer_id=customer_id,
             items=order_items,
             shipping_address=shipping_address,
-            channel='marketplace'
+            channel='marketplace',
+            payment_method=payment_method
         )
+        
+        # Handle wallet payment - hold funds in escrow
+        if payment_method == 'wallet':
+            try:
+                wallet_service = WalletService(db)
+                hold_transaction_id = await wallet_service.hold_funds(
+                    user_id=customer_id,
+                    amount=order['total_amount'],
+                    reference_type='order',
+                    reference_id=order['id'],
+                    description=f"Payment for order {order['order_number']}"
+                )
+                
+                # Update order metadata with hold transaction
+                metadata = order.get('metadata', {})
+                metadata['wallet_hold_transaction_id'] = hold_transaction_id
+                metadata['payment_method'] = 'wallet'
+                
+                await order_service.update_order_metadata(order['id'], metadata)
+                
+                logger.info(f"Wallet funds held for order {order['order_number']}: {hold_transaction_id}")
+                
+            except InsufficientBalance as e:
+                # Rollback order if wallet payment fails
+                await order_service.cancel_order(
+                    order['id'], 
+                    reason=f"Wallet payment failed: {str(e)}"
+                )
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Saldo wallet tidak cukup. {str(e)}"
+                )
+            except WalletError as e:
+                # Rollback order if wallet operation fails
+                await order_service.cancel_order(
+                    order['id'],
+                    reason=f"Wallet error: {str(e)}"
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Gagal memproses pembayaran wallet: {str(e)}"
+                )
         
         # Don't clear cart yet - wait until confirmation page is reached
         # This prevents cart loss if user closes browser before redirect

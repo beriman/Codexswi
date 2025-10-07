@@ -10,6 +10,9 @@ try:
 except ImportError:
     Client = None  # type: ignore
 
+from app.services.wallet import WalletService
+from app.services.settlement import SettlementService
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,7 +46,8 @@ class OrderService:
         customer_id: str,
         items: List[Dict[str, Any]],
         shipping_address: Dict[str, str],
-        channel: str = 'marketplace'
+        channel: str = 'marketplace',
+        payment_method: str = 'wallet'
     ) -> Dict[str, Any]:
         """Create a new order with items and shipping address."""
         if not self.db:
@@ -77,7 +81,8 @@ class OrderService:
             'subtotal_amount': float(subtotal),
             'shipping_amount': 0,  # Will be calculated with RajaOngkir
             'discount_amount': 0,
-            'total_amount': float(subtotal)
+            'total_amount': float(subtotal),
+            'metadata': {'payment_method': payment_method}
         }
 
         order_result = self.db.table('orders').insert(order_data).execute()
@@ -168,6 +173,9 @@ class OrderService:
                 update_data['metadata'] = metadata
         elif new_status == 'completed':
             update_data['completed_at'] = datetime.now(UTC).isoformat()
+            
+            # Auto-release wallet funds to seller with platform fee
+            await self._release_wallet_payment(order_id)
         elif new_status == 'cancelled':
             update_data['cancelled_at'] = datetime.now(UTC).isoformat()
             update_data['cancellation_reason'] = note
@@ -183,9 +191,10 @@ class OrderService:
             note
         )
 
-        # Release inventory if cancelled
+        # Handle cancellation - release inventory and refund wallet
         if new_status == 'cancelled':
             await self._release_inventory(order_id)
+            await self._refund_wallet_payment(order_id, note)
 
     async def get_order(self, order_id: str) -> Optional[Dict[str, Any]]:
         """Get order details with items and shipping address."""
@@ -218,6 +227,42 @@ class OrderService:
 
         result = query.execute()
         return result.data
+
+    async def update_order_metadata(self, order_id: str, metadata: Dict[str, Any]) -> None:
+        """Update order metadata."""
+        if not self.db:
+            raise OrderError("Database connection required")
+        
+        self.db.table('orders').update({'metadata': metadata}).eq('id', order_id).execute()
+        logger.info(f"Updated metadata for order {order_id}")
+
+    async def cancel_order(self, order_id: str, reason: str) -> None:
+        """Cancel order and release inventory."""
+        if not self.db:
+            raise OrderError("Database connection required")
+        
+        # Update order status to cancelled
+        update_data = {
+            'status': 'cancelled',
+            'cancelled_at': datetime.now(UTC).isoformat(),
+            'cancellation_reason': reason
+        }
+        
+        self.db.table('orders').update(update_data).eq('id', order_id).execute()
+        
+        # Release reserved inventory
+        await self._release_inventory(order_id)
+        
+        # Log cancellation
+        await self._log_status_change(
+            order_id,
+            'cancelled',
+            'pending',
+            actor_id=None,
+            note=reason
+        )
+        
+        logger.info(f"Order {order_id} cancelled: {reason}")
 
     # Private helpers
 
@@ -341,3 +386,122 @@ class OrderService:
         }
 
         self.db.table('order_status_history').insert(log_data).execute()
+
+    async def _release_wallet_payment(self, order_id: str) -> None:
+        """Release held wallet funds to seller with platform fee deduction."""
+        if not self.db:
+            return
+        
+        # Get order with metadata
+        order = await self.get_order(order_id)
+        if not order:
+            logger.warning(f"Cannot release wallet payment: order {order_id} not found")
+            return
+        
+        metadata = order.get('metadata', {})
+        payment_method = metadata.get('payment_method')
+        hold_transaction_id = metadata.get('wallet_hold_transaction_id')
+        
+        # Only process if payment method is wallet and we have hold transaction
+        if payment_method != 'wallet' or not hold_transaction_id:
+            logger.debug(f"Skipping wallet release for order {order_id}: payment_method={payment_method}")
+            return
+        
+        try:
+            # Get seller from first order item (assuming single seller per order for MVP)
+            items = order.get('order_items', [])
+            if not items:
+                logger.error(f"No items found for order {order_id}")
+                return
+            
+            # Get product to find seller/brand owner
+            first_item = items[0]
+            product_result = self.db.table('products').select('brand_id').eq(
+                'id', first_item['product_id']
+            ).execute()
+            
+            if not product_result.data:
+                logger.error(f"Product not found for order {order_id}")
+                return
+            
+            brand_id = product_result.data[0]['brand_id']
+            
+            # Get brand owner
+            brand_result = self.db.table('brand_members').select('profile_id').eq(
+                'brand_id', brand_id
+            ).eq('role', 'owner').execute()
+            
+            if not brand_result.data:
+                logger.error(f"Brand owner not found for brand {brand_id}")
+                return
+            
+            seller_profile_id = brand_result.data[0]['profile_id']
+            
+            # Get seller user_id from profile
+            profile_result = self.db.table('user_profiles').select('user_id').eq(
+                'id', seller_profile_id
+            ).execute()
+            
+            if not profile_result.data:
+                logger.error(f"User not found for profile {seller_profile_id}")
+                return
+            
+            seller_user_id = profile_result.data[0]['user_id']
+            
+            # Release funds using wallet service
+            wallet_service = WalletService(self.db)
+            release_result = await wallet_service.release_held_funds(
+                hold_transaction_id=hold_transaction_id,
+                seller_user_id=seller_user_id
+            )
+            
+            # Create settlement record
+            settlement_service = SettlementService(self.db)
+            await settlement_service.create_order_settlement(
+                order_id=order_id,
+                gross_amount=Decimal(str(order['total_amount'])),
+                seller_user_id=seller_user_id
+            )
+            
+            logger.info(
+                f"Wallet payment released for order {order_id}: "
+                f"gross={release_result['gross_amount']}, "
+                f"fee={release_result['platform_fee']}, "
+                f"net={release_result['net_amount']}"
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to release wallet payment for order {order_id}: {str(e)}")
+
+    async def _refund_wallet_payment(self, order_id: str, reason: Optional[str] = None) -> None:
+        """Refund held wallet funds to buyer."""
+        if not self.db:
+            return
+        
+        # Get order with metadata
+        order = await self.get_order(order_id)
+        if not order:
+            logger.warning(f"Cannot refund wallet payment: order {order_id} not found")
+            return
+        
+        metadata = order.get('metadata', {})
+        payment_method = metadata.get('payment_method')
+        hold_transaction_id = metadata.get('wallet_hold_transaction_id')
+        
+        # Only process if payment method is wallet and we have hold transaction
+        if payment_method != 'wallet' or not hold_transaction_id:
+            logger.debug(f"Skipping wallet refund for order {order_id}: payment_method={payment_method}")
+            return
+        
+        try:
+            # Refund using wallet service
+            wallet_service = WalletService(self.db)
+            refund_tx_id = await wallet_service.refund_held_funds(
+                hold_transaction_id=hold_transaction_id,
+                reason=reason or f"Order {order['order_number']} cancelled"
+            )
+            
+            logger.info(f"Wallet payment refunded for order {order_id}: {refund_tx_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to refund wallet payment for order {order_id}: {str(e)}")
