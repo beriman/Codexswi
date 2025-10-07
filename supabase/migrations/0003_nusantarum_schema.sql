@@ -9,6 +9,12 @@ set search_path = public;
 -- ---------------------------------------------------------------------------
 
 alter table brands
+    add column if not exists origin_city text,
+    add column if not exists established_year integer,
+    add column if not exists summary text,
+    add column if not exists hero_image_url text,
+    add column if not exists aroma_focus text[] default '{}'::text[],
+    add column if not exists story_points text[] default '{}'::text[],
     add column if not exists nusantarum_status text not null default 'draft',
     add column if not exists is_verified boolean not null default false,
     add column if not exists brand_profile_id uuid references user_profiles(id);
