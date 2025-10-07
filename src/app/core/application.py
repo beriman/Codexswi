@@ -25,6 +25,7 @@ from app.api.routes import brands as brand_routes
 from app.api.routes import nusantarum as nusantarum_routes
 from app.api.routes import cart as cart_routes
 from app.api.routes import checkout as checkout_routes
+from app.api.routes import products as products_routes
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(reports_routes.router)
     app.include_router(onboarding_routes.router)
     app.include_router(sambatan_routes.router)
+    app.include_router(products_routes.router)
     app.include_router(profile_routes.router)
     app.include_router(nusantarum_routes.router)
     app.include_router(cart_routes.router)
