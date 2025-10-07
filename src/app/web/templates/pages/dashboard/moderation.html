@@ -303,6 +303,7 @@
             <th scope="col">Status</th>
             <th scope="col">Update Terakhir</th>
             <th scope="col">Catatan</th>
+            <th scope="col">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -314,6 +315,19 @@
             <td>{{ submission.status }}</td>
             <td>{{ submission.updated }}</td>
             <td>{{ submission.notes }}</td>
+            <td>
+              {% if submission.status == 'Pending Review' or submission.status == 'Perlu Revisi' %}
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Approve Brand sedang dalam pengembangan. Gunakan endpoint PATCH /brands/{slug} dengan is_verified=true')" title="Setujui">✓</button>
+                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Request Revision sedang dalam pengembangan')" title="Minta Revisi">⟳</button>
+                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Reject sedang dalam pengembangan')" title="Tolak">✗</button>
+              </div>
+              {% elif submission.status == 'Approved' %}
+              <span style="color: #4ade80;">Disetujui</span>
+              {% else %}
+              <span style="color: #94a3b8;">-</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>

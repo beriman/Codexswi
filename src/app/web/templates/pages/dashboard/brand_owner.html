@@ -16,9 +16,9 @@
       <span class="brand-name">Brand aktif: {{ profile.brand_name }}</span>
     </div>
     <div class="hero-actions">
-      <button type="button" class="btn gradient-button">Tambah Produk</button>
-      <button type="button" class="btn btn-outline">Buat Kampanye</button>
-      <button type="button" class="btn btn-ghost">Undang Anggota Tim</button>
+      <a href="#product-management" class="btn gradient-button">Kelola Produk</a>
+      <button type="button" class="btn btn-outline" onclick="alert('Fitur Buat Kampanye Sambatan sedang dalam pengembangan. Anda dapat membuat kampanye melalui API /api/sambatan/campaigns')">Buat Kampanye</button>
+      <a href="/brands/{{ profile.brand_slug if profile.brand_slug else 'new' }}/edit#members" class="btn btn-ghost">Kelola Tim</a>
     </div>
   </div>
   <div class="hero-kpis">
