@@ -38,14 +38,21 @@ Preferred communication style: Simple, everyday language.
 - Dashboard rendering and navigation functional
 
 **New Features Implemented:**
-- ✅ **Product Creation**: Full workflow with modal form (name, price, description) → POST /api/products → success/error handling
-- ✅ **Campaign Creation**: Full workflow with modal form (product_id, title, slots, price, deadline) → POST /api/sambatan/campaigns → validation and feedback
-- Both features integrated with HTMX for seamless user experience
-
+- ✅ **Product Creation (Complete)**: 
+  - Full workflow with modal form including: name, price, category (4 options: Parfum, Raw Material, Tools, Lainnya), product types (marketplace/sambatan checkboxes), description
+  - Backend API: POST /api/products creates product, updates marketplace_enabled/sambatan_enabled flags, creates category link in product_category_links table
+  - JavaScript handles unchecked checkboxes via HTMX configRequest hook
+  - Supports all product type combinations: marketplace-only, sambatan-only, or both
+  - API refreshes product from database after updates to return accurate data
+  
+- ✅ **Campaign Creation (Complete)**: 
+  - Full workflow with modal form (product_id, title, slots, price, deadline) → POST /api/sambatan/campaigns → validation and feedback
+  - Form integrated with HTMX for seamless user experience
+  
 **Known Gaps Requiring Future Development:**
 - Team member invitation workflow (modal/form implementation needed)
 - Moderation API integration for approve/reject actions (backend endpoints needed)
-- Product dropdown for campaign creation (currently uses text input for product_id)
+- Product dropdown for campaign creation (currently uses text input for product_id - needs dynamic product list)
 
 ## System Architecture
 
