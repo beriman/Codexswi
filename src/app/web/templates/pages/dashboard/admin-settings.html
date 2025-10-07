@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<style>
+.admin-settings {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.settings-hero {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.settings-hero h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.settings-hero p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #fff;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(147, 51, 234, 0.5);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.form-help {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.current-value {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.25rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-settings">
+  <div class="settings-hero">
+    <h1>⚙️ Pengaturan Platform</h1>
+    <p>Kelola rekening bank platform dan konfigurasi fee untuk transaksi marketplace</p>
+  </div>
+
+  <div id="alert-container"></div>
+
+  <form id="settings-form" onsubmit="return handleSubmit(event)">
+    <div class="settings-card">
+      <h2>💳 Rekening Bank Platform</h2>
+      
+      <div class="form-group">
+        <label for="bank_name">Nama Bank</label>
+        <input 
+          type="text" 
+          id="bank_name" 
+          name="bank_name" 
+          placeholder="Contoh: BRI" 
+          value="{{ settings.bank_name if settings else '' }}"
+        />
+        <div class="current-value" id="current-bank-name">
+          {% if settings %}Saat ini: {{ settings.bank_name }}{% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bank_account_number">Nomor Rekening</label>
+        <input 
+          type="text" 
+          id="bank_account_number" 
+          name="bank_account_number" 
+          placeholder="Contoh: 201101000546304" 
+          value="{{ settings.bank_account_number if settings else '' }}"
+        />
+        <div class="current-value" id="current-account-number">
+          {% if settings %}Saat ini: {{ settings.bank_account_number }}{% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bank_account_name">Nama Pemilik Rekening</label>
+        <input 
+          type="text" 
+          id="bank_account_name" 
+          name="bank_account_name" 
+          placeholder="Contoh: SENSASI WANGI INDONE" 
+          value="{{ settings.bank_account_name if settings else '' }}"
+        />
+        <div class="current-value" id="current-account-name">
+          {% if settings %}Saat ini: {{ settings.bank_account_name }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h2>💰 Konfigurasi Fee Platform</h2>
+      
+      <div class="form-group">
+        <label for="platform_fee_rate">Persentase Fee Platform (%)</label>
+        <input 
+          type="number" 
+          id="platform_fee_rate" 
+          name="platform_fee_rate" 
+          placeholder="Contoh: 3.00" 
+          step="0.01" 
+          min="0" 
+          max="100"
+          value="{{ settings.platform_fee_rate if settings else '' }}"
+        />
+        <div class="form-help">Fee yang dipotong dari setiap transaksi marketplace (0-100%)</div>
+        <div class="current-value" id="current-fee-rate">
+          {% if settings %}Saat ini: {{ settings.platform_fee_rate }}%{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      <button type="button" class="btn btn-secondary" onclick="window.location.reload()">Batal</button>
+    </div>
+  </form>
+</div>
+
+<script>
+async function loadSettings() {
+  try {
+    const response = await fetch('/api/admin/settings');
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Update form fields
+      document.getElementById('bank_name').value = data.bank_name || '';
+      document.getElementById('bank_account_number').value = data.bank_account_number || '';
+      document.getElementById('bank_account_name').value = data.bank_account_name || '';
+      document.getElementById('platform_fee_rate').value = data.platform_fee_rate || '';
+      
+      // Update current values
+      document.getElementById('current-bank-name').textContent = 'Saat ini: ' + (data.bank_name || '-');
+      document.getElementById('current-account-number').textContent = 'Saat ini: ' + (data.bank_account_number || '-');
+      document.getElementById('current-account-name').textContent = 'Saat ini: ' + (data.bank_account_name || '-');
+      document.getElementById('current-fee-rate').textContent = 'Saat ini: ' + (data.platform_fee_rate || '0') + '%';
+    }
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+  }
+}
+
+async function handleSubmit(event) {
+  event.preventDefault();
+  
+  const formData = new FormData(event.target);
+  const data = {};
+  
+  // Only include fields that have values
+  for (const [key, value] of formData.entries()) {
+    if (value.trim()) {
+      if (key === 'platform_fee_rate') {
+        data[key] = parseFloat(value);
+      } else {
+        data[key] = value;
+      }
+    }
+  }
+  
+  if (Object.keys(data).length === 0) {
+    showAlert('Minimal satu field harus diisi', 'error');
+    return false;
+  }
+  
+  try {
+    const response = await fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      showAlert('Pengaturan berhasil disimpan!', 'success');
+      // Reload settings to show updated values
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      showAlert(result.detail || 'Gagal menyimpan pengaturan', 'error');
+    }
+  } catch (error) {
+    showAlert('Terjadi kesalahan: ' + error.message, 'error');
+  }
+  
+  return false;
+}
+
+function showAlert(message, type) {
+  const alertContainer = document.getElementById('alert-container');
+  const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+  
+  alertContainer.innerHTML = `
+    <div class="alert ${alertClass}">
+      ${message}
+    </div>
+  `;
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    alertContainer.innerHTML = '';
+  }, 5000);
+}
+
+// Load settings on page load
+document.addEventListener('DOMContentLoaded', loadSettings);
+</script>
+{% endblock %}

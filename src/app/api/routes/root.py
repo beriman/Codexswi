@@ -1495,3 +1495,19 @@ async def read_moderation_dashboard(request: Request) -> HTMLResponse:
         "snapshot": snapshot,
     }
     return templates.TemplateResponse(request, "pages/dashboard/moderation.html", context)
+
+
+@router.get("/dashboard/admin-settings", response_class=HTMLResponse)
+async def read_admin_settings(request: Request) -> HTMLResponse:
+    """Render the admin settings page for platform configuration."""
+
+    settings = get_settings()
+    templates = request.app.state.templates
+
+    context = {
+        "app_name": settings.app_name,
+        "environment": settings.environment,
+        "title": "Pengaturan Platform",
+        "settings": None,  # Will be loaded via API
+    }
+    return templates.TemplateResponse(request, "pages/dashboard/admin-settings.html", context)
