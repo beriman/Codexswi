@@ -79,6 +79,11 @@ def create_product(
                 'category_id': payload.category_id
             }
             service.db.table('product_category_links').insert(category_link).execute()
+            
+            # Refresh product from database to get updated flags
+            result = service.db.table('products').select('*').eq('id', product.id).execute()
+            if result.data:
+                product = service._map_product(result.data[0])
         
         return ProductResponse(**_serialize_product(product))
     except ProductError as exc:
