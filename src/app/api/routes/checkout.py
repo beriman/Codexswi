@@ -223,23 +223,28 @@ async def order_details(
 @router.get("/orders", response_class=HTMLResponse)
 async def my_orders(
     request: Request,
+    status: Optional[str] = None,
     db: Client = Depends(get_db)
 ):
-    """Display user's order history."""
+    """Display user's order history with optional status filter."""
     
     user = request.session.get('user')
     if not user:
         return RedirectResponse(url="/auth/login?next=/orders", status_code=303)
     
     order_service = OrderService(db)
-    orders = await order_service.list_customer_orders(customer_id=user['id'])
+    orders = await order_service.list_customer_orders(
+        customer_id=user['id'],
+        status_filter=status
+    )
     
     templates = request.app.state.templates
     
     context = {
         "request": request,
         "title": "Pesanan Saya",
-        "orders": orders
+        "orders": orders,
+        "active_filter": status  # Pass active filter to template
     }
     
     return templates.TemplateResponse("my_orders.html", context)

@@ -3,20 +3,29 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Iterable
+from typing import Iterable, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 
-from app.services.reporting import ExportFormat, SalesRecord, SalesReportService, sales_report_service
+from app.services.reporting import ExportFormat, SalesRecord, SalesReportService
+
+try:
+    from supabase import Client
+except ImportError:
+    Client = None  # type: ignore
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 
-def get_sales_report_service() -> SalesReportService:
-    """Dependency returning the shared sales report service instance."""
+def get_db(request: Request) -> Optional[Client]:
+    """Get database connection from request."""
+    return getattr(request.app.state, 'db', None)
 
-    return sales_report_service
+
+def get_sales_report_service(db: Optional[Client] = Depends(get_db)) -> SalesReportService:
+    """Dependency returning the sales report service instance with database."""
+    return SalesReportService(db=db)
 
 
 def _validate_dates(start_date: date, end_date: date) -> None:
@@ -48,13 +57,28 @@ def export_sales_report(
     start_date: date = Query(..., description="Tanggal awal rentang laporan"),
     end_date: date = Query(..., description="Tanggal akhir rentang laporan"),
     export_format: ExportFormat = Query(ExportFormat.CSV, alias="format", description="Format file yang diunduh"),
+    customer_id: Optional[str] = Query(None, description="Filter by customer ID"),
+    brand_id: Optional[str] = Query(
+        None, 
+        description="Filter by brand name (NOTE: Currently matches order_items.brand_name due to schema limitation. Pass brand name, not ID)"
+    ),
+    status_filter: Optional[str] = Query(None, description="Filter by order status"),
     service: SalesReportService = Depends(get_sales_report_service),
 ) -> StreamingResponse:
-    """Return a downloadable sales report in the requested format."""
+    """Return a downloadable sales report in the requested format.
+    
+    Note: brand_id parameter currently accepts brand NAME values (not numeric IDs) due to 
+    order_items table only storing brand_name. Future enhancement will add proper brand_id join."""
 
     _validate_dates(start_date, end_date)
 
-    records = service.get_sales_report(start_date=start_date, end_date=end_date)
+    records = service.get_sales_report(
+        start_date=start_date, 
+        end_date=end_date,
+        customer_id=customer_id,
+        brand_id=brand_id,
+        status_filter=status_filter
+    )
     if not records:
         raise HTTPException(status_code=404, detail="No sales data available for the selected range")
 
