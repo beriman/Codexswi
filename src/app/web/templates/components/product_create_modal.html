@@ -44,6 +44,49 @@
       </div>
 
       <div class="form-group">
+        <label for="product-category">Kategori <span class="required">*</span></label>
+        <select 
+          id="product-category" 
+          name="category_id" 
+          required
+          class="form-control"
+        >
+          <option value="">Pilih kategori...</option>
+          <option value="1">Parfum</option>
+          <option value="2">Raw Material</option>
+          <option value="3">Tools</option>
+          <option value="4">Lainnya</option>
+        </select>
+        <small class="form-hint">Pilih kategori produk yang sesuai</small>
+      </div>
+
+      <div class="form-group">
+        <label>Jenis Produk <span class="required">*</span></label>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input 
+              type="checkbox" 
+              name="marketplace_enabled" 
+              value="true"
+              checked
+              style="width: auto;"
+            />
+            <span>Marketplace (Penjualan Regular)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input 
+              type="checkbox" 
+              name="sambatan_enabled" 
+              value="true"
+              style="width: auto;"
+            />
+            <span>Sambatan (Group-Buy)</span>
+          </label>
+        </div>
+        <small class="form-hint">Produk bisa dijual di marketplace regular, sambatan, atau keduanya</small>
+      </div>
+
+      <div class="form-group">
         <label for="product-description">Deskripsi (opsional)</label>
         <textarea 
           id="product-description" 
