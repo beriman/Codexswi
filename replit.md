@@ -37,11 +37,15 @@ Preferred communication style: Simple, everyday language.
 - Authentication pages (login, signup) working correctly
 - Dashboard rendering and navigation functional
 
+**New Features Implemented:**
+- ✅ **Product Creation**: Full workflow with modal form (name, price, description) → POST /api/products → success/error handling
+- ✅ **Campaign Creation**: Full workflow with modal form (product_id, title, slots, price, deadline) → POST /api/sambatan/campaigns → validation and feedback
+- Both features integrated with HTMX for seamless user experience
+
 **Known Gaps Requiring Future Development:**
-- Product creation forms and API integration (backend routes needed)
-- Campaign creation forms and modal UIs (backend routes needed)
 - Team member invitation workflow (modal/form implementation needed)
 - Moderation API integration for approve/reject actions (backend endpoints needed)
+- Product dropdown for campaign creation (currently uses text input for product_id)
 
 ## System Architecture
 
