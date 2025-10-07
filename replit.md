@@ -159,10 +159,15 @@ Preferred communication style: Simple, everyday language.
   - Webhook handler for payment confirmation
   - Environment variables: `BRI_CLIENT_ID`, `BRI_CLIENT_SECRET`, `BRI_API_KEY`, `BRI_MERCHANT_ID`
   
+- **Completed Integrations** (October 2025):
+  - ✅ Checkout integration with wallet hold on payment
+  - ✅ Order completion trigger for automatic fund release with 3% platform fee
+  - ✅ Order cancellation with automatic refund to buyer
+  - ✅ End-to-end escrow workflow: buyer pays → funds held → delivery confirmed → seller receives (minus 3% fee)
+  
 - **Pending Integration**:
-  - [ ] Checkout integration with wallet hold on payment
-  - [ ] Order completion trigger for automatic fund release
   - [ ] Sambatan payout integration with escrow pattern
+  - [ ] BRI API credentials configuration (environment variables)
 
 #### Brand Management
 - Brand profiles as store showcases
