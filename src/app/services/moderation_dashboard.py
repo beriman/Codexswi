@@ -75,6 +75,7 @@ class CurationSubmission:
     """Submission tracked in the curator module."""
 
     brand: str
+    brand_slug: str
     submission_type: str
     owner: str
     status: str
@@ -311,25 +312,28 @@ class ModerationDashboardService:
         self._curation_submissions = [
             CurationSubmission(
                 brand="Aurora Glow",
+                brand_slug="aurora-glow",
                 submission_type="Pengajuan Brand",
                 owner="Amelia R.",
-                status="Menunggu admin",
+                status="Pending Review",
                 updated="23 menit lalu",
                 notes="Perlu verifikasi SIUP & legalitas distributor.",
             ),
             CurationSubmission(
                 brand="Rantau Craft",
+                brand_slug="rantau-craft",
                 submission_type="Kampanye",
                 owner="Galih P.",
-                status="Butuh revisi",
+                status="Perlu Revisi",
                 updated="1 jam lalu",
                 notes="Foto hero tidak sesuai panduan, minta versi ulang.",
             ),
             CurationSubmission(
                 brand="Laguna Living",
+                brand_slug="laguna-living",
                 submission_type="Produk Baru",
                 owner="Intan M.",
-                status="Disetujui",
+                status="Approved",
                 updated="Kemarin",
                 notes="Produk otomatis aktif karena brand sudah terverifikasi.",
             ),

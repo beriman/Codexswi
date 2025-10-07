@@ -49,10 +49,24 @@ Preferred communication style: Simple, everyday language.
   - Full workflow with modal form (product_id, title, slots, price, deadline) → POST /api/sambatan/campaigns → validation and feedback
   - Form integrated with HTMX for seamless user experience
   
+**Priority 2 Features Implemented:**
+- ✅ **Moderation Workflow (Complete)**:
+  - Backend API: POST /api/moderation/brands/{slug} with actions (approve, reject, request_revision)
+  - Approve/reject/request_revision buttons wired with JavaScript fetch()
+  - Updates brand is_verified status in database
+  - Success/error handling with page reload on success
+  
+- ✅ **Team Member Invitation (Complete)**:
+  - Backend API: POST /api/team/invite for inviting co-owners
+  - Modal form with all required fields (brand_slug, profile_id, full_name, username, expertise)
+  - Form submission via JavaScript fetch() to API
+  - Uses BrandService.invite_co_owner with proper error handling
+  - Success confirmation with page reload
+
 **Known Gaps Requiring Future Development:**
-- Team member invitation workflow (modal/form implementation needed)
-- Moderation API integration for approve/reject actions (backend endpoints needed)
 - Product dropdown for campaign creation (currently uses text input for product_id - needs dynamic product list)
+- Moderation notes persistence (currently shown in prompt, not stored in database)
+- Team member role permissions (currently only co-owner role supported)
 
 ## System Architecture
 

@@ -150,7 +150,7 @@
         <p>Kelola moderator, kurator, dan Quality Lead dengan visibilitas penuh terhadap kapasitas.</p>
       </div>
       <div class="section-tools">
-        <button type="button" class="btn gradient-button" data-action="invite-open">Undang Pengguna</button>
+        <button type="button" class="btn gradient-button" onclick="openTeamInviteModal()">Undang Pengguna</button>
         <button type="button" class="btn btn-outline">Atur Shift</button>
       </div>
     </header>
@@ -318,9 +318,24 @@
             <td>
               {% if submission.status == 'Pending Review' or submission.status == 'Perlu Revisi' %}
               <div style="display: flex; gap: 0.5rem;">
-                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Approve Brand sedang dalam pengembangan. Gunakan endpoint PATCH /brands/{slug} dengan is_verified=true')" title="Setujui">✓</button>
-                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Request Revision sedang dalam pengembangan')" title="Minta Revisi">⟳</button>
-                <button type="button" class="btn btn-ghost" onclick="alert('Fitur Reject sedang dalam pengembangan')" title="Tolak">✗</button>
+                <button 
+                  type="button" 
+                  class="btn btn-ghost moderation-action" 
+                  data-action="approve"
+                  data-brand="{{ submission.brand_slug }}"
+                  title="Setujui">✓</button>
+                <button 
+                  type="button" 
+                  class="btn btn-ghost moderation-action" 
+                  data-action="request_revision"
+                  data-brand="{{ submission.brand_slug }}"
+                  title="Minta Revisi">⟳</button>
+                <button 
+                  type="button" 
+                  class="btn btn-ghost moderation-action" 
+                  data-action="reject"
+                  data-brand="{{ submission.brand_slug }}"
+                  title="Tolak">✗</button>
               </div>
               {% elif submission.status == 'Approved' %}
               <span style="color: #4ade80;">Disetujui</span>
@@ -495,6 +510,324 @@
   </div>
 </section>
 {% endblock %}
+
+<!-- Team Invitation Modal -->
+<div id="team-invite-modal" class="modal" style="display: none;">
+  <div class="modal-overlay" onclick="closeTeamInviteModal()"></div>
+  <div class="modal-content glass-surface">
+    <header class="modal-header">
+      <h2>Undang Anggota Tim</h2>
+      <button type="button" class="btn btn-ghost" onclick="closeTeamInviteModal()">&times;</button>
+    </header>
+    
+    <form id="team-invite-form">
+      <div class="form-group">
+        <label for="invite-brand">Brand <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="invite-brand" 
+          name="brand_slug" 
+          required 
+          placeholder="brand-slug"
+          class="form-control"
+        />
+        <small class="form-hint">Masukkan slug brand (e.g., studio-senja)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="invite-profile-id">Profile ID <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="invite-profile-id" 
+          name="profile_id" 
+          required 
+          placeholder="user-profile-id"
+          class="form-control"
+        />
+        <small class="form-hint">ID profil user yang akan diundang</small>
+      </div>
+
+      <div class="form-group">
+        <label for="invite-name">Nama Lengkap <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="invite-name" 
+          name="full_name" 
+          required 
+          minlength="3"
+          maxlength="100"
+          placeholder="Nama lengkap anggota"
+          class="form-control"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="invite-username">Username <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="invite-username" 
+          name="username" 
+          required 
+          minlength="3"
+          maxlength="50"
+          placeholder="@username"
+          class="form-control"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="invite-expertise">Keahlian (opsional)</label>
+        <input 
+          type="text" 
+          id="invite-expertise" 
+          name="expertise" 
+          maxlength="200"
+          placeholder="Contoh: Perfumer, Designer, Copywriter"
+          class="form-control"
+        />
+      </div>
+
+      <div id="team-invite-response" class="form-response"></div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeTeamInviteModal()">Batal</button>
+        <button type="submit" class="btn gradient-button">
+          <span class="btn-text">Kirim Undangan</span>
+          <span class="btn-loading" style="display: none;">Mengirim...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  border-radius: 16px;
+  z-index: 1001;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.modal-header .btn-ghost {
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group .required {
+  color: #ef4444;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+.form-response {
+  margin-top: 1rem;
+}
+
+.form-response.success {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.form-response.error {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
+
+<script>
+// Team invitation modal
+function openTeamInviteModal() {
+  document.getElementById('team-invite-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTeamInviteModal() {
+  document.getElementById('team-invite-modal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+  document.getElementById('team-invite-form').reset();
+  document.getElementById('team-invite-response').innerHTML = '';
+}
+
+// Team invitation form submission
+document.getElementById('team-invite-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = {
+    brand_slug: formData.get('brand_slug'),
+    profile_id: formData.get('profile_id'),
+    full_name: formData.get('full_name'),
+    username: formData.get('username'),
+    expertise: formData.get('expertise') || null
+  };
+  
+  const responseDiv = document.getElementById('team-invite-response');
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const btnText = submitBtn.querySelector('.btn-text');
+  const btnLoading = submitBtn.querySelector('.btn-loading');
+  
+  btnText.style.display = 'none';
+  btnLoading.style.display = 'inline';
+  submitBtn.disabled = true;
+  
+  try {
+    const response = await fetch('/api/team/invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      responseDiv.className = 'form-response success';
+      responseDiv.innerHTML = '✓ ' + result.message;
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } else {
+      responseDiv.className = 'form-response error';
+      responseDiv.innerHTML = '✗ ' + (result.detail || 'Terjadi kesalahan saat mengirim undangan');
+    }
+  } catch (error) {
+    responseDiv.className = 'form-response error';
+    responseDiv.innerHTML = '✗ Terjadi kesalahan koneksi. Silakan coba lagi.';
+  } finally {
+    btnText.style.display = 'inline';
+    btnLoading.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+});
+
+// Moderation actions
+document.addEventListener('click', async function(e) {
+  if (e.target.classList.contains('moderation-action')) {
+    const action = e.target.dataset.action;
+    const brandSlug = e.target.dataset.brand;
+    
+    if (!confirm(`Apakah Anda yakin ingin ${action === 'approve' ? 'menyetujui' : action === 'reject' ? 'menolak' : 'meminta revisi'} brand ini?`)) {
+      return;
+    }
+    
+    const notes = action !== 'approve' ? prompt('Catatan (opsional):') : null;
+    
+    try {
+      const response = await fetch(`/api/moderation/brands/${brandSlug}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: action,
+          notes: notes
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        alert('✓ ' + result.message);
+        window.location.reload();
+      } else {
+        alert('✗ ' + (result.detail || 'Terjadi kesalahan'));
+      }
+    } catch (error) {
+      alert('✗ Terjadi kesalahan koneksi. Silakan coba lagi.');
+    }
+  }
+});
+</script>
 
 {% block body_scripts %}
 {{ super() }}
