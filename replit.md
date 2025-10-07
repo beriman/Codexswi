@@ -132,6 +132,38 @@ Preferred communication style: Simple, everyday language.
 - Background scheduler (APScheduler) for lifecycle management
 - Audit logs and transaction history
 
+#### BRI Wallet & Payment System
+- **E-Wallet Infrastructure**:
+  - User wallet accounts linked to BRI BaaS virtual accounts
+  - Real-time balance tracking with transaction history
+  - Wallet dashboard with hide/show toggle in navbar
+  - BRIVA integration for top-up via virtual account
+  
+- **Escrow/Hold Workflow**:
+  - Buyer payment held with `on_hold` status until delivery confirmation
+  - Automatic release to seller after delivery with 3% platform fee deduction
+  - Refund mechanism for order cancellations
+  - Atomic SQL functions: `hold_wallet_funds()`, `release_held_funds()`, `refund_held_funds()`
+  
+- **Platform Fee System**:
+  - 3% fee automatically calculated and deducted from seller payout
+  - Settlement tracking in `order_settlements` table
+  - Support for both marketplace orders and Sambatan campaigns
+  - Fee calculation: `calculate_platform_fee(amount, rate=3.00)`
+  
+- **BRI BaaS Integration**:
+  - API client with HMAC-SHA256 signature authentication
+  - BRIVA virtual account creation and inquiry
+  - Fund transfer to seller bank accounts
+  - Balance inquiry and transaction notifications
+  - Webhook handler for payment confirmation
+  - Environment variables: `BRI_CLIENT_ID`, `BRI_CLIENT_SECRET`, `BRI_API_KEY`, `BRI_MERCHANT_ID`
+  
+- **Pending Integration**:
+  - [ ] Checkout integration with wallet hold on payment
+  - [ ] Order completion trigger for automatic fund release
+  - [ ] Sambatan payout integration with escrow pattern
+
 #### Brand Management
 - Brand profiles as store showcases
 - Multi-member support (owner, admin, contributor)
@@ -149,11 +181,17 @@ Preferred communication style: Simple, everyday language.
 ### Data Layer
 
 #### Database (Supabase/PostgreSQL 15)
-- **12 active tables** including products, orders, brands, Sambatan campaigns, Nusantarum content
+- **16 active tables** including products, orders, brands, Sambatan campaigns, Nusantarum content, wallet system
 - **Row-Level Security (RLS)** for access control
-- **Triggers and functions** for automated updates (progress calculation, status transitions)
-- **Atomic operations** via stored procedures (reserve_stock, release_stock, complete_sambatan_campaign)
+- **Triggers and functions** for automated updates (progress calculation, status transitions, wallet operations)
+- **Atomic operations** via stored procedures (reserve_stock, release_stock, complete_sambatan_campaign, hold_wallet_funds, release_held_funds, refund_held_funds)
 - **Views** for performance (marketplace snapshots, directory aggregations)
+
+**Wallet System Tables:**
+- `user_wallets` - User wallet accounts with BRI virtual account linking
+- `wallet_transactions` - Transaction history with balance snapshots and escrow status tracking
+- `wallet_topup_requests` - BRIVA top-up requests with virtual account data
+- `order_settlements` - Settlement records with platform fee tracking for orders and Sambatan
 
 #### Database Helper Functions
 - `reserve_stock()` / `release_stock()` - Thread-safe inventory operations with SELECT FOR UPDATE
@@ -200,6 +238,13 @@ Preferred communication style: Simple, everyday language.
    - Shipping cost estimates for checkout
    - Environment variable: `RAJAONGKIR_API_KEY`
    - Documentation: `docs/RajaOngkir-API-Integration-Deep-Dive.md`
+
+3. **BRI BaaS API** (Banking as a Service for payment & wallet)
+   - Virtual account creation via BRIVA
+   - Fund transfers to seller accounts
+   - Wallet balance inquiry and top-up notifications
+   - Environment variables: `BRI_CLIENT_ID`, `BRI_CLIENT_SECRET`, `BRI_API_KEY`, `BRI_MERCHANT_ID`
+   - Marketplace account: 201101000546304 a.n. SENSASI WANGI INDONE
 
 ### Optional Services
 - **Email provider** (for verification emails, currently logged only)
