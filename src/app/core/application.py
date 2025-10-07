@@ -81,10 +81,12 @@ def create_app() -> FastAPI:
     from app.api.routes import auth as auth_routes
     from app.api.routes import moderation as moderation_routes
     from app.api.routes import team as team_routes
+    from app.api.routes import admin as admin_routes
 
     app.include_router(auth_routes.router)
     app.include_router(moderation_routes.router)
     app.include_router(team_routes.router)
+    app.include_router(admin_routes.router)
 
     # Expose the template engine on the app state for reuse by routers.
     app.state.templates = template_engine
