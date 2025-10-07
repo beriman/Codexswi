@@ -1180,7 +1180,8 @@ async def read_marketplace(request: Request) -> HTMLResponse:
     templates = request.app.state.templates
 
     now = datetime.now(UTC)
-    _ensure_demo_sambatan(now=now)
+    # Demo sambatan disabled for production - create campaigns via admin panel instead
+    # _ensure_demo_sambatan(now=now)
 
     sambatan_campaigns = list(sambatan_service.list_campaigns())
     sambatan_cards = [_serialize_campaign_for_ui(campaign, now=now) for campaign in sambatan_campaigns]
