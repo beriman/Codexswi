@@ -19,6 +19,30 @@ The MVP validates three key hypotheses:
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### October 2025 - UI/UX Audit & Security Fixes
+
+**Security Improvements:**
+- Fixed critical HTMX integrity error by upgrading to v2.0.7 with proper SRI hash protection (sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ)
+- Using jsDelivr CDN with crossorigin attribute for secure resource loading
+
+**Dashboard UX Enhancements:**
+- **Brand Owner Dashboard**: Improved action button labels ("Kelola Produk", "Buat Kampanye", "Kelola Tim") with better navigation flow
+- **Moderation Dashboard**: Added approve/reject/revision controls to brand verification workflow with informative status alerts
+- All interactive elements now properly render with working HTMX integration
+
+**Verified Functional Components:**
+- Onboarding workflow (3-step wizard: register → verify → profile) fully operational
+- Authentication pages (login, signup) working correctly
+- Dashboard rendering and navigation functional
+
+**Known Gaps Requiring Future Development:**
+- Product creation forms and API integration (backend routes needed)
+- Campaign creation forms and modal UIs (backend routes needed)
+- Team member invitation workflow (modal/form implementation needed)
+- Moderation API integration for approve/reject actions (backend endpoints needed)
+
 ## System Architecture
 
 ### Backend Framework
