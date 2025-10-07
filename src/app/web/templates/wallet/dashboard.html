@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<style>
+.wallet-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.wallet-header {
+  margin-bottom: 2rem;
+}
+
+.wallet-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.wallet-balance-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.wallet-balance-card h2 {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wallet-balance-card .balance-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.wallet-balance-card .kyc-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.wallet-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-topup {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-topup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.pending-topups {
+  display: grid;
+  gap: 1rem;
+}
+
+.topup-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.topup-card .va-number {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.topup-card .amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.topup-card .expires {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.transactions {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-type {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.transaction-description {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.transaction-amount {
+  text-align: right;
+}
+
+.transaction-amount .amount {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.transaction-amount.credit {
+  color: #48bb78;
+}
+
+.transaction-amount.debit {
+  color: #f56565;
+}
+
+.transaction-date {
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.topup-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.topup-modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topup-modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+}
+
+.topup-modal h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wallet-dashboard">
+  <div class="wallet-header">
+    <h1>Dompet Digital</h1>
+  </div>
+
+  <!-- Balance Card -->
+  <div class="wallet-balance-card">
+    <h2>Saldo Tersedia</h2>
+    <div class="balance-amount">Rp {{ "{:,.0f}".format(wallet.balance) }}</div>
+    <div class="kyc-status">
+      {{ 'Terverifikasi' if wallet.kyc_status == 'verified' else 'Belum Verifikasi' }}
+    </div>
+    <div class="wallet-actions">
+      <button class="btn-topup" id="btnTopup">Top Up Saldo</button>
+    </div>
+  </div>
+
+  <!-- Pending Top-ups -->
+  {% if pending_topups %}
+  <div class="section">
+    <h2>Top-up Menunggu Pembayaran</h2>
+    <div class="pending-topups">
+      {% for topup in pending_topups %}
+      <div class="topup-card">
+        <div class="va-number">{{ topup.virtual_account }}</div>
+        <div class="amount">Rp {{ "{:,.0f}".format(topup.amount) }}</div>
+        <div class="expires">
+          Berlaku hingga {{ topup.expires_at[:19] }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Transaction History -->
+  <div class="section">
+    <h2>Riwayat Transaksi</h2>
+    {% if transactions %}
+    <div class="transactions">
+      {% for tx in transactions %}
+      <div class="transaction-item">
+        <div class="transaction-info">
+          <div class="transaction-type">
+            {% if tx.type == 'topup' %}Top-up Saldo
+            {% elif tx.type == 'payment' %}Pembayaran
+            {% elif tx.type == 'refund' %}Pengembalian Dana
+            {% elif tx.type == 'payout' %}Penerimaan Dana
+            {% else %}{{ tx.type }}
+            {% endif %}
+          </div>
+          <div class="transaction-description">
+            {{ tx.description or '-' }}
+          </div>
+        </div>
+        <div class="transaction-amount {% if tx.type in ['topup', 'refund', 'payout'] %}credit{% else %}debit{% endif %}">
+          <div class="amount">
+            {% if tx.type in ['topup', 'refund', 'payout'] %}+{% else %}-{% endif %}
+            Rp {{ "{:,.0f}".format(tx.amount|abs) }}
+          </div>
+          <div class="transaction-date">
+            {{ tx.created_at.strftime('%d %b %Y, %H:%M') if tx.created_at.strftime else tx.created_at[:19] }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #718096;">Belum ada transaksi.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Top-up Modal -->
+<div class="topup-modal" id="topupModal">
+  <div class="topup-modal-content">
+    <h3>Top Up Saldo</h3>
+    <form id="topupForm">
+      <div class="form-group">
+        <label for="amount">Jumlah Top-up</label>
+        <input 
+          type="number" 
+          id="amount" 
+          name="amount" 
+          placeholder="Minimal Rp 10.000"
+          min="10000"
+          step="1000"
+          required
+        >
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="btnCancelTopup">Batal</button>
+        <button type="submit" class="btn-submit">Buat Virtual Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Top-up modal
+const modal = document.getElementById('topupModal');
+const btnTopup = document.getElementById('btnTopup');
+const btnCancel = document.getElementById('btnCancelTopup');
+const form = document.getElementById('topupForm');
+
+btnTopup.addEventListener('click', () => {
+  modal.classList.add('active');
+});
+
+btnCancel.addEventListener('click', () => {
+  modal.classList.remove('active');
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.classList.remove('active');
+  }
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const amount = document.getElementById('amount').value;
+  
+  try {
+    const response = await fetch('/api/wallet/topup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ amount: parseFloat(amount) })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      alert(error.detail || 'Gagal membuat top-up request');
+      return;
+    }
+    
+    const data = await response.json();
+    alert(`Virtual Account berhasil dibuat!\n\nNomor VA: ${data.virtual_account}\nJumlah: Rp ${data.amount.toLocaleString('id-ID')}\n\nSilakan lakukan pembayaran sebelum ${new Date(data.expires_at).toLocaleString('id-ID')}`);
+    
+    // Reload page to show pending top-up
+    window.location.reload();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan. Silakan coba lagi.');
+  }
+});
+</script>
+{% endblock %}

@@ -27,6 +27,20 @@
     </ul>
     {% set session_user = request.session.get('user') %}
     <div class="navbar-actions">
+      {% if session_user %}
+      <div class="wallet-balance-container" data-wallet-visible="true">
+        <button class="wallet-toggle-btn" type="button" title="Sembunyikan/Tampilkan saldo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+        </button>
+        <a href="{{ url_for('wallet_dashboard') }}" class="wallet-balance" id="walletBalance">
+          <span class="wallet-label">Saldo:</span>
+          <span class="wallet-amount" data-balance="0">Rp 0</span>
+        </a>
+      </div>
+      {% endif %}
       <details class="navbar-dropdown">
         <summary class="navbar-dropdown__toggle">
           <span>{% if session_user %}{{ session_user.full_name }}{% else %}Login{% endif %}</span>

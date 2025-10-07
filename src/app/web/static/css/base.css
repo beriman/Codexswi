@@ -275,6 +275,67 @@ p {
   gap: 0.75rem;
 }
 
+.wallet-balance-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wallet-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+}
+
+.wallet-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.wallet-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all var(--transition-base);
+}
+
+.wallet-balance:hover {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+}
+
+.wallet-label {
+  color: var(--text-secondary);
+  font-size: 0.813rem;
+}
+
+.wallet-amount {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.wallet-balance-container[data-wallet-visible="false"] .wallet-balance {
+  display: none;
+}
+
 .navbar-dropdown {
   position: relative;
   display: inline-flex;
