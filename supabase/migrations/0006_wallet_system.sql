@@ -339,3 +339,187 @@ COMMENT ON FUNCTION credit_wallet IS 'Atomically credit wallet balance and creat
 COMMENT ON FUNCTION debit_wallet IS 'Atomically debit wallet balance with balance check and create transaction record';
 COMMENT ON FUNCTION get_wallet_balance IS 'Get current wallet balance';
 COMMENT ON FUNCTION calculate_platform_fee IS 'Calculate platform fee (default 3%)';
+
+-- ============================================================================
+-- ESCROW / HOLD FUNCTIONS
+-- ============================================================================
+
+-- Function to hold/escrow funds for order payment
+CREATE OR REPLACE FUNCTION hold_wallet_funds(
+    p_wallet_id uuid,
+    p_amount decimal,
+    p_reference_type varchar,
+    p_reference_id varchar,
+    p_description text DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_balance_before decimal;
+    v_balance_after decimal;
+    v_transaction_id uuid;
+BEGIN
+    -- Lock wallet and get current balance
+    SELECT balance INTO v_balance_before
+    FROM user_wallets
+    WHERE id = p_wallet_id
+    FOR UPDATE;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Wallet not found: %', p_wallet_id;
+    END IF;
+    
+    -- Check sufficient balance
+    IF v_balance_before < p_amount THEN
+        RAISE EXCEPTION 'Insufficient balance for hold: available=%, required=%', v_balance_before, p_amount;
+    END IF;
+    
+    -- Calculate new balance (deduct from available)
+    v_balance_after := v_balance_before - p_amount;
+    
+    -- Update wallet balance
+    UPDATE user_wallets
+    SET balance = v_balance_after,
+        updated_at = timezone('utc', now())
+    WHERE id = p_wallet_id;
+    
+    -- Create transaction record with 'on_hold' status
+    INSERT INTO wallet_transactions (
+        wallet_id,
+        transaction_type,
+        amount,
+        balance_before,
+        balance_after,
+        status,
+        reference_type,
+        reference_id,
+        description
+    ) VALUES (
+        p_wallet_id,
+        'payment_hold',
+        -p_amount,
+        v_balance_before,
+        v_balance_after,
+        'on_hold',
+        p_reference_type,
+        p_reference_id,
+        COALESCE(p_description, 'Payment on hold')
+    ) RETURNING id INTO v_transaction_id;
+    
+    RETURN v_transaction_id;
+END;
+$$;
+
+-- Function to release held funds to seller with platform fee
+CREATE OR REPLACE FUNCTION release_held_funds(
+    p_hold_transaction_id uuid,
+    p_seller_wallet_id uuid,
+    p_platform_fee decimal
+)
+RETURNS TABLE (
+    seller_transaction_id uuid,
+    platform_fee_amount decimal
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_hold_tx wallet_transactions%ROWTYPE;
+    v_gross_amount decimal;
+    v_net_amount decimal;
+    v_seller_tx_id uuid;
+BEGIN
+    -- Get and lock hold transaction
+    SELECT * INTO v_hold_tx
+    FROM wallet_transactions
+    WHERE id = p_hold_transaction_id
+    FOR UPDATE;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Hold transaction not found: %', p_hold_transaction_id;
+    END IF;
+    
+    IF v_hold_tx.status != 'on_hold' THEN
+        RAISE EXCEPTION 'Transaction is not on hold: status=%', v_hold_tx.status;
+    END IF;
+    
+    -- Calculate amounts (hold amount is negative, make positive)
+    v_gross_amount := ABS(v_hold_tx.amount);
+    v_net_amount := v_gross_amount - p_platform_fee;
+    
+    -- Update hold transaction to released
+    UPDATE wallet_transactions
+    SET status = 'released',
+        updated_at = timezone('utc', now())
+    WHERE id = p_hold_transaction_id;
+    
+    -- Credit seller with net amount (after platform fee)
+    v_seller_tx_id := credit_wallet(
+        p_seller_wallet_id,
+        v_net_amount,
+        'payout',
+        v_hold_tx.reference_type,
+        v_hold_tx.reference_id,
+        'Payout (after ' || ROUND(p_platform_fee / v_gross_amount * 100, 2) || '% platform fee)'
+    );
+    
+    RETURN QUERY SELECT v_seller_tx_id, p_platform_fee;
+END;
+$$;
+
+-- Function to refund held funds to buyer
+CREATE OR REPLACE FUNCTION refund_held_funds(
+    p_hold_transaction_id uuid,
+    p_reason text DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_hold_tx wallet_transactions%ROWTYPE;
+    v_refund_amount decimal;
+    v_refund_tx_id uuid;
+BEGIN
+    -- Get and lock hold transaction
+    SELECT * INTO v_hold_tx
+    FROM wallet_transactions
+    WHERE id = p_hold_transaction_id
+    FOR UPDATE;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Hold transaction not found: %', p_hold_transaction_id;
+    END IF;
+    
+    IF v_hold_tx.status != 'on_hold' THEN
+        RAISE EXCEPTION 'Transaction is not on hold: status=%', v_hold_tx.status;
+    END IF;
+    
+    -- Calculate refund amount (hold amount is negative)
+    v_refund_amount := ABS(v_hold_tx.amount);
+    
+    -- Update hold transaction to refunded
+    UPDATE wallet_transactions
+    SET status = 'refunded',
+        updated_at = timezone('utc', now())
+    WHERE id = p_hold_transaction_id;
+    
+    -- Credit wallet (refund to buyer)
+    v_refund_tx_id := credit_wallet(
+        v_hold_tx.wallet_id,
+        v_refund_amount,
+        'refund',
+        v_hold_tx.reference_type,
+        v_hold_tx.reference_id,
+        COALESCE(p_reason, 'Refund of held payment')
+    );
+    
+    RETURN v_refund_tx_id;
+END;
+$$;
+
+COMMENT ON FUNCTION hold_wallet_funds IS 'Hold/escrow funds for order payment until delivery confirmation';
+COMMENT ON FUNCTION release_held_funds IS 'Release held funds to seller with platform fee deduction';
+COMMENT ON FUNCTION refund_held_funds IS 'Refund held funds back to buyer wallet';

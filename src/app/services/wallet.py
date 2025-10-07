@@ -507,6 +507,136 @@ class WalletService:
         return [self._map_transaction(tx) for tx in result.data]
     
     # ========================================================================
+    # Escrow / Hold Operations
+    # ========================================================================
+    
+    async def hold_funds(
+        self,
+        user_id: str,
+        amount: Decimal,
+        reference_type: str,
+        reference_id: str,
+        description: Optional[str] = None
+    ) -> str:
+        """Hold/escrow funds from wallet for order payment.
+        
+        Args:
+            user_id: User ID
+            amount: Amount to hold
+            reference_type: Reference type (order, sambatan, etc)
+            reference_id: Reference ID
+            description: Hold description
+            
+        Returns:
+            Hold transaction ID
+            
+        Raises:
+            InsufficientBalance: If wallet balance insufficient
+        """
+        if not self.db:
+            raise WalletError("Database not available")
+        
+        wallet = await self.get_wallet(user_id)
+        
+        if wallet.balance < amount:
+            raise InsufficientBalance(
+                f"Insufficient balance. Available: {wallet.balance}, Required: {amount}"
+            )
+        
+        # Use database function for atomic hold
+        result = self.db.rpc('hold_wallet_funds', {
+            'p_wallet_id': wallet.id,
+            'p_amount': float(amount),
+            'p_reference_type': reference_type,
+            'p_reference_id': reference_id,
+            'p_description': description
+        }).execute()
+        
+        hold_transaction_id = result.data
+        logger.info(f"Funds held: {hold_transaction_id}, Amount: {amount}, Reference: {reference_type}:{reference_id}")
+        
+        return hold_transaction_id
+    
+    async def release_held_funds(
+        self,
+        hold_transaction_id: str,
+        seller_user_id: str
+    ) -> Dict[str, Any]:
+        """Release held funds to seller with platform fee deduction.
+        
+        Args:
+            hold_transaction_id: Hold transaction ID
+            seller_user_id: Seller user ID
+            
+        Returns:
+            Release result with seller transaction ID and platform fee
+        """
+        if not self.db:
+            raise WalletError("Database not available")
+        
+        # Get hold transaction to calculate fee
+        hold_tx_result = self.db.table('wallet_transactions').select('*').eq(
+            'id', hold_transaction_id
+        ).execute()
+        
+        if not hold_tx_result.data:
+            raise WalletError(f"Hold transaction not found: {hold_transaction_id}")
+        
+        hold_tx = hold_tx_result.data[0]
+        gross_amount = abs(Decimal(str(hold_tx['amount'])))
+        platform_fee = self.calculate_platform_fee(gross_amount)
+        
+        # Get seller wallet
+        seller_wallet = await self.get_wallet(seller_user_id)
+        
+        # Release funds using database function
+        result = self.db.rpc('release_held_funds', {
+            'p_hold_transaction_id': hold_transaction_id,
+            'p_seller_wallet_id': seller_wallet.id,
+            'p_platform_fee': float(platform_fee)
+        }).execute()
+        
+        logger.info(
+            f"Funds released: Hold={hold_transaction_id}, "
+            f"Seller={seller_user_id}, Fee={platform_fee}"
+        )
+        
+        return {
+            'seller_transaction_id': result.data[0]['seller_transaction_id'] if result.data else None,
+            'platform_fee': platform_fee,
+            'gross_amount': gross_amount,
+            'net_amount': gross_amount - platform_fee
+        }
+    
+    async def refund_held_funds(
+        self,
+        hold_transaction_id: str,
+        reason: Optional[str] = None
+    ) -> str:
+        """Refund held funds back to buyer wallet.
+        
+        Args:
+            hold_transaction_id: Hold transaction ID
+            reason: Refund reason
+            
+        Returns:
+            Refund transaction ID
+        """
+        if not self.db:
+            raise WalletError("Database not available")
+        
+        # Refund using database function
+        result = self.db.rpc('refund_held_funds', {
+            'p_hold_transaction_id': hold_transaction_id,
+            'p_reason': reason
+        }).execute()
+        
+        refund_tx_id = result.data
+        logger.info(f"Funds refunded: Hold={hold_transaction_id}, Refund={refund_tx_id}")
+        
+        return refund_tx_id
+    
+    # ========================================================================
     # Platform Fee & Settlement
     # ========================================================================
     
