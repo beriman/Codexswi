@@ -63,10 +63,24 @@ Preferred communication style: Simple, everyday language.
   - Uses BrandService.invite_co_owner with proper error handling
   - Success confirmation with page reload
 
+**Tier 3 Features Implemented (October 2025):**
+- ✅ **Sales Reporting System**: 
+  - Refactored from in-memory to real Supabase data queries
+  - Supports filtering by customer_id, brand, and order status
+  - CSV/XLSX export functionality  
+  - Fallback seed data when database unavailable (maintains filter parity)
+  - **Known Limitation**: brand_id parameter accepts brand NAME values (not numeric IDs) because order_items table only stores brand_name, not brand_id. Future enhancement will add proper brand_id join via products table.
+  
+- ✅ **Order History Filtering**:
+  - Status-based filter tabs (All Orders, Menunggu Pembayaran, Diproses, Dikirim, Selesai)
+  - Active filter highlighting in UI
+  - Enhanced empty states for filtered results
+
 **Known Gaps Requiring Future Development:**
 - Product dropdown for campaign creation (currently uses text input for product_id - needs dynamic product list)
 - Moderation notes persistence (currently shown in prompt, not stored in database)
 - Team member role permissions (currently only co-owner role supported)
+- Brand filtering enhancement: Add brand_id field to order_items table or implement join through products table for proper brand ID filtering
 
 ## System Architecture
 
