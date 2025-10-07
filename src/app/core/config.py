@@ -29,19 +29,20 @@ class Settings(BaseSettings):
     rajaongkir_api_key: str | None = None
 
     # Session management
-    session_secret: str = "development-session-secret-placeholder"
+    session_secret: str = ""
     static_asset_version: str = "2024051901"
 
     @field_validator("session_secret")
     @classmethod
     def _validate_session_secret(cls, value: str) -> str:
-        # Only validate in production environments
-        # In development, allow shorter secrets for convenience
-        import os
-        env = os.getenv("ENVIRONMENT", "development")
-        if env == "production" and len(value) < 32:
+        if not value:
             raise ValueError(
-                "SESSION_SECRET harus terdiri dari minimal 32 karakter untuk keamanan."
+                "SESSION_SECRET environment variable is required for security. "
+                "Please set it in your environment."
+            )
+        if len(value) < 32:
+            raise ValueError(
+                "SESSION_SECRET must be at least 32 characters for security."
             )
         return value
 
@@ -55,12 +56,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Return cached settings instance."""
-    try:
-        settings = Settings()
-        logger.info("Settings loaded successfully")
-        return settings
-    except Exception as e:
-        logger.error(f"Failed to load settings: {e}", exc_info=True)
-        # Return settings with defaults only
-        logger.warning("Using default settings without environment variables")
-        return Settings(_env_file=None)
+    settings = Settings()
+    logger.info("Settings loaded successfully")
+    return settings

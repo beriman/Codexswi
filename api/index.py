@@ -70,10 +70,14 @@ except Exception as e:
         )
 
 # Add a health check endpoint if it doesn't exist
-if app and not any(route.path == "/health" for route in app.routes):
-    @app.get("/health")
-    async def health_check():
-        return {"status": "healthy", "service": "sensasiwangi.id"}
+if app:
+    try:
+        if not any(hasattr(route, 'path') and route.path == "/health" for route in app.routes):
+            @app.get("/health")
+            async def health_check():
+                return {"status": "healthy", "service": "sensasiwangi.id"}
+    except AttributeError:
+        pass
 
 # Vercel serverless function handler
 # This is required for Vercel to properly invoke the ASGI app
