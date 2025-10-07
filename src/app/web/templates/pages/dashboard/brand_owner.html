@@ -17,7 +17,7 @@
     </div>
     <div class="hero-actions">
       <a href="#product-management" class="btn gradient-button">Kelola Produk</a>
-      <button type="button" class="btn btn-outline" onclick="alert('Fitur Buat Kampanye Sambatan sedang dalam pengembangan. Anda dapat membuat kampanye melalui API /api/sambatan/campaigns')">Buat Kampanye</button>
+      <button type="button" class="btn btn-outline" onclick="openCampaignModal()">Buat Kampanye</button>
       <a href="/brands/{{ profile.brand_slug if profile.brand_slug else 'new' }}/edit#members" class="btn btn-ghost">Kelola Tim</a>
     </div>
   </div>
@@ -518,6 +518,7 @@
 </section>
 
 {% include 'components/product_create_modal.html' %}
+{% include 'components/campaign_create_modal.html' %}
 {% endblock %}
 
 {% block body_scripts %}

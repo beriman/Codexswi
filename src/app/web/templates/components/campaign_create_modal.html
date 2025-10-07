@@ -1,0 +1,276 @@
+<div id="campaign-create-modal" class="modal" style="display: none;">
+  <div class="modal-overlay" onclick="closeCampaignModal()"></div>
+  <div class="modal-content glass-surface">
+    <header class="modal-header">
+      <h2>Buat Kampanye Sambatan</h2>
+      <button type="button" class="btn btn-ghost" onclick="closeCampaignModal()">&times;</button>
+    </header>
+    
+    <form 
+      id="campaign-create-form"
+      hx-post="/api/sambatan/campaigns"
+      hx-target="#campaign-form-response"
+      hx-swap="innerHTML"
+      hx-on::after-request="handleCampaignCreateResponse(event)"
+    >
+      <div class="form-group">
+        <label for="campaign-product">Produk <span class="required">*</span></label>
+        <select 
+          id="campaign-product" 
+          name="product_id" 
+          required
+          class="form-control"
+        >
+          <option value="">Pilih produk...</option>
+          {% for product in snapshot.products %}
+          <option value="{{ product.sku }}">{{ product.name }} - {{ product.price }}</option>
+          {% endfor %}
+        </select>
+        <small class="form-hint">Pilih produk untuk kampanye sambatan</small>
+      </div>
+
+      <div class="form-group">
+        <label for="campaign-title">Judul Kampanye <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="campaign-title" 
+          name="title" 
+          required 
+          minlength="3"
+          maxlength="120"
+          placeholder="Contoh: Sambatan Parfum Melati 100 Botol"
+          class="form-control"
+        />
+        <small class="form-hint">Minimal 3 karakter, maksimal 120 karakter</small>
+      </div>
+
+      <div class="form-group">
+        <label for="campaign-slots">Total Slot <span class="required">*</span></label>
+        <input 
+          type="number" 
+          id="campaign-slots" 
+          name="total_slots" 
+          required 
+          min="1"
+          step="1"
+          placeholder="10"
+          class="form-control"
+        />
+        <small class="form-hint">Jumlah slot yang tersedia untuk kampanye</small>
+      </div>
+
+      <div class="form-group">
+        <label for="campaign-price">Harga per Slot (Rp) <span class="required">*</span></label>
+        <input 
+          type="number" 
+          id="campaign-price" 
+          name="price_per_slot" 
+          required 
+          min="1"
+          step="1"
+          placeholder="50000"
+          class="form-control"
+        />
+        <small class="form-hint">Harga untuk setiap slot dalam Rupiah</small>
+      </div>
+
+      <div class="form-group">
+        <label for="campaign-deadline">Deadline <span class="required">*</span></label>
+        <input 
+          type="datetime-local" 
+          id="campaign-deadline" 
+          name="deadline" 
+          required 
+          class="form-control"
+        />
+        <small class="form-hint">Tanggal dan waktu berakhirnya kampanye</small>
+      </div>
+
+      <div id="campaign-form-response" class="form-response"></div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeCampaignModal()">Batal</button>
+        <button type="submit" class="btn gradient-button">
+          <span class="btn-text">Buat Kampanye</span>
+          <span class="btn-loading" style="display: none;">Membuat...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  border-radius: 16px;
+  z-index: 1001;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.modal-header .btn-ghost {
+  font-size: 2rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group .required {
+  color: #ef4444;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+
+.form-response {
+  margin-top: 1rem;
+}
+
+.form-response.success {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.form-response.error {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-loading {
+  display: none !important;
+}
+
+.htmx-request .btn-text {
+  display: none !important;
+}
+
+.htmx-request .btn-loading {
+  display: inline !important;
+}
+</style>
+
+<script>
+function openCampaignModal() {
+  document.getElementById('campaign-create-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  // Set minimum deadline to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().slice(0, 16);
+  document.getElementById('campaign-deadline').min = minDate;
+}
+
+function closeCampaignModal() {
+  document.getElementById('campaign-create-modal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+  document.getElementById('campaign-create-form').reset();
+  document.getElementById('campaign-form-response').innerHTML = '';
+}
+
+function handleCampaignCreateResponse(event) {
+  const xhr = event.detail.xhr;
+  const responseDiv = document.getElementById('campaign-form-response');
+  
+  if (xhr.status === 201) {
+    responseDiv.className = 'form-response success';
+    responseDiv.innerHTML = '✓ Kampanye berhasil dibuat! Halaman akan dimuat ulang...';
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  } else {
+    responseDiv.className = 'form-response error';
+    try {
+      const error = JSON.parse(xhr.responseText);
+      responseDiv.innerHTML = '✗ ' + (error.detail || 'Terjadi kesalahan saat membuat kampanye');
+    } catch {
+      responseDiv.innerHTML = '✗ Terjadi kesalahan saat membuat kampanye';
+    }
+  }
+}
+</script>
