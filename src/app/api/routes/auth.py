@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
-try:
+if TYPE_CHECKING:
     from supabase import Client
-except ImportError:
-    Client = None  # type: ignore
+else:
+    try:
+        from supabase import Client
+    except ImportError:
+        Client = Any  # type: ignore
 
 from app.core.dependencies import get_db
 from app.core.rate_limit import limiter, RATE_LIMITS
@@ -73,7 +76,7 @@ class SessionResponse(BaseModel):
     user: dict | None = None
 
 
-def get_auth_service(db: Optional[Client] = Depends(get_db)) -> AuthService:
+def get_auth_service(db: Client | None = Depends(get_db)) -> AuthService:
     if db:
         return AuthService(db=db)
     return auth_service
@@ -146,7 +149,8 @@ async def login_user(
 ) -> AuthPayload:
     if payload is None:
         form = await request.form()
-        payload = LoginRequest(**dict(form))
+        form_dict = {key: value for key, value in form.items() if isinstance(value, str)}
+        payload = LoginRequest(**form_dict)
 
     try:
         user = service.authenticate(email=payload.email, password=payload.password)

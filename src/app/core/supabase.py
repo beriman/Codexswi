@@ -1,14 +1,18 @@
 """Supabase client initialization and configuration."""
 
 from functools import lru_cache
-from typing import Optional
+from typing import TYPE_CHECKING, Any
 
-try:
-    from supabase import create_client, Client
-    SUPABASE_AVAILABLE = True
-except ImportError:
-    SUPABASE_AVAILABLE = False
-    Client = None  # type: ignore
+if TYPE_CHECKING:
+    from supabase import Client
+else:
+    try:
+        from supabase import create_client, Client
+        SUPABASE_AVAILABLE = True
+    except ImportError:
+        SUPABASE_AVAILABLE = False
+        Client = Any  # type: ignore
+        create_client = None  # type: ignore
 
 from app.core.config import get_settings
 
@@ -18,10 +22,10 @@ class SupabaseError(Exception):
 
 
 @lru_cache
-def get_supabase_client() -> Optional[Client]:
+def get_supabase_client() -> Client | None:
     """Return a configured Supabase client or None if unavailable."""
     
-    if not SUPABASE_AVAILABLE:
+    if not SUPABASE_AVAILABLE or create_client is None:
         return None
     
     settings = get_settings()
