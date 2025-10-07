@@ -84,7 +84,7 @@
       </div>
       <div class="section-tools">
         <button type="button" class="btn btn-outline">Impor CSV</button>
-        <button type="button" class="btn gradient-button">Produk Baru</button>
+        <button type="button" class="btn gradient-button" onclick="openProductModal()">Produk Baru</button>
       </div>
     </header>
 
@@ -516,6 +516,8 @@
     </aside>
   </div>
 </section>
+
+{% include 'components/product_create_modal.html' %}
 {% endblock %}
 
 {% block body_scripts %}
