@@ -14,19 +14,16 @@
       hx-on::after-request="handleCampaignCreateResponse(event)"
     >
       <div class="form-group">
-        <label for="campaign-product">Produk <span class="required">*</span></label>
-        <select 
+        <label for="campaign-product">Product ID <span class="required">*</span></label>
+        <input 
+          type="text" 
           id="campaign-product" 
           name="product_id" 
-          required
+          required 
+          placeholder="Masukkan Product ID (UUID)"
           class="form-control"
-        >
-          <option value="">Pilih produk...</option>
-          {% for product in snapshot.products %}
-          <option value="{{ product.sku }}">{{ product.name }} - {{ product.price }}</option>
-          {% endfor %}
-        </select>
-        <small class="form-hint">Pilih produk untuk kampanye sambatan</small>
+        />
+        <small class="form-hint">Gunakan Product ID dari daftar produk Anda. Produk harus sudah diaktifkan untuk Sambatan.</small>
       </div>
 
       <div class="form-group">
