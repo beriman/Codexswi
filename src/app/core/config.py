@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # RajaOngkir integration
     rajaongkir_api_key: str | None = None
 
+    # BRI BaaS API configuration
+    bri_client_id: str | None = None
+    bri_client_secret: str | None = None
+    bri_api_key: str | None = None
+    bri_merchant_account: str = "201101000546304"  # Sensasiwangi marketplace account
+    bri_environment: str = "sandbox"  # or "production"
+
     # Session management
     session_secret: str = ""
     static_asset_version: str = "2024051901"
