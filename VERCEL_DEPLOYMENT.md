@@ -84,7 +84,7 @@ Static files (CSS, JS, images) are served from the `/static` route. If the stati
 
 ### Monitoring
 
-Check application logs at: `https://your-deployment-url/_logs`
+Check application logs at: `https://codexswi-3t10kv8s1-berimanjuliano-gmailcoms-projects.vercel.app/_logs`
 
 ## Troubleshooting
 

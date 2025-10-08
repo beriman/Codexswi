@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import mimetypes
 import secrets
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -43,7 +44,11 @@ class BrandLogoStorage:
     def __init__(self, *, bucket: str = "brand-assets", media_root: Optional[Path] = None) -> None:
         self._bucket = bucket
         self._settings = get_settings()
-        self._media_root = media_root or Path("media/uploads")
+        is_vercel = os.getenv("VERCEL") == "1"
+        if is_vercel:
+            self._media_root = Path("/tmp/media/uploads")
+        else:
+            self._media_root = media_root or Path("media/uploads")
         self._media_root.mkdir(parents=True, exist_ok=True)
 
     def store_logo(self, *, slug: str, upload: LogoUpload) -> str:
