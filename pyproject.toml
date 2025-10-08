@@ -10,7 +10,7 @@ authors = [{ name = "Sensasiwangi Team" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi==0.110.0",
+    "fastapi==0.100.0",
     "pydantic==2.5.3",
     "typing-extensions==4.9.0",
 
