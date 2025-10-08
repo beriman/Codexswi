@@ -31,6 +31,41 @@ from app.api.routes import wallet as wallet_routes
 logger = logging.getLogger(__name__)
 
 
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application."""
+    settings = get_settings()
+
+    app = FastAPI(
+        title=settings.app_name,
+        version=settings.static_asset_version,
+        description="Sensasiwangi.id MVP API",
+        docs_url="/docs" if settings.environment == "development" else None,
+        redoc_url="/redoc" if settings.environment == "development" else None,
+    )
+
+    # Configure CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Adjust as needed for your frontend
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Add session middleware
+    app.add_middleware(InMemorySessionMiddleware)
+
+    # Configure rate limiting
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # Serve static files
+    # Ensure the path to the static directory is correct relative to the app's root
+    STATIC_DIR = Path(__file__).parent.parent / "web" / "static"
+    if STATIC_DIR.is_dir():
+        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    else:
+        logger.warning(f"Static files directory not found at {STATIC_DIR}")
 
     # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)
