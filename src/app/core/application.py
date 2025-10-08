@@ -30,41 +30,7 @@ from app.api.routes import wallet as wallet_routes
 
 logger = logging.getLogger(__name__)
 
-STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "static"
 
-
-def create_app() -> FastAPI:
-    """Create and configure the FastAPI application instance."""
-
-    settings = get_settings()
-
-    app = FastAPI(title=settings.app_name)
-
-    # Add rate limiter state
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-    app.add_middleware(
-        InMemorySessionMiddleware,
-        max_age=60 * 60 * 24 * 30,
-        same_site="lax",
-    )
-
-    # Basic CORS setup to simplify early integrations with Supabase and
-    # front-end previews during the MVP stage.
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # Mount static assets (CSS, JS, images) served by the Jinja2 templates.
-    # Only mount if the directory exists (may not be available in serverless deployments)
-    if STATIC_DIR.exists():
-        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-    else:
-        logger.warning(f"Static directory not found at {STATIC_DIR}, skipping mount")
 
     # Register routers for server-rendered pages and API endpoints.
     app.include_router(root_routes.router)

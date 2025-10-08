@@ -41,28 +41,15 @@ class LogoUpload:
 class BrandLogoStorage:
     """Persist brand logos to Supabase Storage with a local fallback."""
 
-    def __init__(self, *, bucket: str = "brand-assets", media_root: Optional[Path] = None) -> None:
+    def __init__(self, *, bucket: str = "brand-assets") -> None:
         self._bucket = bucket
         self._settings = get_settings()
-        is_vercel = os.getenv("VERCEL") == "1"
-        if is_vercel:
-            self._media_root = Path("/tmp/media/uploads")
-        else:
-            self._media_root = media_root or Path("media/uploads")
-        self._media_root.mkdir(parents=True, exist_ok=True)
 
     def store_logo(self, *, slug: str, upload: LogoUpload) -> str:
         """Persist the provided logo and return a public URL."""
 
         object_name = self._build_object_name(slug, upload)
-        try:
-            return self._upload_to_supabase(object_name, upload)
-        except StorageUnavailable:
-            return self._save_locally(object_name, upload)
-        except StorageUploadFailed:
-            raise
-        except Exception as exc:  # pragma: no cover - defensive programming
-            raise StorageUploadFailed("Gagal menyimpan logo brand.") from exc
+        return self._upload_to_supabase(object_name, upload)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -105,13 +92,3 @@ class BrandLogoStorage:
             raise StorageUploadFailed("Supabase menolak unggahan logo brand.")
 
         return f"{settings.supabase_url}/storage/v1/object/public/{self._bucket}/{object_name}"
-
-    def _save_locally(self, object_name: str, upload: LogoUpload) -> str:
-        target_path = self._media_root / object_name
-        try:
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            target_path.write_bytes(upload.data)
-        except OSError as exc:  # pragma: no cover - disk write issues are environment specific
-            raise StorageUploadFailed("Gagal menyimpan logo brand secara lokal.") from exc
-
-        return f"/media/uploads/{object_name}"
